@@ -1,4 +1,5 @@
 'use client'
+'use client';
 import * as React from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { format } from 'date-fns';

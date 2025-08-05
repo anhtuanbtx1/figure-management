@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect } from "react";
 import { filter, orderBy } from "lodash";
 import Box from '@mui/material/Box'

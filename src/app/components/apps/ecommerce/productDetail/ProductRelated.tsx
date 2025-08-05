@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect } from "react";
 import Box from '@mui/material/Box';
 import CardContent from '@mui/material/CardContent';

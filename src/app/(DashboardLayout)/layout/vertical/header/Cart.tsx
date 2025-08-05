@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { sum } from 'lodash';
 import {  IconShoppingCart, IconX } from '@tabler/icons-react';
