@@ -84,11 +84,13 @@ const JsonDemoPage = () => {
         </Button>
       </Box>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+      <>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+      </>
 
       <Grid container spacing={3}>
         {products.map((product) => (

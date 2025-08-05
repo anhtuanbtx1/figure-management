@@ -1,16 +1,11 @@
 import mock from '../mock';
-import fs from 'fs';
-import path from 'path';
+import productsJson from '../../../data/products.json';
 
-// Load products data from JSON file
+// Load products data from JSON file and convert dates
 const loadProductsData = () => {
   try {
-    const filePath = path.join(process.cwd(), 'src', 'data', 'products.json');
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    const products = JSON.parse(fileContents);
-
     // Convert created dates from string to Date objects
-    return products.map((product: any) => ({
+    return productsJson.map((product: any) => ({
       ...product,
       created: new Date(product.created)
     }));

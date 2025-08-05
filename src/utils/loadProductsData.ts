@@ -18,10 +18,10 @@ export const fetchProductsFromAPI = async (): Promise<ProductType[]> => {
 // For server-side usage - load directly from JSON
 export const loadProductsFromJSON = async (): Promise<ProductType[]> => {
   try {
-    // Dynamic import for client-side compatibility
+    // Dynamic import for both client and server-side compatibility
     const productsData = await import('@/data/products.json');
     const products = productsData.default;
-    
+
     // Convert created dates from string to Date objects
     return products.map((product: any) => ({
       ...product,
