@@ -26,6 +26,7 @@ import {
   Stack,
   InputAdornment,
   Chip,
+  FormControlLabel,
 } from "@mui/material";
 import Link from "next/link";
 import EditIcon from "@mui/icons-material/Edit";
@@ -42,6 +43,7 @@ import {
   IconTruck,
 } from "@tabler/icons-react";
 import CustomCheckbox from "@/app/components/forms/theme-elements/CustomCheckbox";
+import CustomSwitch from "@/app/components/forms/theme-elements/CustomSwitch";
 
 function InvoiceList() {
   const { invoices, deleteInvoice } = useContext(InvoiceContext);
@@ -50,6 +52,7 @@ function InvoiceList() {
   const [selectedProducts, setSelectedProducts] = useState<any>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [dense, setDense] = useState(false);
 
   const tabItem = ["All", "Shipped", "Delivered", "Pending"];
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -106,6 +109,11 @@ function InvoiceList() {
   const handleClick = (status: string) => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % tabItem.length);
     setActiveTab(status);
+  };
+
+  // Handle dense padding toggle
+  const handleChangeDense = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDense(event.target.checked);
   };
 
 
@@ -302,6 +310,43 @@ function InvoiceList() {
         </Grid>
       </Grid>
 
+      {/* Status Filter */}
+      <Box sx={{ mt: 3, mb: 2 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Lọc theo trạng thái
+        </Typography>
+        <Stack direction="row" spacing={1} flexWrap="wrap">
+          <Chip
+            label="Tất cả"
+            variant={activeTab === 'All' ? 'filled' : 'outlined'}
+            color={activeTab === 'All' ? 'primary' : 'default'}
+            onClick={() => handleClick('All')}
+            sx={{ cursor: 'pointer' }}
+          />
+          <Chip
+            label="Đã giao"
+            variant={activeTab === 'Shipped' ? 'filled' : 'outlined'}
+            color={activeTab === 'Shipped' ? 'info' : 'default'}
+            onClick={() => handleClick('Shipped')}
+            sx={{ cursor: 'pointer' }}
+          />
+          <Chip
+            label="Đã hoàn thành"
+            variant={activeTab === 'Delivered' ? 'filled' : 'outlined'}
+            color={activeTab === 'Delivered' ? 'success' : 'default'}
+            onClick={() => handleClick('Delivered')}
+            sx={{ cursor: 'pointer' }}
+          />
+          <Chip
+            label="Chưa giải quyết"
+            variant={activeTab === 'Pending' ? 'filled' : 'outlined'}
+            color={activeTab === 'Pending' ? 'warning' : 'default'}
+            onClick={() => handleClick('Pending')}
+            sx={{ cursor: 'pointer' }}
+          />
+        </Stack>
+      </Box>
+
       <Stack
         mt={3}
         justifyContent="space-between"
@@ -347,7 +392,10 @@ function InvoiceList() {
       </Stack>
 
       <Box sx={{ overflowX: "auto" }}>
-        <Table sx={{ whiteSpace: { xs: "nowrap", md: "unset" } }}>
+        <Table
+          sx={{ whiteSpace: { xs: "nowrap", md: "unset" } }}
+          size={dense ? 'small' : 'medium'}
+        >
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
@@ -497,6 +545,14 @@ function InvoiceList() {
         showItemsPerPageSelector={true}
         showPageInfo={true}
       />
+
+      {/* Dense Padding Toggle */}
+      <Box sx={{ mt: 2, ml: 2 }}>
+        <FormControlLabel
+          control={<CustomSwitch checked={dense} onChange={handleChangeDense} />}
+          label="Dense padding"
+        />
+      </Box>
 
       <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
         <DialogTitle>Confirm Delete</DialogTitle>
