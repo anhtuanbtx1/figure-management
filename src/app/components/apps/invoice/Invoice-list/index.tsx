@@ -1,6 +1,8 @@
 "use client";
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { InvoiceContext } from "@/app/context/InvoiceContext/index";
+import { usePagination } from "@/hooks/usePagination";
+import PaginationControls from "@/app/components/shared/PaginationControls";
 import {
   Table,
   TextField,
@@ -52,6 +54,53 @@ function InvoiceList() {
   const tabItem = ["All", "Shipped", "Delivered", "Pending"];
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Filter function for search and status
+  const filterInvoices = (invoice: any, searchTerm: string) => {
+    const matchesSearch = searchTerm === "" ||
+      invoice.billFrom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.billTo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.id.toString().includes(searchTerm);
+
+    const matchesStatus = activeTab === "All" || invoice.status === activeTab;
+
+    return matchesSearch && matchesStatus;
+  };
+
+  // Get filtered invoices based on current tab
+  const getFilteredInvoices = () => {
+    if (activeTab === "All") {
+      return invoices;
+    }
+    return invoices.filter((invoice: any) => invoice.status === activeTab);
+  };
+
+  const filteredInvoices = getFilteredInvoices();
+
+  // Pagination hook
+  const {
+    currentPage,
+    itemsPerPage,
+    totalItems,
+    totalPages,
+    paginatedData,
+    startIndex,
+    endIndex,
+    setCurrentPage,
+    setItemsPerPage,
+    canGoNext,
+    canGoPrevious
+  } = usePagination({
+    data: filteredInvoices,
+    defaultItemsPerPage: 10,
+    searchTerm,
+    filterFn: (invoice, search) => {
+      return search === "" ||
+        invoice.billFrom.toLowerCase().includes(search.toLowerCase()) ||
+        invoice.billTo.toLowerCase().includes(search.toLowerCase()) ||
+        invoice.id.toString().includes(search);
+    }
+  });
+
 
   // Handle status filter change
   const handleClick = (status: string) => {
@@ -61,16 +110,17 @@ function InvoiceList() {
 
 
 
-  // Filter invoices based on search term
-  const filteredInvoices = invoices.filter(
-    (invoice: { billFrom: string; billTo: string; status: string }) => {
-      return (
-        (invoice.billFrom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          invoice.billTo.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (activeTab === "All" || invoice.status === activeTab)
-      );
-    }
-  );
+  // Use paginated data from the hook
+  const displayedInvoices = paginatedData;
+
+  // Check if all items on current page are selected
+  const isCurrentPageFullySelected = displayedInvoices.length > 0 &&
+    displayedInvoices.every((invoice: { id: any }) => selectedProducts.includes(invoice.id));
+
+  // Update selectAll state based on current page selection
+  useEffect(() => {
+    setSelectAll(isCurrentPageFullySelected);
+  }, [isCurrentPageFullySelected]);
 
 
 
@@ -85,14 +135,22 @@ function InvoiceList() {
     (t: { status: string }) => t.status === "Pending"
   ).length;
 
-  // Toggle all checkboxes
+  // Toggle all checkboxes (only for current page)
   const toggleSelectAll = () => {
-    const selectAllValue = !selectAll;
-    setSelectAll(selectAllValue);
-    if (selectAllValue) {
-      setSelectedProducts(invoices.map((invoice: { id: any }) => invoice.id));
+    const currentPageIds = displayedInvoices.map((invoice: { id: any }) => invoice.id);
+
+    if (isCurrentPageFullySelected) {
+      // Deselect all items on current page
+      setSelectedProducts(selectedProducts.filter((id: any) => !currentPageIds.includes(id)));
     } else {
-      setSelectedProducts([]);
+      // Select all items on current page
+      const newSelected = [...selectedProducts];
+      currentPageIds.forEach((id: any) => {
+        if (!newSelected.includes(id)) {
+          newSelected.push(id);
+        }
+      });
+      setSelectedProducts(newSelected);
     }
   };
 
@@ -331,7 +389,7 @@ function InvoiceList() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredInvoices.map(
+            {displayedInvoices.map(
               (invoice: {
                 id: any;
                 billFrom: any;
@@ -422,6 +480,24 @@ function InvoiceList() {
           </TableBody>
         </Table>
       </Box>
+
+      {/* Pagination Controls */}
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={itemsPerPage}
+        totalItems={totalItems}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        onPageChange={setCurrentPage}
+        onItemsPerPageChange={setItemsPerPage}
+        canGoNext={canGoNext}
+        canGoPrevious={canGoPrevious}
+        itemsPerPageOptions={[5, 10, 25, 50]}
+        showItemsPerPageSelector={true}
+        showPageInfo={true}
+      />
+
       <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
