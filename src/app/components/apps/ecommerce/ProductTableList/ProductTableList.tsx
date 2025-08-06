@@ -21,6 +21,9 @@ import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import { visuallyHidden } from '@mui/utils';
 import { useSelector, useDispatch } from '@/store/hooks';
 import { fetchProducts } from '@/store/apps/eCommerce/ECommerceSlice';
@@ -238,17 +241,34 @@ const ProductTableList = () => {
 
   const [rows, setRows] = React.useState<any>(getProducts);
   const [search, setSearch] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState<string>('all');
 
-  React.useEffect(() => {
-    setRows(getProducts);
+  // Combined filtering function
+  const applyFilters = React.useCallback((searchTerm: string, status: string) => {
+    let filteredRows: ProductType[] = getProducts.filter((row) => {
+      const matchesSearch = row.title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = status === 'all' ||
+        (status === 'instock' && row.stock) ||
+        (status === 'outofstock' && !row.stock);
+
+      return matchesSearch && matchesStatus;
+    });
+    setRows(filteredRows);
   }, [getProducts]);
 
+  React.useEffect(() => {
+    applyFilters(search, statusFilter);
+  }, [getProducts, applyFilters, search, statusFilter]);
+
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const filteredRows: ProductType[] = getProducts.filter((row) => {
-      return row.title.toLowerCase().includes(event.target.value);
-    });
-    setSearch(event.target.value);
-    setRows(filteredRows);
+    const searchValue = event.target.value;
+    setSearch(searchValue);
+    applyFilters(searchValue, statusFilter);
+  };
+
+  const handleStatusFilter = (status: string) => {
+    setStatusFilter(status);
+    applyFilters(search, status);
   };
 
   // This is for the sorting
@@ -319,6 +339,37 @@ const ProductTableList = () => {
           search={search}
           handleSearch={(event: any) => handleSearch(event)}
         />
+
+        {/* Status Filter */}
+        <Box sx={{ mx: 2, mt: 2, mb: 1 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Filter by Status
+          </Typography>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Chip
+              label="All Products"
+              variant={statusFilter === 'all' ? 'filled' : 'outlined'}
+              color={statusFilter === 'all' ? 'primary' : 'default'}
+              onClick={() => handleStatusFilter('all')}
+              sx={{ cursor: 'pointer' }}
+            />
+            <Chip
+              label="In Stock"
+              variant={statusFilter === 'instock' ? 'filled' : 'outlined'}
+              color={statusFilter === 'instock' ? 'success' : 'default'}
+              onClick={() => handleStatusFilter('instock')}
+              sx={{ cursor: 'pointer' }}
+            />
+            <Chip
+              label="Out of Stock"
+              variant={statusFilter === 'outofstock' ? 'filled' : 'outlined'}
+              color={statusFilter === 'outofstock' ? 'error' : 'default'}
+              onClick={() => handleStatusFilter('outofstock')}
+              sx={{ cursor: 'pointer' }}
+            />
+          </Stack>
+        </Box>
+
         <Paper variant="outlined" sx={{ mx: 2, mt: 1, border: `1px solid ${borderColor}` }}>
           <TableContainer>
             <Table
