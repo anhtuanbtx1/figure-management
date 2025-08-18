@@ -26,8 +26,6 @@ import {
   IconEdit,
   IconTrash,
   IconEye,
-  IconArrowUp,
-  IconArrowDown,
 } from '@tabler/icons-react';
 
 import { Toy, ToyTableProps, ToyStatus } from '../../../types/apps/toy';
@@ -199,25 +197,6 @@ const ToyTable: React.FC<ToyTableProps> = ({
                   }}
                 />
               </TableCell>
-              
-              <TableCell
-                sx={{
-                  width: 120,
-                  minWidth: 100,
-                  maxWidth: 140,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                <TableSortLabel
-                  active={sortField === 'id'}
-                  direction={sortField === 'id' ? sortDirection : 'asc'}
-                  onClick={() => handleSort('id')}
-                >
-                  ID
-                </TableSortLabel>
-              </TableCell>
 
               <TableCell
                 sx={{
@@ -253,7 +232,13 @@ const ToyTable: React.FC<ToyTableProps> = ({
                   maxWidth: 250 // Increased from 180 to 250
                 }}
               >
-                Danh mục
+                <TableSortLabel
+                  active={sortField === 'category'}
+                  direction={sortField === 'category' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('category')}
+                >
+                  Danh mục
+                </TableSortLabel>
               </TableCell>
 
               <TableCell
@@ -356,33 +341,6 @@ const ToyTable: React.FC<ToyTableProps> = ({
                       },
                     }}
                   />
-                </TableCell>
-
-                <TableCell
-                  sx={{
-                    width: 120,
-                    minWidth: 100,
-                    maxWidth: 140,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    fontWeight={600}
-                    sx={{
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      fontSize: '0.8rem',
-                      fontFamily: 'monospace',
-                      color: 'text.secondary'
-                    }}
-                    title={toy.id} // Show full ID on hover
-                  >
-                    #{toy.id}
-                  </Typography>
                 </TableCell>
 
                 <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
@@ -528,11 +486,13 @@ const ToyTable: React.FC<ToyTableProps> = ({
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-            minWidth: 160,
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 2,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              minWidth: 160,
+            },
           },
         }}
       >

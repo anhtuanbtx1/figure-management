@@ -19,7 +19,7 @@ const BCrumb = [
 const WalletPage = () => {
   return (
     <PageContainer title="Quản lý ví" description="Quản lý ví điện tử và giao dịch">
-      <Breadcrumb title="Quản lý ví" items={BCrumb} />
+      {/* <Breadcrumb title="Quản lý ví" items={BCrumb} /> */}
       
       <Grid container spacing={3}>
         {/* Statistics Cards */}

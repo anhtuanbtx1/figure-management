@@ -393,7 +393,7 @@ const ToyManagementPage = () => {
 
   return (
     <PageContainer title="Quản lý đồ chơi" description="Danh sách đồ chơi">
-      <Breadcrumb title="Quản lý đồ chơi" items={BCrumb} />
+      {/* <Breadcrumb title="Quản lý đồ chơi" items={BCrumb} /> */}
 
       {/* Loading Fallback for Race Condition Prevention */}
       <LoadingFallback

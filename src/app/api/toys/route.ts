@@ -183,6 +183,12 @@ export async function GET(request: NextRequest) {
           CASE WHEN '${sortField}' = 'name' AND '${sortDirection}' = 'desc' THEN t.Name END DESC,
           CASE WHEN '${sortField}' = 'price' AND '${sortDirection}' = 'asc' THEN t.Price END ASC,
           CASE WHEN '${sortField}' = 'price' AND '${sortDirection}' = 'desc' THEN t.Price END DESC,
+          CASE WHEN '${sortField}' = 'stock' AND '${sortDirection}' = 'asc' THEN t.Stock END ASC,
+          CASE WHEN '${sortField}' = 'stock' AND '${sortDirection}' = 'desc' THEN t.Stock END DESC,
+          CASE WHEN '${sortField}' = 'category' AND '${sortDirection}' = 'asc' THEN c.Name END ASC,
+          CASE WHEN '${sortField}' = 'category' AND '${sortDirection}' = 'desc' THEN c.Name END DESC,
+          CASE WHEN '${sortField}' = 'createdAt' AND '${sortDirection}' = 'asc' THEN t.CreatedAt END ASC,
+          CASE WHEN '${sortField}' = 'createdAt' AND '${sortDirection}' = 'desc' THEN t.CreatedAt END DESC,
           t.CreatedAt DESC
         OFFSET ${(page - 1) * pageSize} ROWS
         FETCH NEXT ${pageSize} ROWS ONLY
