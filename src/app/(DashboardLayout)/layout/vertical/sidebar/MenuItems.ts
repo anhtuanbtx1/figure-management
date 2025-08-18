@@ -66,6 +66,8 @@ import {
   IconAppWindow,
   IconNotebook,
   IconFileCheck,
+  IconWallet,
+  IconUsers,
 } from "@tabler/icons-react";
 
 const Menuitems: MenuitemsType[] = [
@@ -221,6 +223,24 @@ const Menuitems: MenuitemsType[] = [
     icon: IconMessage2,
     href: "/apps/chats",
   },
+    {
+    id: uniqueId(),
+    title: "Quản lý ví",
+    icon: IconWallet,
+    href: "/apps/wallet",
+  },
+  {
+    id: uniqueId(),
+    title: "Quản lý đồ chơi",
+    icon: IconBox,
+    href: "/apps/toy-management",
+  },
+  {
+    id: uniqueId(),
+    title: "Quản lý khách mời sự kiện",
+    icon: IconUsers,
+    href: "/apps/event-guests",
+  },
   {
     id: uniqueId(),
     title: "Users",
@@ -283,6 +303,7 @@ const Menuitems: MenuitemsType[] = [
     icon: IconNotebook,
     href: "/apps/kanban",
   },
+  
 
   {
     id: uniqueId(),
@@ -316,6 +337,8 @@ const Menuitems: MenuitemsType[] = [
       },
     ],
   },
+
+
 
   {
     navlabel: true,

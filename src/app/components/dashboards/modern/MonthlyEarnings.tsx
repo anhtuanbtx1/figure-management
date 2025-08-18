@@ -64,7 +64,7 @@ const MonthlyEarnings = ({ isLoading }: MonthlyearningsCardProps) => {
           <SkeletonMonthlyEarningsTwoCard />
         ) : (
           <DashboardCard
-            title="Monthly Earnings"
+            title="Thu nhập hàng tháng"
             action={
               <Fab color="secondary" size="medium">
                 <IconCurrencyDollar width={24} />
@@ -76,7 +76,7 @@ const MonthlyEarnings = ({ isLoading }: MonthlyearningsCardProps) => {
           >
             <>
               <Typography variant="h3" fontWeight="700" mt="-20px">
-                $6,820
+                6.820.000 VNĐ
               </Typography>
               <Stack direction="row" spacing={1} my={1} alignItems="center">
                 <Avatar sx={{ bgcolor: errorlight, width: 27, height: 27 }}>
@@ -86,7 +86,7 @@ const MonthlyEarnings = ({ isLoading }: MonthlyearningsCardProps) => {
                   +9%
                 </Typography>
                 <Typography variant="subtitle2" color="textSecondary">
-                  last year
+                  năm trước
                 </Typography>
               </Stack>
             </>

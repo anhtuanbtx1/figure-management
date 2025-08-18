@@ -41,7 +41,7 @@ const TicketListing = () => {
         return tickets.filter(
           (c) =>
             !c.deleted &&
-            c.Status === 'Pending' &&
+            (c.Status === 'Pending' || c.Status === 'Chờ xử lý') &&
             c.ticketTitle.toLocaleLowerCase().includes(ticketSearch),
         );
 
@@ -49,7 +49,7 @@ const TicketListing = () => {
         return tickets.filter(
           (c) =>
             !c.deleted &&
-            c.Status === 'Closed' &&
+            (c.Status === 'Closed' || c.Status === 'Đã đóng') &&
             c.ticketTitle.toLocaleLowerCase().includes(ticketSearch),
         );
 
@@ -57,7 +57,7 @@ const TicketListing = () => {
         return tickets.filter(
           (c) =>
             !c.deleted &&
-            c.Status === 'Open' &&
+            (c.Status === 'Open' || c.Status === 'Đang mở') &&
             c.ticketTitle.toLocaleLowerCase().includes(ticketSearch),
         );
 
@@ -74,11 +74,11 @@ const TicketListing = () => {
     ),
   );
   const ticketBadge = (ticket: TicketType) => {
-    return ticket.Status === 'Open'
+    return (ticket.Status === 'Open' || ticket.Status === 'Đang mở')
       ? theme.palette.success.light
-      : ticket.Status === 'Closed'
+      : (ticket.Status === 'Closed' || ticket.Status === 'Đã đóng')
         ? theme.palette.error.light
-        : ticket.Status === 'Pending'
+        : (ticket.Status === 'Pending' || ticket.Status === 'Chờ xử lý')
           ? theme.palette.warning.light
           : ticket.Status === 'Moderate'
             ? theme.palette.primary.light
@@ -90,7 +90,7 @@ const TicketListing = () => {
       <Box sx={{ maxWidth: '260px', ml: 'auto' }} mb={3}>
         <TextField
           size="small"
-          label="Search"
+          label="Tìm kiếm"
           fullWidth
           onChange={(e) => dispatch(SearchTicket(e.target.value))}
         />
@@ -100,22 +100,22 @@ const TicketListing = () => {
           <TableHead>
             <TableRow>
               <TableCell>
-                <Typography variant="h6">Id</Typography>
+                <Typography variant="h6">ID</Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="h6">Ticket</Typography>
+                <Typography variant="h6">Phiếu hỗ trợ</Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="h6">Assigned To</Typography>
+                <Typography variant="h6">Được giao cho</Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="h6">Status</Typography>
+                <Typography variant="h6">Trạng thái</Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="h6">Date</Typography>
+                <Typography variant="h6">Ngày</Typography>
               </TableCell>
               <TableCell align="right">
-                <Typography variant="h6">Action</Typography>
+                <Typography variant="h6">Thao tác</Typography>
               </TableCell>
             </TableRow>
           </TableHead>
@@ -167,7 +167,7 @@ const TicketListing = () => {
                   </Typography>
                 </TableCell>
                 <TableCell align="right">
-                  <Tooltip title="Delete Ticket">
+                  <Tooltip title="Xóa phiếu hỗ trợ">
                     <IconButton onClick={() => dispatch(DeleteTicket(ticket.Id))}>
                       <IconTrash size="18" />
                     </IconButton>

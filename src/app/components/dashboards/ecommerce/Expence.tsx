@@ -30,7 +30,7 @@ const Expence = ({ isLoading }: ExpanceCardProps) => {
       },
       height: 120,
     },
-    labels: ["Profit", "Revenue", "Expance"],
+    labels: ["Lợi nhuận", "Doanh thu", "Chi phí"],
     colors: [primary, error, secondary],
     plotOptions: {
       pie: {
@@ -63,9 +63,9 @@ const Expence = ({ isLoading }: ExpanceCardProps) => {
       ) : (
         <DashboardCard>
           <>
-            <Typography variant="h4">$10,230</Typography>
+            <Typography variant="h4">10.230.000 VNĐ</Typography>
             <Typography variant="subtitle2" color="textSecondary" mb={2}>
-              Expense
+              Chi phí
             </Typography>
             <Box height="100px">
               <Chart

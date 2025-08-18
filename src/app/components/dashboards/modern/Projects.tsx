@@ -102,7 +102,7 @@ const Projects = ({ isLoading }: ProjectCardProps) => {
           <DashboardCard>
             <>
               <Typography variant="subtitle2" color="textSecondary">
-                Projects
+                Dự án
               </Typography>
               <Typography variant="h4">78,298</Typography>
               <Stack direction="row" spacing={1} my={1} alignItems="center">

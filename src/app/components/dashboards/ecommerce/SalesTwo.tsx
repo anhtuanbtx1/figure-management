@@ -139,13 +139,13 @@ const SalesTwo = ({ isLoading }: SalestwoCardProps) => {
               </Box>
 
               <Typography variant="h4">
-                $16.5k
+                16.500.000 VNĐ
                 <span>
                   <IconArrowUpRight width={18} color="#39B69A" />
                 </span>
               </Typography>
               <Typography variant="subtitle2" color="textSecondary">
-                Sales
+                Doanh số
               </Typography>
             </>
           </DashboardCard>

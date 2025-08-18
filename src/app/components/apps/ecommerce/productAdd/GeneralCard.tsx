@@ -9,32 +9,32 @@ import QuillEdit from "@/app/components/forms/form-quill/QuillEdit";
 const GeneralCard = () => {
   return (
     <Box p={3}>
-      <Typography variant="h5">General</Typography>
+      <Typography variant="h5">Thông tin chung</Typography>
 
       <Grid container mt={3}>
         {/* 1 */}
         <Grid item xs={12} display="flex" alignItems="center">
           <CustomFormLabel htmlFor="p_name" sx={{ mt: 0 }}>
-            Product Name{" "}
+            Tên sản phẩm{" "}
             <Typography color="error.main" component="span">
               *
             </Typography>
           </CustomFormLabel>
         </Grid>
         <Grid item xs={12}>
-          <CustomTextField id="p_name" placeholder="Product Name" fullWidth />
+          <CustomTextField id="p_name" placeholder="Nhập tên sản phẩm" fullWidth />
           <Typography variant="body2">
-            A product name is required and recommended to be unique.
+            Tên sản phẩm là bắt buộc và nên là duy nhất.
           </Typography>
         </Grid>
 
         <Grid item xs={12} display="flex" alignItems="center">
-          <CustomFormLabel htmlFor="desc">Description</CustomFormLabel>
+          <CustomFormLabel htmlFor="desc">Mô tả</CustomFormLabel>
         </Grid>
         <Grid item xs={12}>
           <QuillEdit />
           <Typography variant="body2">
-            Set a description to the product for better visibility.
+            Thêm mô tả cho sản phẩm để tăng khả năng hiển thị.
           </Typography>
         </Grid>
       </Grid>

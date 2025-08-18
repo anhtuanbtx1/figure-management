@@ -83,7 +83,7 @@ const Customers = ({ isLoading }: CustomersCardProps) => {
           >
             <>
               <Typography variant="subtitle2" color="textSecondary">
-                Customers
+                Khách hàng
               </Typography>
               <Typography variant="h4">36,358</Typography>
               <Stack direction="row" spacing={1} mt={1} alignItems="center">

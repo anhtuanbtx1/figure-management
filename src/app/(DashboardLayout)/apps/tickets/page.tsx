@@ -7,17 +7,17 @@ import ChildCard from '@/app/components/shared/ChildCard';
 const BCrumb = [
   {
     to: '/',
-    title: 'Home',
+    title: 'Trang chủ',
   },
   {
-    title: 'Tickets',
+    title: 'Phiếu hỗ trợ',
   },
 ];
 
 const TicketList = () => {
   return (
-    <PageContainer title="Ticket App" description="this is Ticket App">
-      <Breadcrumb title="Tickets app" items={BCrumb} />
+    <PageContainer title="Ứng dụng phiếu hỗ trợ" description="Ứng dụng quản lý phiếu hỗ trợ">
+      <Breadcrumb title="Ứng dụng phiếu hỗ trợ" items={BCrumb} />
       <ChildCard>
         <TicketFilter />
         <TicketListing />

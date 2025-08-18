@@ -6,17 +6,17 @@ import NotesApp from "@/app/components/apps/notes";
 const BCrumb = [
   {
     to: "/",
-    title: "Home",
+    title: "Trang chủ",
   },
   {
-    title: "Notes",
+    title: "Ghi chú",
   },
 ];
 
 export default function Notes() {
   return (
-    <PageContainer title="Note App" description="this is Note App">
-      <Breadcrumb title="Note app" items={BCrumb} />
+    <PageContainer title="Ứng dụng Ghi chú" description="Quản lý ghi chú cá nhân">
+      <Breadcrumb title="Ghi chú" items={BCrumb} />
       <AppCard>
         <NotesApp />
       </AppCard>

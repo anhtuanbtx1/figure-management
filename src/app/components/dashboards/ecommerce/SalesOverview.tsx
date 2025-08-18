@@ -31,7 +31,7 @@ const SalesOverview = ({ isLoading }: SalesOverviewCardProps) => {
       },
       height: 275,
     },
-    labels: ["Profit", "Revenue", "Expance"],
+    labels: ["Lợi nhuận", "Doanh thu", "Chi phí"],
     colors: [primary, primarylight, secondary],
     plotOptions: {
       pie: {
@@ -54,7 +54,7 @@ const SalesOverview = ({ isLoading }: SalesOverviewCardProps) => {
               color: textColor,
               fontSize: '20px',
               fontWeight: '600',
-              label: '$500,458',
+              label: '500.458.000 VNĐ',
             },
           },
         },
@@ -82,7 +82,7 @@ const SalesOverview = ({ isLoading }: SalesOverviewCardProps) => {
         isLoading ? (
           <SkeletonSalesOverviewCard />
         ) : (
-          <DashboardCard title="Sales Overview" subtitle="Every month">
+          <DashboardCard title="Tổng quan Doanh số" subtitle="Hàng tháng">
             <>
               <Box mt={3} height="255px">
                 <Chart
@@ -115,10 +115,10 @@ const SalesOverview = ({ isLoading }: SalesOverviewCardProps) => {
                   </Box>
                   <Box>
                     <Typography variant="h6" fontWeight="600">
-                      $23,450
+                      23.450.000 VNĐ
                     </Typography>
                     <Typography variant="subtitle2" color="textSecondary">
-                      Profit
+                      Lợi nhuận
                     </Typography>
                   </Box>
                 </Stack>
@@ -142,10 +142,10 @@ const SalesOverview = ({ isLoading }: SalesOverviewCardProps) => {
                   </Box>
                   <Box>
                     <Typography variant="h6" fontWeight="600">
-                      $23,450
+                      23.450.000 VNĐ
                     </Typography>
                     <Typography variant="subtitle2" color="textSecondary">
-                      Expance
+                      Chi phí
                     </Typography>
                   </Box>
                 </Stack>

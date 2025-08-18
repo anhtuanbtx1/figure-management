@@ -89,7 +89,7 @@ const Growth = ({ isLoading }: GrowthCardProps) => {
                 </span>
               </Typography>
               <Typography variant="subtitle2" color="textSecondary">
-                Growth
+                Tăng trưởng
               </Typography>
             </>
           </DashboardCard>

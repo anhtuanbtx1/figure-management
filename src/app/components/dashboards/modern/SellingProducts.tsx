@@ -13,13 +13,13 @@ import Image from "next/image";
 const sells: any = [
   {
     product: "MaterialPro",
-    price: "23,568",
+    price: "23.568.000",
     percent: 55,
     color: "primary",
   },
   {
     product: "Flexy Admin",
-    price: "23,568",
+    price: "23.568.000",
     percent: 20,
     color: "secondary",
   },
@@ -40,10 +40,10 @@ const SellingProducts = () => {
     >
       <CardContent>
         <Typography variant="h5" color="white">
-          Best selling products
+          Sản phẩm bán chạy nhất
         </Typography>
         <Typography variant="subtitle1" color="white" mb={4}>
-          Overview 2025
+          Tổng quan 2025
         </Typography>
 
         <Box textAlign="center" mt={2} mb="-40px">
@@ -73,7 +73,7 @@ const SellingProducts = () => {
                   <Box>
                     <Typography variant="h6">{sell.product}</Typography>
                     <Typography variant="subtitle2" color="textSecondary">
-                      ${sell.price}
+                      {sell.price} VNĐ
                     </Typography>
                   </Box>
                   <Chip

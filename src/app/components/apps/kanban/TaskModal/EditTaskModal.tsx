@@ -1,13 +1,20 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { Button, TextField, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Typography } from "@mui/material";
-import CustomFormLabel from "@/app/components/forms/theme-elements/CustomFormLabel";
-import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
-import CustomSelect from "@/app/components/forms/theme-elements/CustomSelect";
-import { TaskProperties } from "@/app/api/kanban/KanbanData";
+import {
+  Button,
+  TextField,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Grid,
+  Typography,
+  FormLabel,
+  Select,
+  Box
+} from "@mui/material";
+import { IconEdit } from "@tabler/icons-react";
 
 function EditTaskModal({ show, onHide, editedTask, onSave }: any) {
   const [tempEditedTask, setTempEditedTask] = useState(editedTask);
@@ -40,7 +47,14 @@ function EditTaskModal({ show, onHide, editedTask, onSave }: any) {
 
   // Function to handle date change from DatePicker
   const handleDateChange = (newDate: any) => {
-    setTempEditedTask({ ...tempEditedTask, date: newDate });
+    try {
+      const dateValue = newDate instanceof Date ? newDate : new Date(newDate);
+      if (!isNaN(dateValue.getTime())) {
+        setTempEditedTask({ ...tempEditedTask, date: dateValue });
+      }
+    } catch (error) {
+      console.error('Date change error:', error);
+    }
   };
 
   // Function to handle new image URL input
@@ -58,81 +72,145 @@ function EditTaskModal({ show, onHide, editedTask, onSave }: any) {
       aria-describedby="alert-dialog-description"
       PaperProps={{ component: "form" }}
     >
-      <DialogTitle id="alert-dialog-title">Edit Task</DialogTitle>
-      <DialogContent>
+      <DialogTitle sx={{ pb: 1 }}>
+        <Box display="flex" alignItems="center" gap={1}>
+          <IconEdit size={24} color="#667eea" />
+          <Typography variant="h6" fontWeight={700}>
+            Chỉnh sửa nhiệm vụ
+          </Typography>
+        </Box>
+      </DialogTitle>
+      <DialogContent sx={{ pb: 2 }}>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
             {/* Task title */}
-            <CustomFormLabel sx={{ mt: 0 }} htmlFor="task">
-              Task Title
-            </CustomFormLabel>
-            <CustomTextField
+            <FormLabel
+              sx={{
+                mt: 0,
+                mb: 1,
+                display: 'block',
+                fontWeight: 600
+              }}
+              htmlFor="task"
+            >
+              Tiêu đề nhiệm vụ
+            </FormLabel>
+            <TextField
               id="task"
               name="task"
               variant="outlined"
               fullWidth
               value={tempEditedTask.task}
               onChange={handleChange}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(0,0,0,0.02)',
+                },
+              }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             {/* Task property */}
-            <CustomFormLabel htmlFor="taskProperty" sx={{ mt: 0 }}>
-              Task Property *
-            </CustomFormLabel>
-            <CustomSelect
+            <FormLabel
+              htmlFor="taskProperty"
+              sx={{
+                mt: 0,
+                mb: 1,
+                display: 'block',
+                fontWeight: 600
+              }}
+            >
+              Độ ưu tiên *
+            </FormLabel>
+            <Select
               fullWidth
               id="taskProperty"
               variant="outlined"
               value={tempEditedTask.taskProperty}
               onChange={(e: any) => handlePropertyChange(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(0,0,0,0.02)',
+                },
+              }}
             >
-              {TaskProperties.map((property) => (
-                <MenuItem key={property} value={property}>
-                  {property}
-                </MenuItem>
-              ))}
-            </CustomSelect>
+              <MenuItem value="Design">Thiết kế</MenuItem>
+              <MenuItem value="Development">Phát triển</MenuItem>
+              <MenuItem value="Testing">Kiểm thử</MenuItem>
+              <MenuItem value="Research">Nghiên cứu</MenuItem>
+            </Select>
           </Grid>
           <Grid item xs={12} sm={6}>
             {/* Task text or image */}
             {tempEditedTask.taskImage ? (
               <>
                 {/* Image handling */}
-                <CustomFormLabel htmlFor="taskImage" sx={{ mt: 0 }}>
-                  Image URL
-                </CustomFormLabel>
-                <CustomTextField
+                <FormLabel
+                  htmlFor="taskImage"
+                  sx={{
+                    mt: 0,
+                    mb: 1,
+                    display: 'block',
+                    fontWeight: 600
+                  }}
+                >
+                  URL hình ảnh
+                </FormLabel>
+                <TextField
                   id="taskImage"
                   variant="outlined"
                   fullWidth
                   value={newImageUrl}
                   onChange={handleNewImageUrlChange}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      backgroundColor: 'rgba(0,0,0,0.02)',
+                    },
+                  }}
                 />
                 {imagePreview && (
-                  <Grid item xs={12} sx={{ mt: 2 }}>
-                    <CustomFormLabel htmlFor="taskImage">Image Preview:</CustomFormLabel>
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+                      Xem trước hình ảnh:
+                    </Typography>
                     <img
                       src={imagePreview}
-                      alt="Selected"
-                      style={{ maxWidth: '100%', height: 'auto', marginTop: '8px', borderRadius: "4px" }}
+                      alt="Xem trước"
+                      style={{ maxWidth: '100%', height: 'auto', borderRadius: "8px" }}
                     />
-                  </Grid>
+                  </Box>
                 )}
               </>
             ) : (
               <>
                 {/* Task text */}
-                <CustomFormLabel sx={{ mt: 0 }} htmlFor="task-text">
-                  Text
-                </CustomFormLabel>
-                <CustomTextField
+                <FormLabel
+                  sx={{
+                    mt: 0,
+                    mb: 1,
+                    display: 'block',
+                    fontWeight: 600
+                  }}
+                  htmlFor="task-text"
+                >
+                  Mô tả
+                </FormLabel>
+                <TextField
                   id="task-text"
                   variant="outlined"
                   fullWidth
                   name="taskText"
                   value={tempEditedTask.taskText}
                   onChange={handleChange}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      backgroundColor: 'rgba(0,0,0,0.02)',
+                    },
+                  }}
                 />
               </>
             )}
@@ -140,27 +218,79 @@ function EditTaskModal({ show, onHide, editedTask, onSave }: any) {
 
           <Grid item xs={12} sm={6}>
             {/* Due date */}
-            <CustomFormLabel htmlFor="date" sx={{ mt: 0 }}>
-              Due Date *
-            </CustomFormLabel>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                value={tempEditedTask.date}
-                onChange={handleDateChange}
-                renderInput={(params) => (
-                  <TextField {...params} fullWidth sx={{ mb: 2 }} />
-                )}
-              />
-            </LocalizationProvider>
+            <FormLabel
+              htmlFor="date"
+              sx={{
+                mt: 0,
+                mb: 1,
+                display: 'block',
+                fontWeight: 600
+              }}
+            >
+              Hạn hoàn thành *
+            </FormLabel>
+            <TextField
+              type="date"
+              fullWidth
+              value={(() => {
+                try {
+                  if (tempEditedTask.date) {
+                    const dateObj = new Date(tempEditedTask.date);
+                    if (!isNaN(dateObj.getTime())) {
+                      return dateObj.toISOString().split('T')[0];
+                    }
+                  }
+                  return '';
+                } catch (error) {
+                  return '';
+                }
+              })()}
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleDateChange(new Date(e.target.value));
+                }
+              }}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(0,0,0,0.02)',
+                },
+              }}
+            />
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button variant="outlined" color="error" onClick={onHide}>
-          Close
+      <DialogActions sx={{ p: 3, pt: 0 }}>
+        <Button
+          variant="outlined"
+          onClick={onHide}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 2,
+            color: 'text.secondary',
+            borderColor: 'divider',
+          }}
+        >
+          Hủy
         </Button>
-        <Button variant="contained" onClick={handleSaveChanges} autoFocus>
-          Save Changes
+        <Button
+          variant="contained"
+          onClick={handleSaveChanges}
+          autoFocus
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 2,
+            px: 3,
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+            },
+          }}
+        >
+          Lưu thay đổi
         </Button>
       </DialogActions>
     </Dialog>

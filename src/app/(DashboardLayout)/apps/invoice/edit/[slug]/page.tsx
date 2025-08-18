@@ -9,18 +9,18 @@ import { CardContent } from "@mui/material";
 const BCrumb = [
   {
     to: "/",
-    title: "Home",
+    title: "Trang chủ",
   },
   {
-    title: "Invoice Edit",
+    title: "Chỉnh sửa hóa đơn",
   },
 ];
 
 const InvoiceEdit = () => {
   return (
     <InvoiceProvider>
-      <PageContainer title="Edit Invoice" description="this is Edit Invoice">
-        <Breadcrumb title="Edit Invoice" items={BCrumb} />
+      <PageContainer title="Chỉnh sửa hóa đơn" description="Trang chỉnh sửa hóa đơn">
+        <Breadcrumb title="Chỉnh sửa hóa đơn" items={BCrumb} />
         <BlankCard>
           <CardContent>
             <EditInvoicePage />

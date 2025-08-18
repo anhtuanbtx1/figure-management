@@ -93,9 +93,9 @@ const Sales = ({ isLoading }: SalesCardProps) => {
         ) : (
           <DashboardCard>
             <>
-              <Typography variant="h4">$65,432</Typography>
+              <Typography variant="h4">65.432.000 VNĐ</Typography>
               <Typography variant="subtitle2" color="textSecondary" mb={3}>
-                Sales
+                Doanh số
               </Typography>
               <Box className="rounded-bars" height="90px">
                 <Chart

@@ -22,7 +22,7 @@ const Thumbnail = () => {
 
     // Validate file size and type (optional)
     if (file.size > 1024 * 1024 * 5) {
-      alert("File size is too large! Max 5MB allowed.");
+      alert("Kích thước file quá lớn! Tối đa 5MB.");
       return;
     }
 
@@ -39,7 +39,7 @@ const Thumbnail = () => {
 
   return (
     <Box p={3}>
-      <Typography variant="h5">Thumbnail</Typography>
+      <Typography variant="h5">Ảnh đại diện</Typography>
       <Box mt={3} mb={2} textAlign="center">
         <input
           type="file"
@@ -65,7 +65,7 @@ const Thumbnail = () => {
         ) : null}
 
         <Typography variant="body2" textAlign="center">
-          Click on image to change
+          Click vào ảnh để thay đổi
         </Typography>
       </Box>
     </Box>

@@ -52,7 +52,7 @@ const EmployeeSalary = ({ isLoading }: EmployeeSalaryCardProps) => {
       },
     },
     xaxis: {
-      categories: [['Apr'], ['May'], ['June'], ['July'], ['Aug'], ['Sept']],
+      categories: [['T4'], ['T5'], ['T6'], ['T7'], ['T8'], ['T9']],
       axisBorder: {
         show: false,
       },
@@ -80,12 +80,12 @@ const EmployeeSalary = ({ isLoading }: EmployeeSalaryCardProps) => {
           <SkeletonEmployeeSalaryCard />
         ) : (
           <DashboardWidgetCard
-            title="Employee Salary"
-            subtitle="Every month"
-            dataLabel1="Salary"
-            dataItem1="$36,358"
-            dataLabel2="Profit"
-            dataItem2="$5,296"
+            title="Lương nhân viên"
+            subtitle="Hàng tháng"
+            dataLabel1="Lương"
+            dataItem1="36.358.000 VNĐ"
+            dataLabel2="Lợi nhuận"
+            dataItem2="5.296.000 VNĐ"
           >
             <>
               <Box height="295px">

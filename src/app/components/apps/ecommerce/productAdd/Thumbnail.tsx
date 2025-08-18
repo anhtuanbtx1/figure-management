@@ -28,7 +28,7 @@ const Thumbnail = () => {
 
   return (
     <Box p={3}>
-      <Typography variant="h5">Thumbnail</Typography>
+      <Typography variant="h5">Ảnh đại diện</Typography>
 
       <Box
         mt={3}
@@ -44,15 +44,14 @@ const Thumbnail = () => {
         {...getRootProps({ className: "dropzone" })}
       >
         <input {...getInputProps()} />
-        <p>Drag 'n' drop some files here, or click to select files</p>
+        <p>Kéo thả file vào đây hoặc click để chọn file</p>
       </Box>
       <Typography variant="body2" textAlign="center" mt={1}>
-        Set the product thumbnail image. Only *.png, *.jpg and *.jpeg image
-        files are accepted.
+        Thiết lập ảnh đại diện cho sản phẩm. Chỉ chấp nhận file ảnh *.png, *.jpg và *.jpeg.
       </Typography>
       <Box mt={2}>
         <Typography variant="h6" fontSize="15px">
-          Files
+          File đã chọn
         </Typography>
         <Typography variant="body1">{files}</Typography>
       </Box>

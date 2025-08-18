@@ -29,8 +29,8 @@ const TopPerformers = () => {
 
   return (
     <DashboardCard
-      title="Top Projects"
-      subtitle="Best Products"
+      title="Dự án hàng đầu"
+      subtitle="Sản phẩm tốt nhất"
       action={
         <CustomSelect
           labelId="month-dd"
@@ -39,9 +39,9 @@ const TopPerformers = () => {
           value={month}
           onChange={handleChange}
         >
-          <MenuItem value={1}>March 2025</MenuItem>
-          <MenuItem value={2}>April 2025</MenuItem>
-          <MenuItem value={3}>May 2025</MenuItem>
+          <MenuItem value={1}>Tháng 3 2025</MenuItem>
+          <MenuItem value={2}>Tháng 4 2025</MenuItem>
+          <MenuItem value={3}>Tháng 5 2025</MenuItem>
         </CustomSelect>
       }
     >
@@ -55,16 +55,16 @@ const TopPerformers = () => {
           <TableHead>
             <TableRow>
               <TableCell>
-                <Typography variant="subtitle2" fontWeight={600}>Assigned</Typography>
+                <Typography variant="subtitle2" fontWeight={600}>Được giao</Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="subtitle2" fontWeight={600}>Project</Typography>
+                <Typography variant="subtitle2" fontWeight={600}>Dự án</Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="subtitle2" fontWeight={600}>Priority</Typography>
+                <Typography variant="subtitle2" fontWeight={600}>Ưu tiên</Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="subtitle2" fontWeight={600}>Budget</Typography>
+                <Typography variant="subtitle2" fontWeight={600}>Ngân sách</Typography>
               </TableCell>
             </TableRow>
           </TableHead>
@@ -111,11 +111,11 @@ const TopPerformers = () => {
                       borderRadius: '8px',
                     }}
                     size="small"
-                    label={basic.status}
+                    label={basic.status === 'High' ? 'Cao' : basic.status === 'Medium' ? 'Trung bình' : basic.status === 'Low' ? 'Thấp' : basic.status}
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="subtitle2">${basic.budget}k</Typography>
+                  <Typography variant="subtitle2">{basic.budget} triệu VNĐ</Typography>
                 </TableCell>
               </TableRow>
             ))}

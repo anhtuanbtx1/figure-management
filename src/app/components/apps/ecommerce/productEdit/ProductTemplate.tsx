@@ -14,12 +14,12 @@ const ProductTemplate = () => {
   return (
     <Box p={3}>
       <Typography variant="h5" mb={3}>
-        Product Template
+        Mẫu sản phẩm
       </Typography>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <CustomFormLabel htmlFor="p_tax" sx={{ mt: 0 }}>
-            Select a product template
+            Chọn mẫu sản phẩm
           </CustomFormLabel>
           <CustomSelect
             id="p_tax"
@@ -27,14 +27,13 @@ const ProductTemplate = () => {
             onChange={handleChange}
             fullWidth
           >
-            <MenuItem value={0}>Default Template</MenuItem>
-            <MenuItem value={1}>Fashion</MenuItem>
-            <MenuItem value={2}>Office Stationary</MenuItem>
-            <MenuItem value={3}>Electronics</MenuItem>
+            <MenuItem value={0}>Mẫu mặc định</MenuItem>
+            <MenuItem value={1}>Thời trang</MenuItem>
+            <MenuItem value={2}>Văn phòng phẩm</MenuItem>
+            <MenuItem value={3}>Điện tử</MenuItem>
           </CustomSelect>
           <Typography variant="body2" mt={1}>
-            Assign a template from your current theme to define how a single
-            product is displayed.
+            Chỉ định một mẫu từ theme hiện tại để xác định cách hiển thị một sản phẩm.
           </Typography>
         </Grid>
       </Grid>

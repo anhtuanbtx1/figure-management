@@ -85,11 +85,11 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatestwoCardProps) => {
   };
   const seriescolumnchart = [
     {
-      name: 'Eanings this month',
+      name: 'Thu nhập tháng này',
       data: [1.5, 2.7, 2.2, 3.6, 1.5, 1.0],
     },
     {
-      name: 'Expense this month',
+      name: 'Chi phí tháng này',
       data: [-1.8, -1.1, -2.5, -1.5, -0.6, -1.8],
     },
   ];
@@ -101,8 +101,8 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatestwoCardProps) => {
           <SkeletonRevenueUpdatesTwoCard />
         ) : (
           <DashboardCard
-            title="Revenue Updates"
-            subtitle="Overview of Profit"
+            title="Cập nhật Doanh thu"
+            subtitle="Tổng quan Lợi nhuận"
             action={
               <CustomSelect
                 labelId="month-dd"
@@ -111,9 +111,9 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatestwoCardProps) => {
                 value={month}
                 onChange={handleChange}
               >
-                <MenuItem value={1}>March 2025</MenuItem>
-                <MenuItem value={2}>April 2025</MenuItem>
-                <MenuItem value={3}>May 2025</MenuItem>
+                <MenuItem value={1}>Tháng 3 2025</MenuItem>
+                <MenuItem value={2}>Tháng 4 2025</MenuItem>
+                <MenuItem value={3}>Tháng 5 2025</MenuItem>
               </CustomSelect>
             }
           >
@@ -148,10 +148,10 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatestwoCardProps) => {
                     </Box>
                     <Box>
                       <Typography variant="h3" fontWeight="700">
-                        $63,489.50
+                        63.489.500 VNĐ
                       </Typography>
                       <Typography variant="subtitle2" color="textSecondary">
-                        Total Earnings
+                        Tổng thu nhập
                       </Typography>
                     </Box>
                   </Stack>
@@ -163,9 +163,9 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatestwoCardProps) => {
                     ></Avatar>
                     <Box>
                       <Typography variant="subtitle1" color="textSecondary">
-                        Earnings this month
+                        Thu nhập tháng này
                       </Typography>
-                      <Typography variant="h5">$48,820</Typography>
+                      <Typography variant="h5">48.820.000 VNĐ</Typography>
                     </Box>
                   </Stack>
                   <Stack direction="row" spacing={2}>
@@ -174,14 +174,14 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatestwoCardProps) => {
                     ></Avatar>
                     <Box>
                       <Typography variant="subtitle1" color="textSecondary">
-                        Expense this month
+                        Chi phí tháng này
                       </Typography>
-                      <Typography variant="h5">$26,498</Typography>
+                      <Typography variant="h5">26.498.000 VNĐ</Typography>
                     </Box>
                   </Stack>
                 </Stack>
                 <Button color="primary" variant="contained" fullWidth>
-                  View Full Report
+                  Xem báo cáo đầy đủ
                 </Button>
               </Grid>
             </Grid>

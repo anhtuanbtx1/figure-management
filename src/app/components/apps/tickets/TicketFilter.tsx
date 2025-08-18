@@ -20,9 +20,9 @@ const BoxStyled = styled(Box)(() => ({
 const TicketFilter = () => {
   const dispatch = useDispatch();
   const counter: TicketType[] = useSelector((state) => state.ticketReducer.tickets);
-  const pendingC = counter.filter((t) => t.Status === 'Pending').length;
-  const openC = counter.filter((t) => t.Status === 'Open').length;
-  const closeC = counter.filter((t) => t.Status === 'Closed').length;
+  const pendingC = counter.filter((t) => t.Status === 'Pending' || t.Status === 'Chờ xử lý').length;
+  const openC = counter.filter((t) => t.Status === 'Open' || t.Status === 'Đang mở').length;
+  const closeC = counter.filter((t) => t.Status === 'Closed' || t.Status === 'Đã đóng').length;
 
   return (
     <Grid container spacing={3} textAlign="center">
@@ -32,7 +32,7 @@ const TicketFilter = () => {
           sx={{ backgroundColor: 'primary.light', color: 'primary.main' }}
         >
           <Typography variant="h3">{counter.length}</Typography>
-          <Typography variant="h6">Total Tickets</Typography>
+          <Typography variant="h6">Tổng phiếu</Typography>
         </BoxStyled>
       </Grid>
       <Grid item xs={12} md={6} lg={3}>
@@ -41,7 +41,7 @@ const TicketFilter = () => {
           sx={{ backgroundColor: 'warning.light', color: 'warning.main' }}
         >
           <Typography variant="h3">{pendingC}</Typography>
-          <Typography variant="h6">Pending Tickets</Typography>
+          <Typography variant="h6">Phiếu chờ xử lý</Typography>
         </BoxStyled>
       </Grid>
       <Grid item xs={12} md={6} lg={3}>
@@ -50,7 +50,7 @@ const TicketFilter = () => {
           sx={{ backgroundColor: 'success.light', color: 'success.main' }}
         >
           <Typography variant="h3">{openC}</Typography>
-          <Typography variant="h6">Open Tickets</Typography>
+          <Typography variant="h6">Phiếu đang mở</Typography>
         </BoxStyled>
       </Grid>
       <Grid item xs={12} md={6} lg={3}>
@@ -59,7 +59,7 @@ const TicketFilter = () => {
           sx={{ backgroundColor: 'error.light', color: 'error.main' }}
         >
           <Typography variant="h3">{closeC}</Typography>
-          <Typography variant="h6">Closed Tickets</Typography>
+          <Typography variant="h6">Phiếu đã đóng</Typography>
         </BoxStyled>
       </Grid>
     </Grid>

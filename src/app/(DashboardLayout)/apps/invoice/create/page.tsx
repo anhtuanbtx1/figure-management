@@ -9,10 +9,10 @@ import { InvoiceProvider } from "@/app/context/InvoiceContext";
 const BCrumb = [
   {
     to: "/",
-    title: "Home",
+    title: "Trang chủ",
   },
   {
-    title: "Invoice Create",
+    title: "Tạo hóa đơn",
   },
 ];
 
@@ -20,10 +20,10 @@ const CreateInvoice = () => {
   return (
     <InvoiceProvider>
       <PageContainer
-        title="Create Invoice"
-        description="this is Create Invoice"
+        title="Tạo hóa đơn"
+        description="Trang tạo hóa đơn mới"
       >
-        <Breadcrumb title="Create Invoice" items={BCrumb} />
+        <Breadcrumb title="Tạo hóa đơn" items={BCrumb} />
 
         <BlankCard>
           <CardContent>

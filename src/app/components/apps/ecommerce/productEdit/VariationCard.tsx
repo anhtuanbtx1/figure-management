@@ -18,9 +18,9 @@ const VariationCard = () => {
 
   return (
     <Box p={3}>
-      <Typography variant="h5">Variation</Typography>
+      <Typography variant="h5">Biến thể</Typography>
 
-      <CustomFormLabel sx={{ mt: 3 }}>Add Product Variations</CustomFormLabel>
+      <CustomFormLabel sx={{ mt: 3 }}>Thêm biến thể sản phẩm</CustomFormLabel>
       <Grid container spacing={3} mb={2}>
         <Grid item xs={12} lg={4}>
           <CustomSelect
@@ -29,7 +29,7 @@ const VariationCard = () => {
             onChange={handleChange}
             fullWidth
           >
-            <MenuItem value={0}>Size</MenuItem>
+            <MenuItem value={0}>Kích thước</MenuItem>
             <MenuItem value={1}>XS</MenuItem>
             <MenuItem value={2}>SM</MenuItem>
             <MenuItem value={3}>MD</MenuItem>
@@ -38,10 +38,10 @@ const VariationCard = () => {
           </CustomSelect>
         </Grid>
         <Grid item xs={12} lg={4}>
-          <CustomTextField placeholder="Variations" value="32" fullWidth />
+          <CustomTextField placeholder="Biến thể" value="32" fullWidth />
         </Grid>
         <Grid item xs={12} lg={4}>
-          <Tooltip title="Delete">
+          <Tooltip title="Xóa">
             <Button color="error" aria-label="delete">
               <IconX size={21} />
             </Button>
@@ -49,7 +49,7 @@ const VariationCard = () => {
         </Grid>
       </Grid>
       <Button variant="text" startIcon={<IconPlus size={18} />}>
-        Add another variations
+        Thêm biến thể khác
       </Button>
     </Box>
   );

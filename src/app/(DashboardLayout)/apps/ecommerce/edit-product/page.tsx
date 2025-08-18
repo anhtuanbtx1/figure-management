@@ -17,18 +17,18 @@ import BlankCard from "@/app/components/shared/BlankCard";
 const BCrumb = [
   {
     to: "/",
-    title: "Home",
+    title: "Trang chủ",
   },
   {
-    title: "Edit Product",
+    title: "Chỉnh sửa sản phẩm",
   },
 ];
 
 const EcommerceEditProduct = () => {
   return (
-    <PageContainer title="Edit Product" description="this is Edit Product">
+    <PageContainer title="Chỉnh sửa sản phẩm" description="Trang chỉnh sửa sản phẩm">
       {/* breadcrumb */}
-      <Breadcrumb title="Edit Product" items={BCrumb} />
+      <Breadcrumb title="Chỉnh sửa sản phẩm" items={BCrumb} />
       <form>
         <Grid container spacing={3}>
           <Grid item lg={8}>
@@ -82,10 +82,10 @@ const EcommerceEditProduct = () => {
 
         <Stack direction="row" spacing={2} mt={3}>
           <Button variant="contained" color="primary">
-            Save Changes
+            Lưu thay đổi
           </Button>
           <Button variant="outlined" color="error">
-            Cancel
+            Hủy bỏ
           </Button>
         </Stack>
       </form>

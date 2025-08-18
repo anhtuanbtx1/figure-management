@@ -27,7 +27,7 @@ const Ecommerce = () => {
   }, []);
 
   return (
-    <PageContainer title="eCommerce Dashboard" description="this is eCommerce Dashboard">
+    <PageContainer title="Bảng điều khiển Thương mại điện tử" description="Bảng điều khiển Thương mại điện tử">
       <Box mt={3}>
         <Grid container spacing={3}>
           {/* column */}

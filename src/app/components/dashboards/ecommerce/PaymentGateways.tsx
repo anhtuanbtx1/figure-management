@@ -20,31 +20,31 @@ const PaymentGateways = () => {
   const stats = [
     {
       title: 'Paypal',
-      subtitle: 'Big Brands',
+      subtitle: 'Thương hiệu lớn',
       price: 6235,
       color: primary,
       lightcolor: primarylight,
       icon: "/images/svgs/icon-paypal.svg",
     },
     {
-      title: 'Wallet',
-      subtitle: 'Bill payment',
+      title: 'Ví điện tử',
+      subtitle: 'Thanh toán hóa đơn',
       price: 345,
       color: secondary,
       lightcolor: secondarylight,
       icon: "/images/svgs/icon-office-bag.svg",
     },
     {
-      title: 'Credit Card',
-      subtitle: 'Money reversed',
+      title: 'Thẻ tín dụng',
+      subtitle: 'Hoàn tiền',
       price: 2235,
       color: warning,
       lightcolor: warninglight,
       icon: "/images/svgs/icon-master-card.svg",
     },
     {
-      title: 'Refund',
-      subtitle: 'Bill Payment',
+      title: 'Hoàn tiền',
+      subtitle: 'Thanh toán hóa đơn',
       price: 32,
       color: error,
       lightcolor: errorlight,
@@ -53,7 +53,7 @@ const PaymentGateways = () => {
   ];
 
   return (
-    <DashboardCard title="Payment Gateways" subtitle="Platform For Income">
+    <DashboardCard title="Cổng thanh toán" subtitle="Nền tảng thu nhập">
       <>
         <Stack spacing={3} mt={5}>
           {stats.map((stat, i) => (
@@ -82,17 +82,17 @@ const PaymentGateways = () => {
               </Stack>
               {stat.price < 400 ? (
                 <Typography variant="subtitle2" color="textSecondary" fontWeight="600">
-                  -${stat.price}
+                  -{stat.price.toLocaleString('vi-VN')} VNĐ
                 </Typography>
               ) : (
                 <Typography variant="subtitle2" fontWeight="600">
-                  +${stat.price}
+                  +{stat.price.toLocaleString('vi-VN')} VNĐ
                 </Typography>
               )}
             </Stack>
           ))}
           <Button variant="outlined" color="primary" sx={{mt: "40px !important"}}>
-            View all transactions
+            Xem tất cả giao dịch
           </Button>
         </Stack>
       </>

@@ -53,7 +53,7 @@ const YearlySales = ({ isLoading }: YearlysalesCardProps) => {
       },
     },
     xaxis: {
-      categories: [['Apr'], ['May'], ['June'], ['July'], ['Aug'], ['Sept']],
+      categories: [['T4'], ['T5'], ['T6'], ['T7'], ['T8'], ['T9']],
       axisBorder: {
         show: false,
       },
@@ -81,12 +81,12 @@ const YearlySales = ({ isLoading }: YearlysalesCardProps) => {
           <SkeletonYearlySalesCard />
         ) : (
           <DashboardWidgetCard
-            title="Yearly Sales"
-            subtitle="Total Sales"
-            dataLabel1="Salary"
-            dataItem1="$36,358"
-            dataLabel2="Expance"
-            dataItem2="$5,296"
+            title="Doanh số hàng năm"
+            subtitle="Tổng doanh số"
+            dataLabel1="Lương"
+            dataItem1="36.358.000 VNĐ"
+            dataLabel2="Chi phí"
+            dataItem2="5.296.000 VNĐ"
           >
             <>
               <Box height="310px">

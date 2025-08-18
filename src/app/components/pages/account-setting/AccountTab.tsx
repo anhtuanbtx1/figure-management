@@ -171,7 +171,7 @@ const AccountTab = () => {
                   </CustomFormLabel>
                   <CustomTextField
                     id="text-name"
-                    value="Mathew Anderson"
+                    value="Anh Tuấn"
                     variant="outlined"
                     fullWidth
                   />
@@ -240,23 +240,6 @@ const AccountTab = () => {
                       </MenuItem>
                     ))}
                   </CustomSelect>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  {/* 5 */}
-                  <CustomFormLabel
-                    sx={{
-                      mt: 0,
-                    }}
-                    htmlFor="text-email"
-                  >
-                    Email
-                  </CustomFormLabel>
-                  <CustomTextField
-                    id="text-email"
-                    value="info@modernize.com"
-                    variant="outlined"
-                    fullWidth
-                  />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   {/* 6 */}

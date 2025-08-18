@@ -34,6 +34,25 @@ const EditInvoicePage = () => {
   const [editing, setEditing] = useState(false);
   const [editedInvoice, setEditedInvoice]: any = useState(null);
 
+  // Helper functions for status translation
+  const translateStatusToVietnamese = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'Pending': 'Đang chờ',
+      'Delivered': 'Đã giao',
+      'Shipped': 'Đã gửi'
+    };
+    return statusMap[status] || status;
+  };
+
+  const translateStatusToEnglish = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'Đang chờ': 'Pending',
+      'Đã giao': 'Delivered',
+      'Đã gửi': 'Shipped'
+    };
+    return statusMap[status] || status;
+  };
+
   const pathName = usePathname();
   const getTitle = pathName.split("/").pop();
 
@@ -46,18 +65,27 @@ const EditInvoicePage = () => {
         );
         if (invoice) {
           setSelectedInvoice(invoice);
-          setEditedInvoice({ ...invoice });
+          setEditedInvoice({
+            ...invoice,
+            status: translateStatusToVietnamese(invoice.status)
+          });
           setEditing(true);
         } else {
           // If specific item not found, fallback to default
           setSelectedInvoice(invoices[0]);
-          setEditedInvoice({ ...invoices[0] });
+          setEditedInvoice({
+            ...invoices[0],
+            status: translateStatusToVietnamese(invoices[0].status)
+          });
           setEditing(true);
         }
       } else {
         // No specific item, default to the first invoice
         setSelectedInvoice(invoices[0]);
-        setEditedInvoice({ ...invoices[0] });
+        setEditedInvoice({
+          ...invoices[0],
+          status: translateStatusToVietnamese(invoices[0].status)
+        });
         setEditing(true);
       }
     }
@@ -67,8 +95,13 @@ const EditInvoicePage = () => {
 
   const handleSave = async () => {
     try {
-      await updateInvoice(editedInvoice);
-      setSelectedInvoice({ ...editedInvoice });
+      // Convert status back to English before saving
+      const invoiceToSave = {
+        ...editedInvoice,
+        status: translateStatusToEnglish(editedInvoice.status)
+      };
+      await updateInvoice(invoiceToSave);
+      setSelectedInvoice({ ...invoiceToSave });
       setEditing(false); // Exit editing mode
       setShowAlert(true);
 
@@ -171,14 +204,14 @@ const EditInvoicePage = () => {
   };
 
   if (!selectedInvoice) {
-    return <div>Please select an invoice.</div>;
+    return <div>Vui lòng chọn một hóa đơn.</div>;
   }
 
   const orderDate = selectedInvoice.orderDate;
   const parsedDate = isValid(new Date(orderDate))
     ? new Date(orderDate)
     : new Date();
-  const formattedOrderDate = format(parsedDate, "EEEE, MMMM dd, yyyy");
+  const formattedOrderDate = format(parsedDate, "dd/MM/yyyy");
 
   return (
     <Box>
@@ -194,10 +227,10 @@ const EditInvoicePage = () => {
           {editing ? (
             <>
               <Button variant="contained" color="primary" onClick={handleSave}>
-                Save
+                Lưu
               </Button>
               <Button variant="outlined" color="error" onClick={handleCancel}>
-                Cancel
+                Hủy bỏ
               </Button>
             </>
           ) : (
@@ -206,7 +239,7 @@ const EditInvoicePage = () => {
               color="info"
               onClick={() => setEditing(true)}
             >
-              Edit Invoice
+              Chỉnh sửa hóa đơn
             </Button>
           )}
         </Box>
@@ -222,7 +255,7 @@ const EditInvoicePage = () => {
       >
         <Box>
           <CustomFormLabel htmlFor="demo-simple-select">
-            Order Status
+            Trạng thái đơn hàng
           </CustomFormLabel>
           <CustomSelect
             value={editedInvoice.status}
@@ -230,14 +263,14 @@ const EditInvoicePage = () => {
               setEditedInvoice({ ...editedInvoice, status: e.target.value })
             }
           >
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="Delivered">Delivered</MenuItem>
-            <MenuItem value="Shipped">Shipped</MenuItem>
+            <MenuItem value="Đang chờ">Đang chờ</MenuItem>
+            <MenuItem value="Đã giao">Đã giao</MenuItem>
+            <MenuItem value="Đã gửi">Đã gửi</MenuItem>
           </CustomSelect>
         </Box>
         <Box textAlign="right">
           <CustomFormLabel htmlFor="demo-simple-select">
-            Order Date
+            Ngày đặt hàng
           </CustomFormLabel>
           <Typography variant="body1"> {formattedOrderDate}</Typography>
         </Box>
@@ -246,7 +279,7 @@ const EditInvoicePage = () => {
 
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} sm={6}>
-          <CustomFormLabel>Bill From</CustomFormLabel>
+          <CustomFormLabel>Người bán</CustomFormLabel>
           <CustomTextField
             value={editedInvoice.billFrom}
             onChange={(e: any) =>
@@ -264,7 +297,7 @@ const EditInvoicePage = () => {
               },
             }}
           >
-            Bill To
+            Người mua
           </CustomFormLabel>
           <CustomTextField
             value={editedInvoice.billTo}
@@ -280,7 +313,7 @@ const EditInvoicePage = () => {
               mt: 0,
             }}
           >
-            From Address
+            Địa chỉ người bán
           </CustomFormLabel>
           <CustomTextField
             value={editedInvoice.billFromAddress}
@@ -299,7 +332,7 @@ const EditInvoicePage = () => {
               mt: 0,
             }}
           >
-            Bill To Address
+            Địa chỉ người mua
           </CustomFormLabel>
           <CustomTextField
             value={editedInvoice.billToAddress}
@@ -331,12 +364,12 @@ const EditInvoicePage = () => {
                 </TableCell>
                 <TableCell>
                   <Typography variant="h6" fontSize="14px">
-                    Giá
+                    Số lượng
                   </Typography>
                 </TableCell>
                 <TableCell>
                   <Typography variant="h6" fontSize="14px">
-                    Tổng chi phí
+                    Thành tiền
                   </Typography>
                 </TableCell>
                 <TableCell>
@@ -389,16 +422,16 @@ const EditInvoicePage = () => {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body1">
-                      {order.unitTotalPrice}
+                      {order.unitTotalPrice.toLocaleString('vi-VN')} VNĐ
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Tooltip title="Add Item">
+                    <Tooltip title="Thêm sản phẩm">
                       <IconButton onClick={handleAddItem} color="primary">
                         <IconSquareRoundedPlus width={22} />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Delete Item">
+                    <Tooltip title="Xóa sản phẩm">
                       <IconButton
                         color="error"
                         onClick={() => handleDeleteItem(index)}
@@ -417,26 +450,26 @@ const EditInvoicePage = () => {
       <Box p={3} bgcolor="primary.light" mt={3}>
         <Box display="flex" justifyContent="end" gap={3} mb={3}>
           <Typography variant="body1" fontWeight={600}>
-            Tổng chưa VAT:
+            Tạm tính:
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {editedInvoice.totalCost}
+            {editedInvoice.totalCost.toLocaleString('vi-VN')} VNĐ
           </Typography>
         </Box>
         <Box display="flex" justifyContent="end" gap={3} mb={3}>
           <Typography variant="body1" fontWeight={600}>
-            VAT:
+            VAT (10%):
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {editedInvoice.vat}
+            {editedInvoice.vat.toLocaleString('vi-VN')} VNĐ
           </Typography>
         </Box>
         <Box display="flex" justifyContent="end" gap={3}>
           <Typography variant="body1" fontWeight={600}>
-            Tổng:
+            Tổng cộng:
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {editedInvoice.grandTotal}
+            {editedInvoice.grandTotal.toLocaleString('vi-VN')} VNĐ
           </Typography>
         </Box>
       </Box>
@@ -446,7 +479,7 @@ const EditInvoicePage = () => {
           severity="success"
           sx={{ position: "fixed", top: 16, right: 16 }}
         >
-          Invoice data updated successfully.
+          Dữ liệu hóa đơn đã được cập nhật thành công.
         </Alert>
       )}
     </Box>

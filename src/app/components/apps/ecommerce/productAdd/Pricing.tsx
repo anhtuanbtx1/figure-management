@@ -38,24 +38,24 @@ const PricingCard = () => {
   return (
     <Box p={3}>
       <Typography variant="h5" mb={3}>
-        Pricing
+        Định giá
       </Typography>
 
       <Grid container spacing={3}>
         {/* 1 */}
         <Grid item xs={12}>
           <CustomFormLabel htmlFor="p_price" sx={{ mt: 0 }}>
-            Base Price{" "}
+            Giá gốc{" "}
             <Typography color="error.main" component="span">
               *
             </Typography>
           </CustomFormLabel>
-          <CustomTextField id="p_price" placeholder="Product Price" fullWidth />
-          <Typography variant="body2">Set the product price.</Typography>
+          <CustomTextField id="p_price" placeholder="Nhập giá sản phẩm" fullWidth />
+          <Typography variant="body2">Thiết lập giá sản phẩm.</Typography>
         </Grid>
         <Grid item xs={12}>
           <CustomFormLabel htmlFor="p_price" sx={{ mt: 0 }}>
-            Discount Type{" "}
+            Loại giảm giá{" "}
             <Typography color="error.main" component="span">
               *
             </Typography>
@@ -86,7 +86,7 @@ const PricingCard = () => {
                 <FormControlLabel
                   value="no_discount"
                   control={<CustomRadio />}
-                  label="No Discount"
+                  label="Không giảm giá"
                 />
               </Box>
               <Box
@@ -101,7 +101,7 @@ const PricingCard = () => {
                 <FormControlLabel
                   value="percentage"
                   control={<CustomRadio />}
-                  label="Percentage %"
+                  label="Phần trăm %"
                 />
               </Box>
               <Box
@@ -116,7 +116,7 @@ const PricingCard = () => {
                 <FormControlLabel
                   value="fixed"
                   control={<CustomRadio />}
-                  label="Fixed Price"
+                  label="Giá cố định"
                 />
               </Box>
             </Stack>
@@ -127,7 +127,7 @@ const PricingCard = () => {
           {selectedValue === "percentage" && (
             <>
               <CustomFormLabel>
-                Set Discount Percentage{" "}
+                Thiết lập phần trăm giảm giá{" "}
                 <Typography color="error.main" component="span">
                   *
                 </Typography>
@@ -138,7 +138,7 @@ const PricingCard = () => {
                 onChange={handleChange6}
               />
               <Typography variant="body2">
-                Set a percentage discount to be applied on this product.
+                Thiết lập phần trăm giảm giá áp dụng cho sản phẩm này.
               </Typography>
             </>
           )}
@@ -146,26 +146,25 @@ const PricingCard = () => {
           {selectedValue === "fixed" && (
             <>
               <CustomFormLabel htmlFor="p_fixed">
-                Fixed Discounted Price{" "}
+                Giá giảm cố định{" "}
                 <Typography color="error.main" component="span">
                   *
                 </Typography>
               </CustomFormLabel>
               <CustomTextField
                 id="p_fixed"
-                placeholder="Discounted Price"
+                placeholder="Giá sau giảm"
                 fullWidth
               />
               <Typography variant="body2">
-                Set the discounted product price. The product will be reduced at
-                the determined fixed price.
+                Thiết lập giá giảm cố định cho sản phẩm. Sản phẩm sẽ được giảm theo giá cố định đã xác định.
               </Typography>
             </>
           )}
         </Grid>
         <Grid item xs={12} lg={6}>
           <CustomFormLabel htmlFor="p_tax" sx={{ mt: 0 }}>
-            Tax Class{" "}
+            Loại thuế{" "}
             <Typography color="error.main" component="span">
               *
             </Typography>
@@ -176,22 +175,22 @@ const PricingCard = () => {
             onChange={handleChange}
             fullWidth
           >
-            <MenuItem value={0}>Select an option</MenuItem>
-            <MenuItem value={1}>Tax Free</MenuItem>
-            <MenuItem value={2}>Taxable Goods</MenuItem>
-            <MenuItem value={3}>Downloadable Products</MenuItem>
+            <MenuItem value={0}>Chọn một tùy chọn</MenuItem>
+            <MenuItem value={1}>Miễn thuế</MenuItem>
+            <MenuItem value={2}>Hàng hóa chịu thuế</MenuItem>
+            <MenuItem value={3}>Sản phẩm tải xuống</MenuItem>
           </CustomSelect>
-          <Typography variant="body2">Set the product tax class.</Typography>
+          <Typography variant="body2">Thiết lập loại thuế cho sản phẩm.</Typography>
         </Grid>
         <Grid item xs={12} lg={6}>
           <CustomFormLabel htmlFor="p_vat" sx={{ mt: 0 }}>
-            VAT Amount (%){" "}
+            Thuế VAT (%){" "}
             <Typography color="error.main" component="span">
               *
             </Typography>
           </CustomFormLabel>
           <CustomTextField id="p_vat" fullWidth />
-          <Typography variant="body2">Set the product VAT about.</Typography>
+          <Typography variant="body2">Thiết lập thuế VAT cho sản phẩm.</Typography>
         </Grid>
       </Grid>
     </Box>

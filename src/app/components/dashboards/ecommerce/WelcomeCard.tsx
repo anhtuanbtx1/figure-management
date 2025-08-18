@@ -44,7 +44,7 @@ const WelcomeCard = () => {
                   sx={{ width: 40, height: 40 }}
                 />
                 <Typography variant="h5" whiteSpace="nowrap">
-                  Welcome back Mathew Anderson!
+                  Chào mừng trở lại Anh Tuan!
                 </Typography>
               </Box>
 
@@ -55,7 +55,7 @@ const WelcomeCard = () => {
               >
                 <Box>
                   <Typography variant="h2" whiteSpace="nowrap">
-                    $2,340{" "}
+                    2.340.000 VNĐ{" "}
                     <span>
                       <IconArrowUpRight width={18} color="#39B69A" />
                     </span>
@@ -72,7 +72,7 @@ const WelcomeCard = () => {
                     </span>
                   </Typography>
                   <Typography variant="subtitle1" whiteSpace="nowrap">
-                    Performance
+                    Hiệu suất
                   </Typography>
                 </Box>
               </Stack>

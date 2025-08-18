@@ -59,7 +59,7 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatesCardProps) => {
       tickAmount: 4,
     },
     xaxis: {
-      categories: ["Jan", "Feb", "Mar", "Apr", "May"],
+      categories: ["T1", "T2", "T3", "T4", "T5"],
       axisTicks: {
         show: false,
       },
@@ -71,11 +71,11 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatesCardProps) => {
   };
   const seriescolumnchart = [
     {
-      name: "Footware",
+      name: "Giày dép",
       data: [2.5, 3.7, 3.2, 2.6, 1.9],
     },
     {
-      name: "Fashionware",
+      name: "Thời trang",
       data: [-2.8, -1.1, -3.0, -1.5, -1.9],
     },
   ];
@@ -86,7 +86,7 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatesCardProps) => {
         isLoading ? (
           <SkeletonRevenueUpdatesCards />
         ) : (
-          <DashboardCard title="Revenue Updates" subtitle="Overview of Profit">
+          <DashboardCard title="Cập nhật Doanh thu" subtitle="Tổng quan Lợi nhuận">
             <>
               <Stack direction="row" spacing={3}>
                 <Stack direction="row" alignItems="center" spacing={1}>
@@ -104,7 +104,7 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatesCardProps) => {
                       fontSize="12px"
                       color="textSecondary"
                     >
-                      Footware
+                      Giày dép
                     </Typography>
                   </Box>
                 </Stack>
@@ -123,7 +123,7 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatesCardProps) => {
                       fontSize="12px"
                       color="textSecondary"
                     >
-                      Fashionware
+                      Thời trang
                     </Typography>
                   </Box>
                 </Stack>

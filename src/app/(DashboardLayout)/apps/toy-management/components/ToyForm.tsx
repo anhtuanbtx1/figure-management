@@ -1,0 +1,377 @@
+"use client";
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+  Typography,
+  Chip,
+  InputAdornment,
+  CircularProgress,
+  Alert,
+} from '@mui/material';
+import { IconX, IconDeviceFloppy, IconCurrencyDong } from '@tabler/icons-react';
+import { Toy, ToyCategory, ToyCreateRequest, ToyUpdateRequest, ToyStatus } from '../../../types/apps/toy';
+
+interface ToyFormProps {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (toy: ToyCreateRequest | ToyUpdateRequest) => Promise<void>;
+  toy?: Toy | null;
+  categories: ToyCategory[];
+  brands: string[];
+  mode: 'create' | 'edit';
+}
+
+const ToyForm: React.FC<ToyFormProps> = ({
+  open,
+  onClose,
+  onSubmit,
+  toy,
+  categories,
+  brands,
+  mode,
+}) => {
+  const [formData, setFormData] = useState<ToyCreateRequest>({
+    name: '',
+    description: '',
+    image: '',
+    categoryId: '',
+    price: 0,
+    originalPrice: 0,
+    stock: 0,
+    status: 'active',
+    ageRange: '',
+    brand: '',
+    material: '',
+    dimensions: {
+      length: 0,
+      width: 0,
+      height: 0,
+      weight: 0,
+    },
+    colors: [],
+    tags: [],
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [colorInput, setColorInput] = useState('');
+  const [tagInput, setTagInput] = useState('');
+
+  // Reset form when dialog opens/closes or toy changes
+  useEffect(() => {
+    if (open) {
+      if (mode === 'edit' && toy) {
+        setFormData({
+          name: toy.name,
+          description: toy.description,
+          image: toy.image,
+          categoryId: toy.category.id,
+          price: toy.price,
+          originalPrice: toy.originalPrice || 0,
+          stock: toy.stock,
+          status: toy.status,
+          ageRange: toy.ageRange || '',
+          brand: toy.brand,
+          material: toy.material || '',
+          dimensions: toy.dimensions,
+          colors: toy.colors,
+          tags: toy.tags,
+        });
+      } else {
+        // Reset form for create mode
+        setFormData({
+          name: '',
+          description: '',
+          image: '',
+          categoryId: '',
+          price: 0,
+          originalPrice: 0,
+          stock: 0,
+          status: 'active',
+          ageRange: '',
+          brand: '',
+          material: '',
+          dimensions: {
+            length: 0,
+            width: 0,
+            height: 0,
+            weight: 0,
+          },
+          colors: [],
+          tags: [],
+        });
+      }
+      setError(null);
+    }
+  }, [open, mode, toy]);
+
+  const handleInputChange = (field: keyof ToyCreateRequest, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleDimensionChange = (field: keyof typeof formData.dimensions, value: number) => {
+    setFormData(prev => ({
+      ...prev,
+      dimensions: {
+        ...prev.dimensions,
+        [field]: value,
+      },
+    }));
+  };
+
+  const addColor = () => {
+    if (colorInput.trim() && !formData.colors.includes(colorInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        colors: [...prev.colors, colorInput.trim()],
+      }));
+      setColorInput('');
+    }
+  };
+
+  const removeColor = (color: string) => {
+    setFormData(prev => ({
+      ...prev,
+      colors: prev.colors.filter(c => c !== color),
+    }));
+  };
+
+  const addTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tagInput.trim()],
+      }));
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag),
+    }));
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Validation
+      if (!formData.name.trim()) {
+        throw new Error('Tên đồ chơi là bắt buộc');
+      }
+      if (!formData.categoryId) {
+        throw new Error('Danh mục là bắt buộc');
+      }
+      if (!formData.brand.trim()) {
+        throw new Error('Thương hiệu là bắt buộc');
+      }
+      if (formData.price <= 0) {
+        throw new Error('Giá phải lớn hơn 0');
+      }
+      if (formData.stock < 0) {
+        throw new Error('Số lượng không thể âm');
+      }
+
+      await onSubmit(formData);
+      onClose();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2 }
+      }}
+    >
+      <DialogTitle sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        pb: 1
+      }}>
+        <Typography variant="h6">
+          {mode === 'create' ? '🧸 Thêm đồ chơi mới' : '✏️ Chỉnh sửa đồ chơi'}
+        </Typography>
+        <Button
+          onClick={onClose}
+          size="small"
+          sx={{ minWidth: 'auto', p: 1 }}
+        >
+          <IconX size={20} />
+        </Button>
+      </DialogTitle>
+
+      <DialogContent dividers>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
+        <Grid container spacing={3}>
+          {/* Basic Information */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
+              📋 Thông tin cơ bản
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Tên đồ chơi"
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              required
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth required>
+              <InputLabel>Danh mục</InputLabel>
+              <Select
+                value={formData.categoryId}
+                onChange={(e) => handleInputChange('categoryId', e.target.value)}
+                label="Danh mục"
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Mô tả"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              multiline
+              rows={3}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Hình ảnh (URL)"
+              value={formData.image}
+              onChange={(e) => handleInputChange('image', e.target.value)}
+              placeholder="/images/toys/example.jpg"
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth>
+              <InputLabel>Thương hiệu</InputLabel>
+              <Select
+                value={formData.brand}
+                onChange={(e) => handleInputChange('brand', e.target.value)}
+                label="Thương hiệu"
+              >
+                {brands.map((brand) => (
+                  <MenuItem key={brand} value={brand}>
+                    {brand}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Pricing & Stock */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mt: 2 }}>
+              💰 Giá cả & Kho hàng
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Giá bán"
+              type="number"
+              value={formData.price}
+              onChange={(e) => handleInputChange('price', Number(e.target.value))}
+              InputProps={{
+                endAdornment: <InputAdornment position="end"><IconCurrencyDong size={20} /></InputAdornment>,
+              }}
+              required
+            />
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Giá gốc"
+              type="number"
+              value={formData.originalPrice}
+              onChange={(e) => handleInputChange('originalPrice', Number(e.target.value))}
+              InputProps={{
+                endAdornment: <InputAdornment position="end"><IconCurrencyDong size={20} /></InputAdornment>,
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Số lượng"
+              type="number"
+              value={formData.stock}
+              onChange={(e) => handleInputChange('stock', Number(e.target.value))}
+              required
+            />
+          </Grid>
+        </Grid>
+      </DialogContent>
+
+      <DialogActions sx={{ p: 3, gap: 1 }}>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          disabled={loading}
+        >
+          Hủy
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          disabled={loading}
+          startIcon={loading ? <CircularProgress size={20} /> : <IconDeviceFloppy size={20} />}
+        >
+          {loading ? 'Đang lưu...' : (mode === 'create' ? 'Thêm mới' : 'Cập nhật')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+export default ToyForm;

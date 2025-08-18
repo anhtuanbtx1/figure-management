@@ -61,7 +61,7 @@ const WeeklyStats = ({ isLoading }: WeeklyCardProps) => {
   };
   const seriescolumnchart = [
     {
-      name: 'Weekly Stats',
+      name: 'Thống kê hàng tuần',
       color: primary,
       data: [5, 15, 5, 10, 5],
     },
@@ -69,7 +69,7 @@ const WeeklyStats = ({ isLoading }: WeeklyCardProps) => {
 
   const stats = [
     {
-      title: 'Top Sales',
+      title: 'Bán chạy nhất',
       subtitle: 'Johnathan Doe',
       percent: '68',
       color: primary,
@@ -77,16 +77,16 @@ const WeeklyStats = ({ isLoading }: WeeklyCardProps) => {
       icon: <IconGridDots width={18} />,
     },
     {
-      title: 'Best Seller',
-      subtitle: 'Footware',
+      title: 'Người bán tốt nhất',
+      subtitle: 'Giày dép',
       percent: '45',
       color: secondary,
       lightcolor: secondarylight,
       icon: <IconGridDots width={18} />,
     },
     {
-      title: 'Most Commented',
-      subtitle: 'Fashionware',
+      title: 'Nhiều bình luận nhất',
+      subtitle: 'Thời trang',
       percent: '14',
       color: error,
       lightcolor: errorlight,
@@ -100,7 +100,7 @@ const WeeklyStats = ({ isLoading }: WeeklyCardProps) => {
         isLoading ? (
           <SkeletonWeeklyStatsCard />
         ) : (
-          <DashboardCard title="Weekly Stats" subtitle="Average sales">
+          <DashboardCard title="Thống kê hàng tuần" subtitle="Doanh số trung bình">
             <>
               <Stack mt={4}>
                 <Chart

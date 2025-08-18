@@ -40,7 +40,7 @@ const CreateInvoice = () => {
     billFrom: "",
     billTo: "",
     totalCost: 0,
-    status: "Pending",
+    status: "Đang chờ",
     billFromAddress: "",
     billToAddress: "",
     orders: [{ itemName: "", unitPrice: "", units: "", unitTotalPrice: 0 }],
@@ -147,7 +147,7 @@ const CreateInvoice = () => {
         billFrom: "",
         billTo: "",
         totalCost: 0,
-        status: "Pending",
+        status: "Đang chờ",
         billFromAddress: "",
         billToAddress: "",
         orders: [{ itemName: "", unitPrice: "", units: "", unitTotalPrice: 0 }],
@@ -169,7 +169,7 @@ const CreateInvoice = () => {
   const parsedDate = isValid(new Date(formData.date))
     ? new Date(formData.date)
     : new Date();
-  const formattedOrderDate = format(parsedDate, "EEEE, MMMM dd, yyyy");
+  const formattedOrderDate = format(parsedDate, "dd/MM/yyyy");
 
   return (
     <>
@@ -190,10 +190,10 @@ const CreateInvoice = () => {
                   router.push("/apps/invoice/list");
                 }}
               >
-                Cancel
+                Hủy bỏ
               </Button>
               <Button type="submit" variant="contained" color="primary">
-                Create Invoice
+                Tạo hóa đơn
               </Button>
             </Box>
           </Stack>
@@ -207,24 +207,25 @@ const CreateInvoice = () => {
           >
             <Box>
               <CustomFormLabel htmlFor="demo-simple-select">
-                Order Status
+                Trạng thái đơn hàng
               </CustomFormLabel>
 
               <CustomSelect
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
+                name="status"
                 value={formData.status}
                 onChange={handleChange}
                 disabled
               >
-                <MenuItem value="Pending">Pending</MenuItem>
-                <MenuItem value="Shipped">Shipped</MenuItem>
-                <MenuItem value="Delivered">Delivered</MenuItem>
+                <MenuItem value="Đang chờ">Đang chờ</MenuItem>
+                <MenuItem value="Đã gửi">Đã gửi</MenuItem>
+                <MenuItem value="Đã giao">Đã giao</MenuItem>
               </CustomSelect>
             </Box>
             <Box textAlign="right">
               <CustomFormLabel htmlFor="demo-simple-select">
-                Order Date
+                Ngày đặt hàng
               </CustomFormLabel>
               <Typography variant="body1"> {formattedOrderDate}</Typography>
             </Box>
@@ -233,7 +234,7 @@ const CreateInvoice = () => {
 
           <Grid container spacing={3} mb={4}>
             <Grid item xs={12} sm={6}>
-              <CustomFormLabel htmlFor="bill-from">Bill From</CustomFormLabel>
+              <CustomFormLabel htmlFor="bill-from">Người bán</CustomFormLabel>
               <CustomTextField
                 id="bill-from"
                 name="billFrom"
@@ -252,7 +253,7 @@ const CreateInvoice = () => {
                   },
                 }}
               >
-                Bill To
+                Người mua
               </CustomFormLabel>
               <CustomTextField
                 name="billTo"
@@ -268,7 +269,7 @@ const CreateInvoice = () => {
                   mt: 0,
                 }}
               >
-                From Address
+                Địa chỉ người bán
               </CustomFormLabel>
               <CustomTextField
                 name="billFromAddress"
@@ -284,7 +285,7 @@ const CreateInvoice = () => {
                   mt: 0,
                 }}
               >
-                Bill To Address
+                Địa chỉ người mua
               </CustomFormLabel>
               <CustomTextField
                 name="billToAddress"
@@ -301,14 +302,14 @@ const CreateInvoice = () => {
             alignItems="center"
             mb={2}
           >
-            <Typography variant="h6">Items Details :</Typography>
+            <Typography variant="h6">Chi tiết sản phẩm:</Typography>
             <Button
               onClick={handleAddItem}
               variant="contained"
               color="primary"
               startIcon={<IconPlus width={18} />}
             >
-              Add Item
+              Thêm sản phẩm
             </Button>
           </Stack>
 
@@ -319,28 +320,28 @@ const CreateInvoice = () => {
                   <TableRow>
                     <TableCell>
                       <Typography variant="h6" fontSize="14px">
-                        Item Name
+                        Tên sản phẩm
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="h6" fontSize="14px">
-                        Unit Price
+                        Đơn giá
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="h6" fontSize="14px">
-                        Units
+                        Số lượng
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="h6" fontSize="14px">
-                        Total Cost
+                        Thành tiền
                       </Typography>
                     </TableCell>
                     <TableCell></TableCell>
                     <TableCell>
                       <Typography variant="h6" fontSize="14px">
-                        Actions
+                        Thao tác
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -352,7 +353,7 @@ const CreateInvoice = () => {
                         <CustomTextField
                           type="text"
                           value={order.itemName}
-                          placeholder="Item Name"
+                          placeholder="Tên sản phẩm"
                           onChange={(e: any) =>
                             handleOrderChange(index, "itemName", e.target.value)
                           }
@@ -363,7 +364,7 @@ const CreateInvoice = () => {
                         <CustomTextField
                           type="number"
                           value={order.unitPrice}
-                          placeholder="Unit Price"
+                          placeholder="Đơn giá"
                           onChange={(e: any) =>
                             handleOrderChange(
                               index,
@@ -378,7 +379,7 @@ const CreateInvoice = () => {
                         <CustomTextField
                           type="number"
                           value={order.units}
-                          placeholder="Units"
+                          placeholder="Số lượng"
                           onChange={(e: any) =>
                             handleOrderChange(index, "units", e.target.value)
                           }
@@ -387,17 +388,17 @@ const CreateInvoice = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body1">
-                          {order.unitTotalPrice}
+                          {order.unitTotalPrice.toLocaleString('vi-VN')} VNĐ
                         </Typography>
                       </TableCell>
                       <TableCell></TableCell>
                       <TableCell>
-                        <Tooltip title="Add Item">
+                        <Tooltip title="Thêm sản phẩm">
                           <IconButton onClick={handleAddItem} color="primary">
                             <IconSquareRoundedPlus width={22} />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Delete Item">
+                        <Tooltip title="Xóa sản phẩm">
                           <IconButton
                             onClick={() => handleDeleteItem(index)}
                             color="error"
@@ -417,26 +418,26 @@ const CreateInvoice = () => {
           <Box p={3} bgcolor="primary.light" mt={3}>
             <Box display="flex" justifyContent="end" gap={3} mb={3}>
               <Typography variant="body1" fontWeight={600}>
-                Sub Total:
+                Tạm tính:
               </Typography>
               <Typography variant="body1" fontWeight={600}>
-                {formData.subtotal}
+                {formData.subtotal.toLocaleString('vi-VN')} VNĐ
               </Typography>
             </Box>
             <Box display="flex" justifyContent="end" gap={3} mb={3}>
               <Typography variant="body1" fontWeight={600}>
-                VAT:
+                VAT (10%):
               </Typography>
               <Typography variant="body1" fontWeight={600}>
-                {formData.vat}
+                {formData.vat.toLocaleString('vi-VN')} VNĐ
               </Typography>
             </Box>
             <Box display="flex" justifyContent="end" gap={3}>
               <Typography variant="body1" fontWeight={600}>
-                Grand Total:
+                Tổng cộng:
               </Typography>
               <Typography variant="body1" fontWeight={600}>
-                {formData.grandTotal}
+                {formData.grandTotal.toLocaleString('vi-VN')} VNĐ
               </Typography>
             </Box>
           </Box>
@@ -446,7 +447,7 @@ const CreateInvoice = () => {
               severity="success"
               sx={{ position: "fixed", top: 16, right: 16 }}
             >
-              Invoice added successfully.
+              Hóa đơn đã được tạo thành công.
             </Alert>
           )}
         </Box>

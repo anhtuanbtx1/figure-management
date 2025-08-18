@@ -25,7 +25,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <PageContainer title="Dashboard" description="this is Dashboard">
+    <PageContainer title="Bảng điều khiển" description="Bảng điều khiển hiện đại">
       <Box >
         <Grid container spacing={3}>
           {/* column */}

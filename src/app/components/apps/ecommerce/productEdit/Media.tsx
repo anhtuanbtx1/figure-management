@@ -28,7 +28,7 @@ const MediaCard = () => {
 
   return (
     <Box p={3}>
-      <Typography variant="h5">Media</Typography>
+      <Typography variant="h5">Hình ảnh</Typography>
 
       <Box
         mt={3}
@@ -44,11 +44,11 @@ const MediaCard = () => {
         {...getRootProps({ className: "dropzone" })}
       >
         <input {...getInputProps()} />
-        <p>Drag 'n' drop some files here, or click to select files</p>
+        <p>Kéo thả file vào đây hoặc click để chọn file</p>
       </Box>
       <Box mt={2}>
         <Typography variant="h6" fontSize="15px">
-          Files :
+          File đã chọn :
         </Typography>
         <Typography variant="body1">{files}</Typography>
       </Box>

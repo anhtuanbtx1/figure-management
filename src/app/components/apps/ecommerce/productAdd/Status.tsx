@@ -15,7 +15,7 @@ const StatusCard = () => {
   return (
     <Box p={3}>
       <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Typography variant="h5">Status</Typography>
+        <Typography variant="h5">Trạng thái</Typography>
 
         <Avatar
           sx={{
@@ -39,12 +39,12 @@ const StatusCard = () => {
       <Grid container mt={3}>
         <Grid item xs={12}>
           <CustomSelect value={status} onChange={handleChange} fullWidth>
-            <MenuItem value={0}>Published</MenuItem>
-            <MenuItem value={1}>Draft</MenuItem>
-            <MenuItem value={2}>Scheduled</MenuItem>
-            <MenuItem value={3}>In active</MenuItem>
+            <MenuItem value={0}>Đã xuất bản</MenuItem>
+            <MenuItem value={1}>Bản nháp</MenuItem>
+            <MenuItem value={2}>Đã lên lịch</MenuItem>
+            <MenuItem value={3}>Không hoạt động</MenuItem>
           </CustomSelect>
-          <Typography variant="body2">Set the product status.</Typography>
+          <Typography variant="body2">Thiết lập trạng thái sản phẩm.</Typography>
         </Grid>
       </Grid>
     </Box>

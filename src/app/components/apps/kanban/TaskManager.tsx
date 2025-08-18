@@ -28,26 +28,53 @@ function TaskManager() {
   };
 
   return (
-    <>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <KanbanHeader />
-      <SimpleBar>
+      <Box sx={{ flex: 1, overflow: 'hidden', p: { xs: 1, sm: 2, md: 3 } }}>
         <DragDropContext onDragEnd={onDragEnd}>
-
-          <Box display="flex" gap={2}>
+          <Box
+            display="flex"
+            gap={{ xs: 1, sm: 1.5, md: 2 }}
+            sx={{
+              minHeight: '600px',
+              pb: 2,
+              width: '100%',
+              overflow: { xs: 'auto', lg: 'visible' },
+              // Responsive grid-like behavior
+              '& > *': {
+                flex: {
+                  xs: '0 0 280px',  // Mobile: fixed width with scroll
+                  sm: '0 0 calc(50% - 8px)',  // Tablet: 2 columns
+                  md: '0 0 calc(33.333% - 12px)',  // Medium: 3 columns
+                  lg: '1 1 0',  // Desktop: equal distribution
+                },
+                minWidth: { xs: 280, lg: 250 },
+                maxWidth: { xs: 320, lg: 'none' },
+              },
+            }}
+          >
             {todoCategories.map((category) => (
               <Droppable droppableId={category.id.toString()} key={category.id}>
-                {(provided: any) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps}>
+                {(provided: any, snapshot: any) => (
+                  <Box
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    sx={{
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      transform: snapshot.isDraggingOver ? 'scale(1.02)' : 'scale(1)',
+                      filter: snapshot.isDraggingOver ? 'brightness(1.05)' : 'brightness(1)',
+                    }}
+                  >
                     <CategoryTaskList id={category.id} />
                     {provided.placeholder}
-                  </div>
+                  </Box>
                 )}
               </Droppable>
             ))}
           </Box>
         </DragDropContext>
-      </SimpleBar>
-    </>
+      </Box>
+    </Box>
   );
 }
 

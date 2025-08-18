@@ -7,30 +7,30 @@ import CustomTextField from "@/app/components/forms/theme-elements/CustomTextFie
 import { IconPlus } from "@tabler/icons-react";
 
 const new_category = [
-  { label: "Computer" },
-  { label: "Watches" },
-  { label: "Headphones" },
-  { label: "Beauty" },
-  { label: "Fashion" },
-  { label: "Footwear" },
+  { label: "Máy tính" },
+  { label: "Đồng hồ" },
+  { label: "Tai nghe" },
+  { label: "Làm đẹp" },
+  { label: "Thời trang" },
+  { label: "Giày dép" },
 ];
 
 const new_tags = [
-  { label: "New" },
-  { label: "Trending" },
-  { label: "Footwear" },
-  { label: "Latest" },
+  { label: "Mới" },
+  { label: "Xu hướng" },
+  { label: "Giày dép" },
+  { label: "Mới nhất" },
 ];
 
 const ProductDetails = () => {
   return (
     <Box p={3}>
-      <Typography variant="h5">Product Details</Typography>
+      <Typography variant="h5">Chi tiết sản phẩm</Typography>
       <Grid container mt={3}>
         {/* 1 */}
         <Grid item xs={12} display="flex" alignItems="center">
           <CustomFormLabel htmlFor="p_cat" sx={{ mt: 0 }}>
-            Categories
+            Danh mục
           </CustomFormLabel>
         </Grid>
         <Grid item xs={12}>
@@ -42,23 +42,23 @@ const ProductDetails = () => {
             getOptionLabel={(option) => option.label}
             filterSelectedOptions
             renderInput={(params) => (
-              <CustomTextField {...params} placeholder="Categories" />
+              <CustomTextField {...params} placeholder="Chọn danh mục" />
             )}
           />
 
           {/* <CustomTextField id="p_cat" fullWidth /> */}
           <Typography variant="body2" mb={2}>
-            Add product to a category.
+            Thêm sản phẩm vào danh mục.
           </Typography>
         </Grid>
         <Grid item xs={12}>
           <Button variant="text" startIcon={<IconPlus size={18} />}>
-            Create New Category
+            Tạo danh mục mới
           </Button>
         </Grid>
         {/* 1 */}
         <Grid item xs={12} display="flex" alignItems="center">
-          <CustomFormLabel htmlFor="p_tag">Tags</CustomFormLabel>
+          <CustomFormLabel htmlFor="p_tag">Thẻ</CustomFormLabel>
         </Grid>
         <Grid item xs={12}>
           <Autocomplete
@@ -69,12 +69,12 @@ const ProductDetails = () => {
             getOptionLabel={(option) => option.label}
             filterSelectedOptions
             renderInput={(params) => (
-              <CustomTextField {...params} placeholder="Tags" />
+              <CustomTextField {...params} placeholder="Chọn thẻ" />
             )}
           />
           {/* <CustomTextField id="p_tag" fullWidth /> */}
           <Typography variant="body2" mb={2}>
-            Add product to a category.
+            Thêm thẻ cho sản phẩm.
           </Typography>
         </Grid>
       </Grid>

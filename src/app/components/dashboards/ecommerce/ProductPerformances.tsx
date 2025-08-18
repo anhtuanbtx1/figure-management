@@ -195,7 +195,7 @@ const ProductPerformances = () => {
 
   return (
     <DashboardCard
-      title="Product Performance"
+      title="Hiệu suất sản phẩm"
       action={
         <CustomSelect
           labelId="month-dd"
@@ -204,9 +204,9 @@ const ProductPerformances = () => {
           value={month}
           onChange={handleChange}
         >
-          <MenuItem value={1}>March 2025</MenuItem>
-          <MenuItem value={2}>April 2025</MenuItem>
-          <MenuItem value={3}>May 2025</MenuItem>
+          <MenuItem value={1}>Tháng 3 2025</MenuItem>
+          <MenuItem value={2}>Tháng 4 2025</MenuItem>
+          <MenuItem value={3}>Tháng 5 2025</MenuItem>
         </CustomSelect>
       }
     >
@@ -221,27 +221,27 @@ const ProductPerformances = () => {
             <TableRow>
               <TableCell sx={{ pl: 0 }}>
                 <Typography variant="subtitle2" fontWeight={600}>
-                  Product
+                  Sản phẩm
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography variant="subtitle2" fontWeight={600}>
-                  Progress
+                  Tiến độ
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography variant="subtitle2" fontWeight={600}>
-                  Priority
+                  Ưu tiên
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography variant="subtitle2" fontWeight={600}>
-                  Budget
+                  Ngân sách
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography variant="subtitle2" fontWeight={600}>
-                  Chart
+                  Biểu đồ
                 </Typography>
               </TableCell>
             </TableRow>
