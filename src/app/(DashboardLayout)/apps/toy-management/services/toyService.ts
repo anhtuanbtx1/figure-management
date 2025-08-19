@@ -1,4 +1,4 @@
-import { Toy, ToyCategory, ToyFilters, ToyCreateRequest, ToyUpdateRequest, ToyListResponse } from '../../../types/apps/toy';
+import { Toy, ToyCategory, ToyFilters, ToyCreateRequest, ToyUpdateRequest, ToyListResponse, ToyStatus } from '../../../types/apps/toy';
 
 // Base API URL
 const API_BASE = '/api/toys';
@@ -259,7 +259,7 @@ export class ToyService {
       const filters: ToyFilters = {
         search: '',
         category: '',
-        status: 'active',
+        status: ToyStatus.ACTIVE,
         priceRange: { min: 0, max: 5000000 },
         brand: '',
         ageRange: '',
@@ -282,7 +282,7 @@ export class ToyService {
       const filters: ToyFilters = {
         search: '',
         category: '',
-        status: 'active',
+        status: ToyStatus.ACTIVE,
         priceRange: { min: 0, max: 5000000 },
         brand: '',
         ageRange: '',

@@ -11,6 +11,7 @@ import {
   Paper
 } from '@mui/material';
 import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/store/store';
 import { fetchProducts, fetchProductsFromJSON } from '@/store/apps/eCommerce/ECommerceSlice';
 
 interface DataSourceToggleProps {
@@ -19,7 +20,7 @@ interface DataSourceToggleProps {
 
 const DataSourceToggle: React.FC<DataSourceToggleProps> = ({ onSourceChange }) => {
   const [dataSource, setDataSource] = React.useState<'api' | 'json'>('api');
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleSourceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSource = event.target.value as 'api' | 'json';

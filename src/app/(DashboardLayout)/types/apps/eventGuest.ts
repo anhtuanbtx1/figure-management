@@ -92,4 +92,5 @@ export interface GuestStats {
   declinedGuests: number;
   totalContribution: number;
   averageContribution: number;
+  totalPeople?: number;
 }

@@ -91,6 +91,7 @@ const EventGuestsPage = () => {
         declinedGuests: 0,
         totalContribution: 0,
         averageContribution: 0,
+        totalPeople: 0,
       };
     }
 
@@ -149,6 +150,11 @@ const EventGuestsPage = () => {
     filtered.sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
+
+      // Handle null values
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return sortDirection === 'asc' ? 1 : -1;
+      if (bValue === null) return sortDirection === 'asc' ? -1 : 1;
 
       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;

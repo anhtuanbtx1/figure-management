@@ -33,10 +33,10 @@ function mapDatabaseRowToToy(row: any): Toy {
 // GET /api/toys/[id] - Get single toy by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const toyId = params.id;
+    const toyId = context.params.id;
     console.log(`🔍 Fetching toy with ID: ${toyId}`);
 
     // Execute stored procedure to get single toy
@@ -77,10 +77,10 @@ export async function GET(
 // PUT /api/toys/[id] - Update toy
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const toyId = params.id;
+    const toyId = context.params.id;
     console.log(`✏️ Updating toy with ID: ${toyId}`);
 
     // Parse request body
@@ -256,10 +256,10 @@ export async function PUT(
 // DELETE /api/toys/[id] - Delete toy (soft delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const toyId = params.id;
+    const toyId = context.params.id;
     console.log(`🗑️ Deleting toy with ID: ${toyId}`);
 
     // Check if toy exists

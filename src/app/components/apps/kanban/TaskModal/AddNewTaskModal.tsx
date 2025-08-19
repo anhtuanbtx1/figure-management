@@ -14,7 +14,7 @@ import {
   FormLabel,
   Select,
 } from "@mui/material";
-import { IconPlus, IconTask } from "@tabler/icons-react";
+import { IconPlus, IconChecklist } from "@tabler/icons-react";
 
 function AddNewTaskModal({
   show,
@@ -72,7 +72,7 @@ function AddNewTaskModal({
     >
       <DialogTitle sx={{ pb: 1 }}>
         <Box display="flex" alignItems="center" gap={1}>
-          <IconTask size={24} color="#667eea" />
+          <IconChecklist size={24} color="#667eea" />
           <Typography variant="h6" fontWeight={700}>
             Thêm nhiệm vụ mới
           </Typography>

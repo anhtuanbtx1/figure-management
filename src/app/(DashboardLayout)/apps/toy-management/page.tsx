@@ -321,10 +321,10 @@ const ToyManagementPage = () => {
   const handleFormSubmit = async (toyData: ToyCreateRequest | ToyUpdateRequest) => {
     try {
       if (formMode === 'create') {
-        await ToyService.createToy(toyData);
+        await ToyService.createToy(toyData as ToyCreateRequest);
         showNotification(`🎉 Đã thêm "${toyData.name}" thành công!`, 'success');
       } else if (formMode === 'edit' && selectedToy) {
-        const updateData = { ...toyData, id: selectedToy.id };
+        const updateData = { ...toyData, id: selectedToy.id } as ToyUpdateRequest;
         await ToyService.updateToy(selectedToy.id, updateData);
         showNotification(`✅ Đã cập nhật "${toyData.name}" thành công!`, 'success');
       }

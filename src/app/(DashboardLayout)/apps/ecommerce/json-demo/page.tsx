@@ -156,13 +156,15 @@ const JsonDemoPage = () => {
           </Grid>
         ))}
       </Grid>
-      
-      {products.length === 0 && !loading && (
+
+      {products.length === 0 && !loading ? (
         <Box textAlign="center" py={4}>
           <Typography variant="h6" color="text.secondary">
             No products found
           </Typography>
         </Box>
+      ) : (
+        <></>
       )}
     </PageContainer>
   );
