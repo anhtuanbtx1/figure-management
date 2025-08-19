@@ -23,6 +23,7 @@ import ToyService from './services/toyService';
 import ToyTable from './components/ToyTable';
 import ToyFiltersComponent from './components/ToyFilters';
 import ToyPagination from './components/ToyPagination';
+import BrandStatsCards from './components/BrandStatsCards';
 import ToyForm from './components/ToyForm';
 import BulkActions from './components/BulkActions';
 import LoadingFallback from './components/LoadingFallback';
@@ -457,6 +458,9 @@ const ToyManagementPage = () => {
       {/* Main Content */}
       <BlankCard>
         <CardContent sx={{ p: 0 }}>
+          {/* Brand Stats */}
+          <BrandStatsCards />
+
           {/* Filters */}
           <ToyFiltersComponent
             filters={filters}

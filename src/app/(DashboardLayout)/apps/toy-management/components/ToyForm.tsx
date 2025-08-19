@@ -20,6 +20,7 @@ import {
   Alert,
 } from '@mui/material';
 import { IconX, IconDeviceFloppy, IconCurrencyDong } from '@tabler/icons-react';
+import { formatNumberToVn, parseVnToNumber } from '@/utils/currency';
 import { Toy, ToyCategory, ToyCreateRequest, ToyUpdateRequest, ToyStatus } from '../../../types/apps/toy';
 
 interface ToyFormProps {
@@ -67,6 +68,10 @@ const ToyForm: React.FC<ToyFormProps> = ({
   const [colorInput, setColorInput] = useState('');
   const [tagInput, setTagInput] = useState('');
 
+  // Local display states for currency inputs
+  const [priceDisplay, setPriceDisplay] = useState<string>('');
+  const [originalPriceDisplay, setOriginalPriceDisplay] = useState<string>('');
+
   // Reset form when dialog opens/closes or toy changes
   useEffect(() => {
     if (open) {
@@ -112,6 +117,37 @@ const ToyForm: React.FC<ToyFormProps> = ({
       setError(null);
     }
   }, [open, mode, toy]);
+
+  // Sync display values when formData changes
+  useEffect(() => {
+    setPriceDisplay(formData.price ? formatNumberToVn(formData.price) : '');
+    setOriginalPriceDisplay(formData.originalPrice ? formatNumberToVn(formData.originalPrice) : '');
+  }, [formData.price, formData.originalPrice]);
+
+  // Handlers for formatted currency inputs
+  const handlePriceChange = (input: string) => {
+    const formatted = formatNumberToVn(input);
+    setPriceDisplay(formatted);
+    const numeric = parseVnToNumber(formatted);
+    handleInputChange('price', numeric);
+  };
+
+  const handleOriginalPriceChange = (input: string) => {
+    const formatted = formatNumberToVn(input);
+    setOriginalPriceDisplay(formatted);
+    const numeric = parseVnToNumber(formatted);
+    handleInputChange('originalPrice', numeric);
+  };
+
+  const normalizeCurrencyOnBlur = (kind: 'price' | 'originalPrice') => {
+    if (kind === 'price') {
+      setPriceDisplay(formData.price ? formatNumberToVn(formData.price) : '');
+    } else {
+      setOriginalPriceDisplay(formData.originalPrice ? formatNumberToVn(formData.originalPrice) : '');
+    }
+  };
+
+
 
   const handleInputChange = (field: keyof ToyCreateRequest, value: any) => {
     setFormData(prev => ({
@@ -196,18 +232,18 @@ const ToyForm: React.FC<ToyFormProps> = ({
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
       fullWidth
       PaperProps={{
         sx: { borderRadius: 2 }
       }}
     >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <DialogTitle sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         pb: 1
       }}>
@@ -314,11 +350,14 @@ const ToyForm: React.FC<ToyFormProps> = ({
             <TextField
               fullWidth
               label="Giá bán"
-              type="number"
-              value={formData.price}
-              onChange={(e) => handleInputChange('price', Number(e.target.value))}
+              placeholder="1.000.000"
+              inputMode="numeric"
+              value={priceDisplay}
+              onChange={(e) => handlePriceChange(e.target.value)}
+              onBlur={() => normalizeCurrencyOnBlur('price')}
               InputProps={{
-                endAdornment: <InputAdornment position="end"><IconCurrencyDong size={20} /></InputAdornment>,
+                startAdornment: <InputAdornment position="start">₫</InputAdornment>,
+                endAdornment: <InputAdornment position="end">VNĐ</InputAdornment>,
               }}
               required
             />
@@ -328,11 +367,14 @@ const ToyForm: React.FC<ToyFormProps> = ({
             <TextField
               fullWidth
               label="Giá gốc"
-              type="number"
-              value={formData.originalPrice}
-              onChange={(e) => handleInputChange('originalPrice', Number(e.target.value))}
+              placeholder="1.500.000"
+              inputMode="numeric"
+              value={originalPriceDisplay}
+              onChange={(e) => handleOriginalPriceChange(e.target.value)}
+              onBlur={() => normalizeCurrencyOnBlur('originalPrice')}
               InputProps={{
-                endAdornment: <InputAdornment position="end"><IconCurrencyDong size={20} /></InputAdornment>,
+                startAdornment: <InputAdornment position="start">₫</InputAdornment>,
+                endAdornment: <InputAdornment position="end">VNĐ</InputAdornment>,
               }}
             />
           </Grid>

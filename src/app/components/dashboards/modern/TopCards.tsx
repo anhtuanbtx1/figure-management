@@ -1,47 +1,69 @@
 'use client'
 import Image from "next/image";
+import React, { useEffect, useState } from 'react';
 import { Box, CardContent, Grid, Typography } from "@mui/material";
 
-const topcards = [
-  {
-    icon: '/images/svgs/icon-user-male.svg',
-    title: "Nhân viên",
-    digits: "96",
-    bgcolor: "primary",
-  },
-  {
-    icon: '/images/svgs/icon-briefcase.svg',
-    title: "Khách hàng",
-    digits: "3,650",
-    bgcolor: "warning",
-  },
-  {
-    icon: '/images/svgs/icon-mailbox.svg',
-    title: "Dự án",
-    digits: "356",
-    bgcolor: "secondary",
-  },
-  {
-    icon: '/images/svgs/icon-favorites.svg',
-    title: "Sự kiện",
-    digits: "696",
-    bgcolor: "error",
-  },
-  {
-    icon: '/images/svgs/icon-speech-bubble.svg',
-    title: "Bảng lương",
-    digits: "96 triệu VNĐ",
-    bgcolor: "success",
-  },
-  {
-    icon: '/images/svgs/icon-connect.svg',
-    title: "Báo cáo",
-    digits: "59",
-    bgcolor: "info",
-  },
-];
+const formatNumber = (n: number) => n.toLocaleString('vi-VN');
 
 const TopCards = () => {
+  const [toyTotal, setToyTotal] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Fetch total toys from dedicated endpoint
+    const fetchToyTotal = async () => {
+      try {
+        const res = await fetch('/api/toys/count');
+        if (!res.ok) return;
+        const data = await res.json();
+        const total: number | undefined = data?.total;
+        if (typeof total === 'number') setToyTotal(total);
+      } catch (e) {
+        console.error('Failed to fetch toy total', e);
+      }
+    };
+    fetchToyTotal();
+  }, []);
+
+  const topcards = [
+    {
+      icon: '/images/svgs/icon-user-male.svg',
+      title: "Nhân viên",
+      digits: "96",
+      bgcolor: "primary",
+    },
+    {
+      icon: '/images/svgs/icon-briefcase.svg',
+      title: "Khách hàng",
+      digits: "3,650",
+      bgcolor: "warning",
+    },
+    {
+      icon: '/images/svgs/icon-mailbox.svg',
+      title: "Dự án",
+      digits: "356",
+      bgcolor: "secondary",
+    },
+    // Replaced Events with Toys summary
+    {
+      icon: '/images/svgs/icon-favorites.svg',
+      title: "Tổng đồ chơi",
+      digits: toyTotal !== null ? formatNumber(toyTotal) : '—',
+      bgcolor: "error",
+    },
+    {
+      icon: '/images/svgs/icon-speech-bubble.svg',
+      title: "Bảng lương",
+      digits: "96 triệu VNĐ",
+      bgcolor: "success",
+    },
+    {
+      icon: '/images/svgs/icon-connect.svg',
+      title: "Báo cáo",
+      digits: "59",
+      bgcolor: "info",
+    },
+  ];
+
   return (
     <Grid container spacing={3}>
       {topcards.map((topcard, i) => (
@@ -73,3 +95,5 @@ const TopCards = () => {
 };
 
 export default TopCards;
+
+

@@ -365,6 +365,25 @@ const ToyTable: React.FC<ToyTableProps> = ({
                     <Typography variant="caption" color="text.secondary">
                       {toy.brand} • {toy.ageRange}
                     </Typography>
+                    {toy.description && toy.description.trim() !== '' && (
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: 'block',
+                          mt: 0.25,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: '100%',
+                        }}
+                        title={toy.description}
+                      >
+                        {toy.description.length > 100
+                          ? `${toy.description.slice(0, 100)}...`
+                          : toy.description}
+                      </Typography>
+                    )}
                     {toy.isNew && (
                       <Chip
                         label="Mới"
