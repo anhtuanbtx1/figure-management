@@ -146,85 +146,6 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
-    title: "Contacts",
-    icon: IconPackage,
-    chip: "2",
-    chipColor: "secondary",
-    href: "/apps/contacts",
-  },
-
-  {
-    id: uniqueId(),
-    title: "Blog",
-    icon: IconChartDonut3,
-    href: "/apps/blog/",
-    children: [
-      {
-        id: uniqueId(),
-        title: "Posts",
-        icon: IconPoint,
-        href: "/apps/blog/post",
-      },
-      {
-        id: uniqueId(),
-        title: "Detail",
-        icon: IconPoint,
-        href: "/apps/blog/detail/streaming-video-way-before-it-was-cool-go-dark-tomorrow",
-      },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: "Ecommerce",
-    icon: IconBasket,
-    href: "/apps/ecommerce/",
-    children: [
-      {
-        id: uniqueId(),
-        title: "Shop",
-        icon: IconPoint,
-        href: "/apps/ecommerce/shop",
-      },
-      {
-        id: uniqueId(),
-        title: "Detail",
-        icon: IconPoint,
-        href: "/apps/ecommerce/detail/1",
-      },
-      {
-        id: uniqueId(),
-        title: "List",
-        icon: IconPoint,
-        href: "/apps/ecommerce/list",
-      },
-      {
-        id: uniqueId(),
-        title: "Checkout",
-        icon: IconPoint,
-        href: "/apps/ecommerce/checkout",
-      },
-      {
-        id: uniqueId(),
-        title: "Add Product",
-        icon: IconPoint,
-        href: "/apps/ecommerce/add-product",
-      },
-      {
-        id: uniqueId(),
-        title: "Edit Product",
-        icon: IconPoint,
-        href: "/apps/ecommerce/edit-product",
-      },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: "Chats",
-    icon: IconMessage2,
-    href: "/apps/chats",
-  },
-    {
-    id: uniqueId(),
     title: "Quản lý ví",
     icon: IconWallet,
     href: "/apps/wallet",
@@ -241,38 +162,119 @@ const Menuitems: MenuitemsType[] = [
     icon: IconUsers,
     href: "/apps/event-guests",
   },
-  {
-    id: uniqueId(),
-    title: "Users",
-    icon: IconUserCircle,
-    href: "/apps/user-profile/profile",
-    children: [
-      {
-        id: uniqueId(),
-        title: "Profile",
-        icon: IconPoint,
-        href: "/apps/user-profile/profile",
-      },
-      {
-        id: uniqueId(),
-        title: "Followers",
-        icon: IconPoint,
-        href: "/apps/user-profile/followers",
-      },
-      {
-        id: uniqueId(),
-        title: "Friends",
-        icon: IconPoint,
-        href: "/apps/user-profile/friends",
-      },
-      {
-        id: uniqueId(),
-        title: "Gallery",
-        icon: IconPoint,
-        href: "/apps/user-profile/gallery",
-      },
-    ],
-  },
+  // {
+  //   id: uniqueId(),
+  //   title: "Contacts",
+  //   icon: IconPackage,
+  //   chip: "2",
+  //   chipColor: "secondary",
+  //   href: "/apps/contacts",
+  // },
+
+  // {
+  //   id: uniqueId(),
+  //   title: "Blog",
+  //   icon: IconChartDonut3,
+  //   href: "/apps/blog/",
+  //   children: [
+  //     {
+  //       id: uniqueId(),
+  //       title: "Posts",
+  //       icon: IconPoint,
+  //       href: "/apps/blog/post",
+  //     },
+  //     {
+  //       id: uniqueId(),
+  //       title: "Detail",
+  //       icon: IconPoint,
+  //       href: "/apps/blog/detail/streaming-video-way-before-it-was-cool-go-dark-tomorrow",
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: uniqueId(),
+  //   title: "Ecommerce",
+  //   icon: IconBasket,
+  //   href: "/apps/ecommerce/",
+  //   children: [
+  //     {
+  //       id: uniqueId(),
+  //       title: "Shop",
+  //       icon: IconPoint,
+  //       href: "/apps/ecommerce/shop",
+  //     },
+  //     {
+  //       id: uniqueId(),
+  //       title: "Detail",
+  //       icon: IconPoint,
+  //       href: "/apps/ecommerce/detail/1",
+  //     },
+  //     {
+  //       id: uniqueId(),
+  //       title: "List",
+  //       icon: IconPoint,
+  //       href: "/apps/ecommerce/list",
+  //     },
+  //     {
+  //       id: uniqueId(),
+  //       title: "Checkout",
+  //       icon: IconPoint,
+  //       href: "/apps/ecommerce/checkout",
+  //     },
+  //     {
+  //       id: uniqueId(),
+  //       title: "Add Product",
+  //       icon: IconPoint,
+  //       href: "/apps/ecommerce/add-product",
+  //     },
+  //     {
+  //       id: uniqueId(),
+  //       title: "Edit Product",
+  //       icon: IconPoint,
+  //       href: "/apps/ecommerce/edit-product",
+  //     },
+  //   ],
+  // },
+  
+  // {
+  //   id: uniqueId(),
+  //   title: "Chats",
+  //   icon: IconMessage2,
+  //   href: "/apps/chats",
+  // },
+
+  // {
+  //   id: uniqueId(),
+  //   title: "Users",
+  //   icon: IconUserCircle,
+  //   href: "/apps/user-profile/profile",
+  //   children: [
+  //     {
+  //       id: uniqueId(),
+  //       title: "Profile",
+  //       icon: IconPoint,
+  //       href: "/apps/user-profile/profile",
+  //     },
+  //     {
+  //       id: uniqueId(),
+  //       title: "Followers",
+  //       icon: IconPoint,
+  //       href: "/apps/user-profile/followers",
+  //     },
+  //     {
+  //       id: uniqueId(),
+  //       title: "Friends",
+  //       icon: IconPoint,
+  //       href: "/apps/user-profile/friends",
+  //     },
+  //     {
+  //       id: uniqueId(),
+  //       title: "Gallery",
+  //       icon: IconPoint,
+  //       href: "/apps/user-profile/gallery",
+  //     },
+  //   ],
+  // },
   {
     id: uniqueId(),
     title: "Notes",
