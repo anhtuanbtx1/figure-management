@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { formatNumberToVn, parseVnToNumber } from '@/utils/currency';
 import {
   Card,
   CardContent,
@@ -14,6 +15,7 @@ import {
   Box,
   Alert,
   Snackbar,
+  InputAdornment,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { WalletService } from '@/app/(DashboardLayout)/apps/wallet/services/walletService';
@@ -48,6 +50,25 @@ const TransactionForm: React.FC = () => {
     message: '',
     severity: 'success'
   });
+
+  // Local display state for currency formatting
+  const [amountDisplay, setAmountDisplay] = useState<string>('');
+
+  // Sync display when numeric amount changes (e.g., reset or edit)
+  useEffect(() => {
+    setAmountDisplay(formData.amount ? formatNumberToVn(formData.amount) : '');
+  }, [formData.amount]);
+
+  const handleAmountChange = (input: string) => {
+    const formatted = formatNumberToVn(input);
+    setAmountDisplay(formatted);
+    const numeric = parseVnToNumber(formatted);
+    handleFieldChange('amount', numeric);
+  };
+
+  const normalizeAmountOnBlur = () => {
+    setAmountDisplay(formData.amount ? formatNumberToVn(formData.amount) : '');
+  };
 
   // Show notification
   const showNotification = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
@@ -133,9 +154,9 @@ const TransactionForm: React.FC = () => {
       };
 
       await WalletService.createTransaction(apiData);
-      
+
       showNotification('✅ Tạo giao dịch thành công!');
-      
+
       // Reset form
       setFormData({
         type: '',
@@ -184,7 +205,7 @@ const TransactionForm: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Thêm giao dịch mới
           </Typography>
-          
+
           <Box component="form" onSubmit={handleSubmit}>
             <Grid container spacing={2}>
               {/* Transaction Type */}
@@ -218,14 +239,17 @@ const TransactionForm: React.FC = () => {
                   fullWidth
                   size="small"
                   label="Số tiền (VND) *"
-                  type="number"
-                  value={formData.amount || ''}
-                  onChange={(e) => handleFieldChange('amount', parseFloat(e.target.value) || 0)}
+                  placeholder="1.000.000"
+                  value={amountDisplay}
+                  onChange={(e) => handleAmountChange(e.target.value)}
+                  onBlur={normalizeAmountOnBlur}
                   error={!!formErrors.amount}
                   helperText={formErrors.amount}
                   InputProps={{
-                    inputProps: { min: 0, step: 1000 }
+                    startAdornment: <InputAdornment position="start">₫</InputAdornment>,
+                    endAdornment: <InputAdornment position="end">VNĐ</InputAdornment>,
                   }}
+                  inputProps={{ inputMode: 'numeric' }}
                 />
               </Grid>
 
