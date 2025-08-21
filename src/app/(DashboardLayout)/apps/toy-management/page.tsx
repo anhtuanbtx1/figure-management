@@ -7,8 +7,7 @@ import {
   Typography,
   Button,
   Grid,
-  Alert,
-  Snackbar,
+
 } from '@mui/material';
 import { IconPlus, IconBox } from '@tabler/icons-react';
 import PageContainer from '@/app/components/container/PageContainer';
@@ -25,6 +24,7 @@ import ToyFiltersComponent from './components/ToyFilters';
 import ToyPagination from './components/ToyPagination';
 import BrandStatsCards from './components/BrandStatsCards';
 import ToyForm from './components/ToyForm';
+import ModernNotification from '@/app/components/shared/ModernNotification';
 import BulkActions from './components/BulkActions';
 
 const BCrumb = [
@@ -344,8 +344,8 @@ const ToyManagementPage = () => {
   };
 
   const handleSelectToy = (toyId: string) => {
-    setSelectedToys(prev => 
-      prev.includes(toyId) 
+    setSelectedToys(prev =>
+      prev.includes(toyId)
         ? prev.filter(id => id !== toyId)
         : [...prev, toyId]
     );
@@ -511,27 +511,11 @@ const ToyManagementPage = () => {
         mode={formMode}
       />
 
-      {/* Notification Snackbar */}
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={4000}
+      {/* Modern unified notification (reused from event-guests) */}
+      <ModernNotification
+        notification={notification}
         onClose={closeNotification}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          severity={notification.severity}
-          onClose={closeNotification}
-          sx={{
-            minWidth: 300,
-            '& .MuiAlert-message': {
-              fontSize: '0.95rem',
-              fontWeight: 500,
-            }
-          }}
-        >
-          {notification.message}
-        </Alert>
-      </Snackbar>
+      />
     </PageContainer>
   );
 };

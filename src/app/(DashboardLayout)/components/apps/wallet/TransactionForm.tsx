@@ -13,11 +13,10 @@ import {
   MenuItem,
   Grid,
   Box,
-  Alert,
-  Snackbar,
   InputAdornment,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
+import ModernNotification from '@/app/components/shared/ModernNotification';
 import { WalletService } from '@/app/(DashboardLayout)/apps/wallet/services/walletService';
 import {
   WalletCategory,
@@ -397,21 +396,11 @@ const TransactionForm: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Notification Snackbar */}
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={4000}
+      {/* Modern unified notification */}
+      <ModernNotification
+        notification={notification}
         onClose={() => setNotification(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setNotification(prev => ({ ...prev, open: false }))}
-          severity={notification.severity}
-          sx={{ width: '100%' }}
-        >
-          {notification.message}
-        </Alert>
-      </Snackbar>
+      />
     </>
   );
 };

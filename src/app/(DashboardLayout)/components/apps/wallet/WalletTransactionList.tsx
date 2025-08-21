@@ -26,10 +26,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Alert,
-  Snackbar,
   InputAdornment,
 } from '@mui/material';
+import ModernNotification from '@/app/components/shared/ModernNotification';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -44,7 +43,6 @@ import {
   WalletTransaction,
   WalletCategory,
   WalletFilters,
-  WalletListResponse,
   WalletUpdateRequest,
   WalletNotificationState,
   WalletFormErrors
@@ -57,7 +55,6 @@ const WalletTransactionList: React.FC = () => {
   const [categories, setCategories] = useState<WalletCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -124,7 +121,6 @@ const WalletTransactionList: React.FC = () => {
 
       setTransactions(result.transactions);
       setTotalItems(result.pagination.total);
-      setTotalPages(result.pagination.totalPages);
       console.log(`✅ Loaded ${result.transactions.length} transactions`);
 
     } catch (error) {
@@ -177,7 +173,7 @@ const WalletTransactionList: React.FC = () => {
   }, [filters, currentPage, itemsPerPage]);
 
   // Handle page change
-  const handlePageChange = (event: unknown, newPage: number) => {
+  const handlePageChange = (_: unknown, newPage: number) => {
     setCurrentPage(newPage + 1);
   };
 
@@ -271,7 +267,7 @@ const WalletTransactionList: React.FC = () => {
       };
 
       await WalletService.updateTransaction(selectedTransaction.id, apiData);
-      showNotification('✅ Cập nhật giao dịch thành công!');
+      showNotification('Cập nhật giao dịch thành công!');
       closeEditDialog();
       loadTransactions();
 
@@ -717,21 +713,11 @@ const WalletTransactionList: React.FC = () => {
         onCancel={handleDeleteCancel}
       />
 
-      {/* Notification Snackbar */}
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={4000}
+      {/* Modern unified notification (reused from event-guests) */}
+      <ModernNotification
+        notification={notification}
         onClose={() => setNotification(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setNotification(prev => ({ ...prev, open: false }))}
-          severity={notification.severity}
-          sx={{ width: '100%' }}
-        >
-          {notification.message}
-        </Alert>
-      </Snackbar>
+      />
     </>
   );
 };
