@@ -119,16 +119,16 @@ const AppDD = () => {
         color="inherit"
         sx={{ color: (theme) => theme.palette.text.secondary }}
         variant="text"
-        href="/apps/calendar"
+        href="/apps/wallet"
         component={Link}
       >
-        Calendar
+        Ví
       </Button>
       <Button
         color="inherit"
         sx={{ color: (theme) => theme.palette.text.secondary }}
         variant="text"
-        href="/apps/email"
+        href="/apps/wallet"
         component={Link}
       >
         Email

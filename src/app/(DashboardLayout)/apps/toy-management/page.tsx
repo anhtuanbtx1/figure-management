@@ -26,7 +26,6 @@ import ToyPagination from './components/ToyPagination';
 import BrandStatsCards from './components/BrandStatsCards';
 import ToyForm from './components/ToyForm';
 import BulkActions from './components/BulkActions';
-import LoadingFallback from './components/LoadingFallback';
 
 const BCrumb = [
   {
@@ -396,16 +395,6 @@ const ToyManagementPage = () => {
     <PageContainer title="Quản lý đồ chơi" description="Danh sách đồ chơi">
       {/* <Breadcrumb title="Quản lý đồ chơi" items={BCrumb} /> */}
 
-      {/* Loading Fallback for Race Condition Prevention */}
-      <LoadingFallback
-        categoriesLoading={categoriesLoading}
-        brandsLoading={brandsLoading}
-        toysLoading={loading}
-        hasError={hasLoadingError}
-        onRetry={handleRetry}
-        retryCount={retryCount}
-        maxRetries={3}
-      />
 
       {/* Header */}
       <Box
