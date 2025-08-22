@@ -1,7 +1,7 @@
-import { 
-  WalletTransaction, 
-  WalletCategory, 
-  WalletFilters, 
+import {
+  WalletTransaction,
+  WalletCategory,
+  WalletFilters,
   WalletListResponse,
   WalletCategoriesResponse,
   WalletCreateRequest,
@@ -11,24 +11,24 @@ import {
 const API_BASE = '/api/wallet';
 
 export class WalletService {
-  
+
   /**
    * Fetch wallet categories for dropdown
    */
   static async fetchCategories(): Promise<WalletCategory[]> {
     try {
       console.log('📂 Fetching wallet categories...');
-      
+
       const response = await fetch(`${API_BASE}/categories`);
       const data: WalletCategoriesResponse = await response.json();
-      
+
       if (!response.ok || !data.success) {
         throw new Error(data.message || 'Failed to fetch categories');
       }
-      
+
       console.log(`✅ Fetched ${data.count} categories`);
       return data.data;
-      
+
     } catch (error) {
       console.error('❌ Error fetching categories:', error);
       throw error;
@@ -45,10 +45,10 @@ export class WalletService {
     sortField: string = 'transactionDate',
     sortDirection: 'asc' | 'desc' = 'desc'
   ): Promise<WalletListResponse> {
-    
+
     try {
       console.log('💳 Fetching wallet transactions...');
-      
+
       // Build query parameters
       const params = new URLSearchParams({
         page: page.toString(),
@@ -56,7 +56,7 @@ export class WalletService {
         sortField,
         sortDirection
       });
-      
+
       // Add filters
       if (filters.search) params.append('search', filters.search);
       if (filters.type) params.append('type', filters.type);
@@ -64,17 +64,17 @@ export class WalletService {
       if (filters.status) params.append('status', filters.status);
       if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
       if (filters.dateTo) params.append('dateTo', filters.dateTo);
-      
+
       const response = await fetch(`${API_BASE}/transactions?${params}`);
       const data: WalletListResponse = await response.json();
-      
+
       if (!response.ok || !data.success) {
         throw new Error(data.message || 'Failed to fetch transactions');
       }
-      
+
       console.log(`✅ Fetched ${data.transactions.length}/${data.pagination.total} transactions`);
       return data;
-      
+
     } catch (error) {
       console.error('❌ Error fetching transactions:', error);
       throw error;
@@ -87,7 +87,7 @@ export class WalletService {
   static async createTransaction(data: WalletCreateRequest): Promise<WalletTransaction> {
     try {
       console.log('💳 Creating new transaction...');
-      
+
       const response = await fetch(`${API_BASE}/transactions`, {
         method: 'POST',
         headers: {
@@ -95,16 +95,16 @@ export class WalletService {
         },
         body: JSON.stringify(data)
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok || !result.success) {
         throw new Error(result.message || 'Failed to create transaction');
       }
-      
+
       console.log(`✅ Created transaction: ${result.data.description}`);
       return result.data;
-      
+
     } catch (error) {
       console.error('❌ Error creating transaction:', error);
       throw error;
@@ -117,7 +117,7 @@ export class WalletService {
   static async updateTransaction(id: string, data: WalletUpdateRequest): Promise<WalletTransaction> {
     try {
       console.log(`💳 Updating transaction: ${id}`);
-      
+
       const response = await fetch(`${API_BASE}/transactions/${id}`, {
         method: 'PUT',
         headers: {
@@ -125,16 +125,16 @@ export class WalletService {
         },
         body: JSON.stringify(data)
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok || !result.success) {
         throw new Error(result.message || 'Failed to update transaction');
       }
-      
+
       console.log(`✅ Updated transaction: ${result.data.description}`);
       return result.data;
-      
+
     } catch (error) {
       console.error('❌ Error updating transaction:', error);
       throw error;
@@ -193,22 +193,46 @@ export class WalletService {
   }
 
   /**
+   * Bulk delete transactions
+   */
+  static async bulkDeleteTransactions(ids: string[]): Promise<void> {
+    try {
+      console.log(`💳 Bulk deleting ${ids.length} wallet transactions...`);
+      const response = await fetch(`${API_BASE}/transactions/bulk-delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to bulk delete transactions');
+      }
+      console.log('✅ Bulk delete completed');
+    } catch (error) {
+      console.error('❌ Error bulk deleting transactions:', error);
+      throw error;
+    }
+  }
+
+
+
+  /**
    * Get single transaction
    */
   static async getTransaction(id: string): Promise<WalletTransaction> {
     try {
       console.log(`💳 Fetching transaction: ${id}`);
-      
+
       const response = await fetch(`${API_BASE}/transactions/${id}`);
       const result = await response.json();
-      
+
       if (!response.ok || !result.success) {
         throw new Error(result.message || 'Failed to fetch transaction');
       }
-      
+
       console.log(`✅ Fetched transaction: ${result.data.description}`);
       return result.data;
-      
+
     } catch (error) {
       console.error('❌ Error fetching transaction:', error);
       throw error;

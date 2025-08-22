@@ -27,6 +27,7 @@ import {
   InputLabel,
   Select,
   InputAdornment,
+  Checkbox,
 } from '@mui/material';
 import ModernNotification from '@/app/components/shared/ModernNotification';
 import {
@@ -69,6 +70,14 @@ const WalletTransactionList: React.FC = () => {
     dateFrom: '',
     dateTo: ''
   });
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const allSelected = transactions.length > 0 && selectedIds.length === transactions.length;
+  const partiallySelected = selectedIds.length > 0 && selectedIds.length < transactions.length;
+
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+
 
   // Edit form states
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -171,6 +180,40 @@ const WalletTransactionList: React.FC = () => {
       window.removeEventListener('walletTransactionCreated', handleTransactionCreated);
     };
   }, [filters, currentPage, itemsPerPage]);
+
+  // Bulk selection handlers
+  const toggleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(transactions.map(t => t.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const toggleSelectOne = (id: string, checked: boolean) => {
+    setSelectedIds(prev => checked ? (prev.includes(id) ? prev : [...prev, id]) : prev.filter(x => x !== id));
+  };
+
+  const openBulkDelete = () => setShowBulkDeleteDialog(true);
+  const closeBulkDelete = () => setShowBulkDeleteDialog(false);
+
+  const handleBulkDeleteConfirm = async () => {
+    if (selectedIds.length === 0) return;
+    try {
+      setBulkDeleting(true);
+      // Use bulk API for efficiency
+      await WalletService.bulkDeleteTransactions(selectedIds);
+      showNotification(`Đã xóa ${selectedIds.length} giao dịch thành công!`, 'success');
+      setSelectedIds([]);
+      closeBulkDelete();
+      loadTransactions();
+    } catch (error) {
+      console.error('❌ Error bulk deleting transactions:', error);
+      showNotification('❌ Lỗi khi xóa hàng loạt giao dịch', 'error');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
 
   // Handle page change
   const handlePageChange = (_: unknown, newPage: number) => {
@@ -464,11 +507,49 @@ const WalletTransactionList: React.FC = () => {
             </Grid>
           </Grid>
 
+          {/* Bulk actions bar */}
+          {selectedIds.length > 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="body2">Đã chọn {selectedIds.length} giao dịch</Typography>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={() => setShowBulkDeleteDialog(true)}
+                disabled={bulkDeleting}
+              >
+                {bulkDeleting ? 'Đang xóa...' : 'Xóa đã chọn'}
+              </Button>
+            </Box>
+          )}
+
           {/* Transactions Table */}
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
+          {/* Bulk Delete Confirmation Dialog */}
+          <Dialog open={showBulkDeleteDialog} onClose={closeBulkDelete} maxWidth="xs" fullWidth>
+            <DialogTitle>Xóa {selectedIds.length} giao dịch?</DialogTitle>
+            <DialogContent>
+              <Typography>Bạn có chắc chắn muốn xóa {selectedIds.length} giao dịch đã chọn? Hành động này không thể hoàn tác.</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={closeBulkDelete}>Hủy</Button>
+              <Button onClick={handleBulkDeleteConfirm} color="error" variant="contained" disabled={bulkDeleting}>
+                {bulkDeleting ? 'Đang xóa...' : 'Xóa' }
+              </Button>
+            </DialogActions>
+          </Dialog>
+
               <TableHead>
                 <TableRow>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      indeterminate={partiallySelected}
+                      checked={allSelected}
+                      onChange={(e) => toggleSelectAll(e.target.checked)}
+                      inputProps={{ 'aria-label': 'Select all transactions' }}
+                    />
+                  </TableCell>
                   <TableCell>Ngày</TableCell>
                   <TableCell>Loại</TableCell>
                   <TableCell>Mô tả</TableCell>
@@ -481,19 +562,27 @@ const WalletTransactionList: React.FC = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={8} align="center">
                       <Typography>Đang tải...</Typography>
                     </TableCell>
                   </TableRow>
                 ) : transactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={8} align="center">
                       <Typography>Không có giao dịch nào</Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
                   transactions.map((transaction) => (
                     <TableRow key={transaction.id} hover>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedIds.includes(transaction.id)}
+                          onChange={(e) => toggleSelectOne(transaction.id, e.target.checked)}
+                          inputProps={{ 'aria-label': `Select ${transaction.description}` }}
+                        />
+                      </TableCell>
+
                       <TableCell>
                         <Typography variant="body2">
                           {new Date(transaction.transactionDate).toLocaleDateString('vi-VN')}
