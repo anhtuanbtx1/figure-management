@@ -54,7 +54,7 @@ const GuestFilters: React.FC<GuestFiltersProps> = ({
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND',
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 0 as number,
     }).format(value);
   };
 

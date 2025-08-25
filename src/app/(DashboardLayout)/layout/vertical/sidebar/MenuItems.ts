@@ -78,10 +78,10 @@ const Menuitems: MenuitemsType[] = [
 
   {
     id: uniqueId(),
-    title: "Modern",
+    title: "Trang chủ",
     icon: IconAperture,
     href: "/",
-    chip: "New",
+    //chip: "New",
     chipColor: "secondary",
   },
   {

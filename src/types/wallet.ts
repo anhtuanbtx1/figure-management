@@ -183,8 +183,8 @@ export const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0 as number,
+    maximumFractionDigits: 0 as number,
   }).format(amount);
 };
 

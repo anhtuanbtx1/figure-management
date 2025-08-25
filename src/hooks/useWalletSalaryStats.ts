@@ -96,8 +96,8 @@ export function useWalletSalaryStats(months: number = 6): UseWalletSalaryStatsRe
 export function formatVND(amount: number): string {
   return new Intl.NumberFormat('vi-VN', {
     style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    minimumFractionDigits: 0 as number,
+    maximumFractionDigits: 0 as number
   }).format(amount) + ' VNĐ';
 }
 

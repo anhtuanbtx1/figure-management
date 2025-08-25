@@ -7,7 +7,7 @@ import { IconGridDots } from '@tabler/icons-react';
 
 type Props = {
   title: string;
-  subtitle: string;
+  subtitle: string | React.ReactNode;
   dataLabel1: string;
   dataItem1: string;
   dataLabel2: string;
@@ -41,9 +41,15 @@ const DashboardWidgetCard = ({
             {title ? <Typography variant="h5">{title}</Typography> : ''}
 
             {subtitle ? (
-              <Typography variant="subtitle2" color="textSecondary">
-                {subtitle}
-              </Typography>
+              typeof subtitle === 'string' ? (
+                <Typography variant="subtitle2" color="textSecondary">
+                  {subtitle}
+                </Typography>
+              ) : (
+                <Box component="span" color="textSecondary">
+                  {subtitle}
+                </Box>
+              )
             ) : (
               ''
             )}

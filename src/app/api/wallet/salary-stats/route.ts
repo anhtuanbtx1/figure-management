@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
     const salaryChange = currentMonthSalary - lastMonthSalary;
     const salaryChangePercent = lastMonthSalary > 0 
       ? ((salaryChange / lastMonthSalary) * 100).toFixed(2)
-      : 0;
+      : '0';
 
     // Calculate yearly summary
     const yearlyTotal = parseFloat(ytd.totalSalary || 0);

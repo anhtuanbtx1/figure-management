@@ -57,20 +57,7 @@ export async function GET(request: NextRequest) {
     });
 
     // First, get total count for pagination
-    const countParams = {
-      Search: search,
-      CategoryId: category,
-      BrandName: brand,
-      Status: status,
-      MinPrice: minPrice,
-      MaxPrice: maxPrice,
-      AgeRange: ageRange,
-      InStock: inStock ? 1 : 0,
-      Page: 1,
-      PageSize: 999999, // Large number to get all records for counting
-      SortField: sortField,
-      SortDirection: sortDirection.toUpperCase(),
-    };
+    // We'll use a direct count query instead of relying on pagination
 
     // Get toys data with pagination
     const dataParams = {
@@ -91,11 +78,41 @@ export async function GET(request: NextRequest) {
     let toysResult, countResult;
 
     try {
-      // Try stored procedure first
+      // Try stored procedure first for data
       console.log('🔧 Trying stored procedure sp_GetToysForFrontend...');
       toysResult = await executeStoredProcedure('sp_GetToysForFrontend', dataParams);
-      countResult = await executeStoredProcedure('sp_GetToysForFrontend', countParams);
-      console.log('✅ Stored procedure executed successfully');
+      
+      // For count, use a direct query instead of the paginated stored procedure
+      const countQuery = `
+        SELECT COUNT(*) as total
+        FROM zen50558_ManagementStore.dbo.Toys t
+        LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+        LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+        WHERE t.IsActive = 1
+          AND (@Search IS NULL OR @Search = '' OR t.Name LIKE '%' + @Search + '%' OR t.Description LIKE '%' + @Search + '%')
+          AND (@CategoryId IS NULL OR @CategoryId = '' OR t.CategoryId = @CategoryId)
+          AND (@BrandName IS NULL OR @BrandName = '' OR b.Name = @BrandName)
+          AND (@Status IS NULL OR @Status = '' OR t.Status = @Status)
+          AND (@MinPrice IS NULL OR t.Price >= @MinPrice)
+          AND (@MaxPrice IS NULL OR t.Price <= @MaxPrice)
+          AND (@AgeRange IS NULL OR @AgeRange = '' OR t.AgeRange LIKE '%' + @AgeRange + '%')
+          AND (@InStock IS NULL OR @InStock = 0 OR t.Stock > 0)
+      `;
+      
+      const countParams = {
+        Search: search,
+        CategoryId: category,
+        BrandName: brand,
+        Status: status,
+        MinPrice: minPrice,
+        MaxPrice: maxPrice,
+        AgeRange: ageRange,
+        InStock: inStock ? 1 : 0,
+      };
+      
+      const countRows = await executeQuery(countQuery, countParams);
+      countResult = countRows[0]?.total || 0;
+      console.log('✅ Stored procedure and count query executed successfully');
     } catch (procError) {
       console.log('⚠️ Stored procedure failed, using fallback query...');
       console.log('Procedure error:', procError);
@@ -200,19 +217,19 @@ export async function GET(request: NextRequest) {
         executeQuery(dataQuery, queryParams)
       ]);
 
-      countResult = Array(countRows[0]?.total || 0).fill({}); // Create array with length = total count
+      countResult = countRows[0]?.total || 0; // Get the actual count value
       toysResult = dataRows;
       console.log('✅ Fallback queries executed successfully');
     }
     
-    console.log(`✅ Found ${toysResult.length} toys on page ${page}, total ${countResult.length} toys`);
-
     // Map database results to frontend format
     const toys: Toy[] = toysResult.map(mapDatabaseRowToToy);
     
     // Calculate pagination info
-    const totalItems = countResult.length;
+    const totalItems = typeof countResult === 'number' ? countResult : countResult.length;
     const totalPages = Math.ceil(totalItems / pageSize);
+    
+    console.log(`✅ Found ${toysResult.length} toys on page ${page}, total ${totalItems} toys`);
 
     // Return response in format expected by frontend
     return NextResponse.json({

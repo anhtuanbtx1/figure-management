@@ -24,7 +24,7 @@ const EmployeeSalary = ({ isLoading: initialLoading }: EmployeeSalaryCardProps) 
   const error = theme.palette.error.main;
 
   // Fetch salary data from wallet API
-  const { data: salaryData, isLoading: dataLoading, error: dataError } = useWalletSalaryStats(6);
+  const { data: salaryData, isLoading: dataLoading, error: dataError } = useWalletSalaryStats(12);
 
   // Combine loading states
   const loading = initialLoading || dataLoading;
