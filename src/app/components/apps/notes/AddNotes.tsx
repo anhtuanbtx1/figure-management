@@ -77,7 +77,7 @@ const AddNotes = ({ colors }: Props) => {
             </Typography>
           </Box>
           <DialogContentText sx={{ mb: 3, color: 'text.secondary' }}>
-            Nhập nội dung ghi chú và chọn màu sắc phù hợp. Bấm "Tạo ghi chú" để hoàn thành.
+            Nhập nội dung ghi chú và chọn màu sắc phù hợp. Bấm &quot;Tạo ghi chú&quot; để hoàn thành.
           </DialogContentText>
           <TextField
             multiline

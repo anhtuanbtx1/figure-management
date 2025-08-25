@@ -19,7 +19,7 @@ const Address = () => {
             </ShapeBg>
             <Box p="30px" zIndex={1}>
                 <Typography fontSize="20px" fontWeight={700} color="white" mb={2}>Reach Out Today</Typography>
-                <Typography variant="body1" color="white" lineHeight={1.6}>Have questions or need assistance? We're just a message away.</Typography>
+                <Typography variant="body1" color="white" lineHeight={1.6}>Have questions or need assistance? We&apos;re just a message away.</Typography>
 
                 <Divider sx={{ opacity: 0.3, my: "40px" }} />
 

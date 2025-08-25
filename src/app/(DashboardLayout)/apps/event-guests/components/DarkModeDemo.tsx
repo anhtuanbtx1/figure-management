@@ -91,7 +91,7 @@ const DarkModeDemo: React.FC = () => {
               Current Filter Values:
             </Typography>
             <Typography variant="body2">
-              <strong>Search:</strong> "{filters.search}" <br />
+              <strong>Search:</strong> &quot;{filters.search}&quot; <br />
               <strong>Status:</strong> {filters.status || 'All'} <br />
               <strong>Contribution Range:</strong> {filters.contributionRange.min.toLocaleString()} - {filters.contributionRange.max.toLocaleString()} VND
             </Typography>

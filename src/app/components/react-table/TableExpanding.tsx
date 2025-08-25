@@ -278,8 +278,9 @@ const TableExpanding = () => {
                                 teams:
                                 <Box mt={1} display="flex" gap={1}>
                                   <AvatarGroup max={4}>
-                                    {row.original.teams.map((team) => (
+                                    {row.original.teams.map((team, index) => (
                                       <Avatar
+                                        key={index}
                                         sx={{
                                           bgcolor: team.color,
                                           width: 35,

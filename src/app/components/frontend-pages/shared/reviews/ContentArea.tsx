@@ -22,7 +22,7 @@ const ContentArea = () => {
             >
                 What our clients think <Image src='/images/logos/logoIcon.svg' alt="logo" width={40} height={40} style={{ margin: '0 8px', verticalAlign: 'middle' }} /> about us?
             </Typography>
-            <Typography variant="body1" lineHeight={1.8}>Our users' feedback is a testament to our commitment to quality and user satisfaction. Read what they have to say about their journey with us.</Typography>
+            <Typography variant="body1" lineHeight={1.8}>Our users&apos; feedback is a testament to our commitment to quality and user satisfaction. Read what they have to say about their journey with us.</Typography>
 
         </>
     );

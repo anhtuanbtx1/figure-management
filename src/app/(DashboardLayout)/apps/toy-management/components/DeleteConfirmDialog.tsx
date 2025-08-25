@@ -78,7 +78,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
               borderColor: 'primary.200'
             }}
           >
-            "{toyName}"
+            &quot;{toyName}&quot;
           </Typography>
           
           <Typography variant="body2" color="text.secondary">

@@ -150,7 +150,7 @@ const WalletDeleteConfirmDialog: React.FC<WalletDeleteConfirmDialogProps> = ({
           <Typography variant="body1" color="text.primary" sx={{ mb: 3, lineHeight: 1.6 }}>
             Bạn có chắc chắn muốn xóa giao dịch{' '}
             <Typography component="span" fontWeight={600} color="primary">
-              "{transaction.description}"
+              &quot;{transaction.description}&quot;
             </Typography>{' '}
             với số tiền{' '}
             <Typography component="span" fontWeight={600} color="error">
