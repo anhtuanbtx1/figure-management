@@ -1,4 +1,5 @@
-import { EventGuest, GuestCreateRequest } from '../../../types/apps/eventGuest';
+import { EventGuest, GuestCreateRequest, GuestStatus } from '../../../types/apps/eventGuest';
+import * as XLSX from 'xlsx';
 
 // API Response interfaces
 interface ApiResponse<T> {
@@ -168,6 +169,105 @@ export class GuestService {
     } catch (error) {
       console.error('❌ Error refreshing data:', error);
       throw error;
+    }
+  }
+
+  // Export guests to Excel
+  static exportToExcel(guests: EventGuest[], filename: string = 'danh-sach-khach-moi') {
+    try {
+      console.log('📊 Exporting guests to Excel...');
+      
+      // Map guest status to Vietnamese
+      const getStatusText = (status: GuestStatus) => {
+        switch (status) {
+          case GuestStatus.CONFIRMED:
+            return 'Đã xác nhận';
+          case GuestStatus.PENDING:
+            return 'Chờ phản hồi';
+          case GuestStatus.DECLINED:
+            return 'Từ chối';
+          default:
+            return status;
+        }
+      };
+
+      // Format currency
+      const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('vi-VN').format(amount);
+      };
+
+      // Transform data for Excel
+      const excelData = guests.map((guest, index) => ({
+        'STT': index + 1,
+        'Mã khách': guest.id,
+        'Họ và tên': guest.fullName,
+        'Đơn vị': guest.unit,
+        'Số người': guest.numberOfPeople,
+        'Trạng thái': getStatusText(guest.status),
+        'Số tiền đóng góp (VNĐ)': formatCurrency(guest.contributionAmount || 0),
+        'Mối quan hệ': guest.relationship || '',
+        'Ghi chú': guest.notes || '',
+        'Ngày tạo': guest.createdAt ? new Date(guest.createdAt).toLocaleDateString('vi-VN') : '',
+        'Ngày cập nhật': guest.updatedAt ? new Date(guest.updatedAt).toLocaleDateString('vi-VN') : '',
+      }));
+
+      // Calculate statistics
+      const totalGuests = guests.length;
+      const confirmedGuests = guests.filter(g => g.status === GuestStatus.CONFIRMED).length;
+      const pendingGuests = guests.filter(g => g.status === GuestStatus.PENDING).length;
+      const declinedGuests = guests.filter(g => g.status === GuestStatus.DECLINED).length;
+      const totalPeople = guests.reduce((sum, g) => sum + (g.numberOfPeople || 0), 0);
+      const totalContribution = guests.reduce((sum, g) => sum + (g.contributionAmount || 0), 0);
+
+      // Add summary rows
+      const summaryData = [
+        {},
+        { 'STT': '', 'Mã khách': 'THỐNG KÊ TỔNG HỢP' },
+        { 'STT': '', 'Mã khách': 'Tổng số khách mời:', 'Họ và tên': totalGuests },
+        { 'STT': '', 'Mã khách': 'Đã xác nhận:', 'Họ và tên': confirmedGuests },
+        { 'STT': '', 'Mã khách': 'Chờ phản hồi:', 'Họ và tên': pendingGuests },
+        { 'STT': '', 'Mã khách': 'Từ chối:', 'Họ và tên': declinedGuests },
+        { 'STT': '', 'Mã khách': 'Tổng số người:', 'Họ và tên': totalPeople },
+        { 'STT': '', 'Mã khách': 'Tổng tiền đóng góp:', 'Họ và tên': formatCurrency(totalContribution) + ' VNĐ' },
+      ];
+
+      // Combine data
+      const finalData = [...excelData, ...summaryData];
+
+      // Create workbook and worksheet
+      const worksheet = XLSX.utils.json_to_sheet(finalData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Danh sách khách mời');
+
+      // Set column widths
+      const columnWidths = [
+        { wch: 5 },   // STT
+        { wch: 10 },  // Mã khách
+        { wch: 25 },  // Họ và tên
+        { wch: 20 },  // Đơn vị
+        { wch: 10 },  // Số người
+        { wch: 15 },  // Trạng thái
+        { wch: 20 },  // Số tiền đóng góp
+        { wch: 15 },  // Mối quan hệ
+        { wch: 30 },  // Ghi chú
+        { wch: 12 },  // Ngày tạo
+        { wch: 12 },  // Ngày cập nhật
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Generate file name with timestamp
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const fullFilename = `${filename}_${timestamp}.xlsx`;
+
+      // Write and download file
+      XLSX.writeFile(workbook, fullFilename);
+
+      console.log(`✅ Successfully exported ${guests.length} guests to Excel`);
+      return fullFilename;
+
+    } catch (error) {
+      console.error('❌ Error exporting to Excel:', error);
+      throw new Error(`Failed to export to Excel: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

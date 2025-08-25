@@ -239,9 +239,16 @@ const EventGuestsPage = () => {
     setSnackbar(createGuestNotification.success.bulkStatusUpdated(statusText, updatedCount));
   };
 
-  const handleBulkExport = () => {
-    console.log('Export guests');
-    setSnackbar({ open: true, message: 'Tính năng xuất Excel đang phát triển', severity: 'success' });
+  const handleBulkExport = async () => {
+    try {
+      // Export all guests (not just selected ones)
+      const allGuests = await GuestService.getAllGuests();
+      const filename = GuestService.exportToExcel(allGuests);
+      setSnackbar({ open: true, message: `Đã xuất file Excel: ${filename}`, severity: 'success' });
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      setSnackbar({ open: true, message: 'Lỗi khi xuất file Excel', severity: 'error' });
+    }
   };
 
   const handleRefresh = async () => {
