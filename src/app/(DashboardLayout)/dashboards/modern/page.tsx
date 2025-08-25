@@ -10,6 +10,7 @@ import MonthlyEarnings from "@/app/components/dashboards/modern/MonthlyEarnings"
 import TopCards from "@/app/components/dashboards/modern/TopCards";
 import RevenueUpdates from "@/app/components/dashboards/modern/RevenueUpdates";
 import EmployeeSalary from "@/app/components/dashboards/modern/EmployeeSalary";
+import YearlySalaryCard from "@/app/components/dashboards/modern/YearlySalaryCard";
 import Customers from "@/app/components/dashboards/modern/Customers";
 import Projects from "@/app/components/dashboards/modern/Projects";
 import Social from "@/app/components/dashboards/modern/Social";
@@ -50,6 +51,10 @@ export default function Dashboard() {
           {/* column */}
           <Grid item xs={12} lg={4}>
             <EmployeeSalary isLoading={isLoading} />
+          </Grid>
+          {/* column - Yearly Salary Card */}
+          <Grid item xs={12} lg={4}>
+            <YearlySalaryCard isLoading={isLoading} />
           </Grid>
           {/* column */}
           <Grid item xs={12} lg={4}>
