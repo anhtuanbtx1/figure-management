@@ -150,19 +150,19 @@ const EditInvoicePage = () => {
       const currMap = new Map(currentItems.filter((x:any)=>x.itemId).map((x:any)=>[x.itemId, x]));
 
       const updates: any[] = [];
-      for (const [id, curr] of currMap) {
+      currMap.forEach((curr: any, id: any) => {
         const orig = origMap.get(id);
         if (orig && (orig.itemName !== curr.itemName || Number(orig.unitPrice) !== Number(curr.unitPrice) || Number(orig.units) !== Number(curr.units))) {
           updates.push({ itemId: id, itemName: curr.itemName, unitPrice: Number(curr.unitPrice)||0, units: Number(curr.units)||0 });
         }
-      }
+      });
 
       const deletes: any[] = [];
-      for (const [id, orig] of origMap) {
+      origMap.forEach((_orig: any, id: any) => {
         if (!currMap.has(id)) {
           deletes.push(id);
         }
-      }
+      });
 
       const adds: any[] = [];
       for (const curr of currentItems) {
