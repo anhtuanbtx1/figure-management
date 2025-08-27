@@ -17,6 +17,7 @@ const TopCards = () => {
     totalSalary: number;
     monthsWithSalary: number;
   } | null>(null);
+  const [toysTotalValue, setToysTotalValue] = useState<number | null>(null);
 
   useEffect(() => {
     // Fetch total toys from dedicated endpoint
@@ -48,9 +49,24 @@ const TopCards = () => {
         console.error('Failed to fetch salary data', e);
       }
     };
-    
+
+    // Fetch toys total value from new API
+    const fetchToysTotalValue = async () => {
+      try {
+        const res = await fetch('/api/toys/total-value');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && data.data) {
+          setToysTotalValue(data.data.totalValue);
+        }
+      } catch (e) {
+        console.error('Failed to fetch toys total value', e);
+      }
+    };
+
     fetchToyTotal();
     fetchSalaryData();
+    fetchToysTotalValue();
   }, []);
 
   const topcards = [
@@ -89,8 +105,8 @@ const TopCards = () => {
     },
     {
       icon: '/images/svgs/icon-connect.svg',
-      title: "Báo cáo",
-      digits: "59",
+      title: "Tổng giá trị đồ chơi",
+      digits: toysTotalValue !== null ? formatVND(toysTotalValue) : '—',
       bgcolor: "info",
     },
   ];

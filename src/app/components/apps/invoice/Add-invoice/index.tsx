@@ -30,6 +30,7 @@ import {
 import CustomFormLabel from "@/app/components/forms/theme-elements/CustomFormLabel";
 import CustomSelect from "@/app/components/forms/theme-elements/CustomSelect";
 import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
+import { formatNumberToVn, parseVnToNumber } from "@/utils/currency";
 
 const CreateInvoice = () => {
   const { addInvoice, invoices } = useContext(InvoiceContext);
@@ -69,7 +70,7 @@ const CreateInvoice = () => {
     let subtotal = 0;
 
     orders.forEach((order) => {
-      const unitPrice = parseFloat(order.unitPrice) || 0;
+      const unitPrice = parseFloat(String(order.unitPrice).toString().replace(/,/g, '.')) || 0;
       const units = parseInt(order.units) || 0;
       const totalCost = unitPrice * units;
 
@@ -77,7 +78,7 @@ const CreateInvoice = () => {
       order.unitTotalPrice = totalCost;
     });
 
-    const vat = subtotal * 0.1;
+    const vat = 0; // default 0%
     const grandTotal = subtotal + vat;
 
     return { subtotal, vat, grandTotal };
@@ -365,13 +366,10 @@ const CreateInvoice = () => {
                           type="number"
                           value={order.unitPrice}
                           placeholder="Đơn giá"
-                          onChange={(e: any) =>
-                            handleOrderChange(
-                              index,
-                              "unitPrice",
-                              e.target.value
-                            )
-                          }
+                          onChange={(e: any) => {
+                            const val = e.target.value;
+                            handleOrderChange(index, "unitPrice", val);
+                          }}
                           fullWidth
                         />
                       </TableCell>
@@ -380,9 +378,10 @@ const CreateInvoice = () => {
                           type="number"
                           value={order.units}
                           placeholder="Số lượng"
-                          onChange={(e: any) =>
-                            handleOrderChange(index, "units", e.target.value)
-                          }
+                          onChange={(e: any) => {
+                            const val = e.target.value;
+                            handleOrderChange(index, "units", val);
+                          }}
                           fullWidth
                         />
                       </TableCell>
@@ -426,7 +425,7 @@ const CreateInvoice = () => {
             </Box>
             <Box display="flex" justifyContent="end" gap={3} mb={3}>
               <Typography variant="body1" fontWeight={600}>
-                VAT (10%):
+                Thuế (VAT):
               </Typography>
               <Typography variant="body1" fontWeight={600}>
                 {formData.vat.toLocaleString('vi-VN')} VNĐ

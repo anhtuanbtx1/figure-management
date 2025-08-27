@@ -2,6 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 import { GuestStatus } from '@/app/(DashboardLayout)/types/apps/eventGuest';
 
+// Helper: read allowed values from a CHECK constraint definition (SQL Server)
+async function getAllowedValuesFromCheckConstraint(constraintName: string): Promise<string[] | null> {
+  try {
+    const rows = await executeQuery(
+      `SELECT OBJECT_DEFINITION(OBJECT_ID(@constraintName)) AS definition`,
+      { constraintName }
+    );
+    const def: string | undefined = rows?.[0]?.definition;
+    if (!def) return null;
+
+    // Expect something like: CHECK (([Relationship] IN ('Friend','Family','Colleague')))
+    const inMatch = def.match(/IN\s*\(([^\)]*)\)/i);
+    if (!inMatch) return null;
+    const list = inMatch[1];
+    const values = list
+      .split(',')
+      .map(s => s.trim())
+      .map(s => s.replace(/^N?'/, '').replace(/'$/, ''))
+      .filter(Boolean);
+    return values.length ? values : null;
+  } catch (e) {
+    console.warn('Could not read constraint definition:', e);
+    return null;
+  }
+}
+
 // Interface for database row (matching actual database schema)
 interface WeddingGuestRow {
   id: number;
@@ -203,7 +229,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { fullName, unit, numberOfPeople, contributionAmount, status, relationship, notes } = body;
+    let { fullName, unit, numberOfPeople, contributionAmount, status, relationship, notes } = body;
 
     // Validate required fields
     if (!fullName || !unit) {
@@ -212,6 +238,17 @@ export async function POST(request: NextRequest) {
         error: 'Missing required fields',
         message: 'fullName and unit are required',
       }, { status: 400 });
+    }
+
+    // Relationship validation against CHECK constraint if present
+    const allowedRelationshipValues = await getAllowedValuesFromCheckConstraint('CK_WeddingGuests_Relationship');
+    if (allowedRelationshipValues && relationship) {
+      const normalized = String(relationship).trim();
+      if (!allowedRelationshipValues.includes(normalized)) {
+        // Fallback to NULL to avoid constraint violation
+        console.warn(`Relationship "${normalized}" not in allowed list ${JSON.stringify(allowedRelationshipValues)}. Setting to NULL.`);
+        relationship = null;
+      }
     }
 
     // Map frontend status to database status

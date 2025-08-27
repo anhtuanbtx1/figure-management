@@ -23,16 +23,54 @@ import {
 } from "@mui/material";
 import { format, isValid, parseISO } from "date-fns";
 import Link from "next/link";
+import { formatVndText } from "@/utils/currency";
 import Logo from "@/app/(DashboardLayout)/layout/shared/logo/Logo";
+import axios from "@/utils/axios";
 
 const InvoiceDetail = () => {
   const { invoices } = useContext(InvoiceContext);
   const [selectedInvoice, setSelectedInvoice]: any = useState(null);
 
   useEffect(() => {
-    // Set the first invoice as the default selected invoice initially
+    // Load first invoice header + items by default
+    const load = async (id: string) => {
+      try {
+        const headerRes = await axios.get(`/api/invoices/${id}`);
+        const header = headerRes.data?.data;
+        const itemsRes = await axios.get(`/api/invoices/${id}/items`);
+        const items = itemsRes.data?.data || [];
+        setSelectedInvoice({
+          id: header?.Id,
+          billFrom: header?.BillFrom || '',
+          billFromEmail: header?.BillFromEmail || '',
+          billFromAddress: header?.BillFromAddress || '',
+          billFromPhone: header?.BillFromPhone || 0,
+          billFromFax: header?.BillFromFax || 0,
+          billTo: header?.BillTo || '',
+          billToEmail: header?.BillToEmail || '',
+          billToAddress: header?.BillToAddress || '',
+          billToPhone: header?.BillToPhone || 0,
+          billToFax: header?.BillToFax || 0,
+          orders: items.map((it: any) => ({
+            itemName: it.ItemName,
+            unitPrice: it.UnitPrice,
+            units: it.Units,
+            unitTotalPrice: it.UnitTotalPrice,
+          })),
+          orderDate: header?.OrderDate,
+          totalCost: header?.SubTotal ?? 0,
+          vat: header?.VAT ?? 0,
+          grandTotal: header?.GrandTotal ?? 0,
+          status: header?.Status || 'Pending',
+        });
+      } catch (e) {
+        console.error('Failed to load initial invoice detail', e);
+      }
+    };
+
     if (invoices.length > 0) {
-      setSelectedInvoice(invoices[0]);
+      const first = invoices[0];
+      if (first?.id) load(String(first.id));
     }
   }, [invoices]);
 
@@ -40,15 +78,46 @@ const InvoiceDetail = () => {
   const pathName = usePathname();
   const getTitle = pathName.split("/").pop();
 
-  // Find the invoice that matches the billFrom extracted from the URL
+  // Load invoice by slug (billFrom) if present
   useEffect(() => {
-    if (getTitle) {
-      const invoice = invoices.find(
-        (p: { billFrom: string }) => p.billFrom === getTitle
-      );
-      if (invoice) {
-        setSelectedInvoice(invoice);
+    const loadBySlug = async (invoice: any) => {
+      try {
+        const headerRes = await axios.get(`/api/invoices/${invoice.id}`);
+        const header = headerRes.data?.data;
+        const itemsRes = await axios.get(`/api/invoices/${invoice.id}/items`);
+        const items = itemsRes.data?.data || [];
+        setSelectedInvoice({
+          id: header?.Id,
+          billFrom: header?.BillFrom || '',
+          billFromEmail: header?.BillFromEmail || '',
+          billFromAddress: header?.BillFromAddress || '',
+          billFromPhone: header?.BillFromPhone || 0,
+          billFromFax: header?.BillFromFax || 0,
+          billTo: header?.BillTo || '',
+          billToEmail: header?.BillToEmail || '',
+          billToAddress: header?.BillToAddress || '',
+          billToPhone: header?.BillToPhone || 0,
+          billToFax: header?.BillToFax || 0,
+          orders: items.map((it: any) => ({
+            itemName: it.ItemName,
+            unitPrice: it.UnitPrice,
+            units: it.Units,
+            unitTotalPrice: it.UnitTotalPrice,
+          })),
+          orderDate: header?.OrderDate,
+          totalCost: header?.SubTotal ?? 0,
+          vat: header?.VAT ?? 0,
+          grandTotal: header?.GrandTotal ?? 0,
+          status: header?.Status || 'Pending',
+        });
+      } catch (e) {
+        console.error('Failed to load invoice by slug', e);
       }
+    };
+
+    if (getTitle) {
+      const invoice = invoices.find((p: any) => p.billFrom === getTitle);
+      if (invoice) loadBySlug(invoice);
     }
   }, [getTitle, invoices]);
 
@@ -58,9 +127,9 @@ const InvoiceDetail = () => {
 
   const orderDate = selectedInvoice.orderDate
     ? isValid(parseISO(selectedInvoice.orderDate))
-      ? format(parseISO(selectedInvoice.orderDate), "EEEE, MMMM dd, yyyy")
-      : "Invalid Date"
-    : format(new Date(), "EEEE, MMMM dd, yyyy");
+      ? format(parseISO(selectedInvoice.orderDate), "dd/MM/yyyy")
+      : "Ngày không hợp lệ"
+    : format(new Date(), "dd/MM/yyyy");
 
   return (
     <>
@@ -90,11 +159,13 @@ const InvoiceDetail = () => {
         <Logo />
         <Box textAlign="right">
           {selectedInvoice.status === "Shipped" ? (
-            <Chip size="small" color="primary" label={selectedInvoice.status} />
+            <Chip size="small" color="primary" label="Đã gửi" />
           ) : selectedInvoice.status === "Delivered" ? (
-            <Chip size="small" color="success" label={selectedInvoice.status} />
+            <Chip size="small" color="success" label="Đã giao" />
           ) : selectedInvoice.status === "Pending" ? (
-            <Chip size="small" color="warning" label={selectedInvoice.status} />
+            <Chip size="small" color="warning" label="Đang chờ" />
+          ) : selectedInvoice.status === "Cancelled" ? (
+            <Chip size="small" color="error" label="Đã hủy" />
           ) : (
             ""
           )}
@@ -107,7 +178,7 @@ const InvoiceDetail = () => {
           <Paper variant="outlined">
             <Box p={3} display="flex" flexDirection="column" gap="4px">
               <Typography variant="h6" mb={2}>
-                From :
+                Người bán :
               </Typography>
               <Typography variant="body1">
                 {selectedInvoice.billFrom}
@@ -128,7 +199,7 @@ const InvoiceDetail = () => {
           <Paper variant="outlined">
             <Box p={3} display="flex" flexDirection="column" gap="4px">
               <Typography variant="h6" mb={2}>
-                To :
+                Người mua :
               </Typography>
               <Typography variant="body1">{selectedInvoice.billTo}</Typography>
               <Typography variant="body1">
@@ -152,22 +223,22 @@ const InvoiceDetail = () => {
               <TableRow>
                 <TableCell>
                   <Typography variant="h6" fontSize="14px">
-                    Item Name
+                    Tên sản phẩm
                   </Typography>
                 </TableCell>
                 <TableCell>
                   <Typography variant="h6" fontSize="14px">
-                    Unit Price
+                    Đơn giá
                   </Typography>
                 </TableCell>
                 <TableCell>
                   <Typography variant="h6" fontSize="14px">
-                    Unit
+                    Số lượng
                   </Typography>
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="h6" fontSize="14px">
-                    Total Cost
+                    Thành tiền
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -188,14 +259,14 @@ const InvoiceDetail = () => {
                       <Typography variant="body1">{order.itemName}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body1">{order.unitPrice}</Typography>
+                      <Typography variant="body1">{formatVndText(order.unitPrice)}</Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body1">{order.units}</Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="body1">
-                        {order.unitTotalPrice}
+                        {formatVndText(order.unitTotalPrice)}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -208,26 +279,26 @@ const InvoiceDetail = () => {
       <Box p={3} bgcolor="primary.light" mt={3}>
         <Box display="flex" justifyContent="end" gap={3} mb={3}>
           <Typography variant="body1" fontWeight={600}>
-            Sub Total:
+            Tạm tính:
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {selectedInvoice.totalCost}
+            {formatVndText(selectedInvoice.totalCost)}
           </Typography>
         </Box>
         <Box display="flex" justifyContent="end" gap={3} mb={3}>
           <Typography variant="body1" fontWeight={600}>
-            Vat:
+            Thuế (VAT):
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {selectedInvoice.vat}
+            {formatVndText(selectedInvoice.vat)}
           </Typography>
         </Box>
         <Box display="flex" justifyContent="end" gap={3}>
           <Typography variant="body1" fontWeight={600}>
-            Grand Total:
+            Tổng cộng:
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {selectedInvoice.grandTotal}
+            {formatVndText(selectedInvoice.grandTotal)}
           </Typography>
         </Box>
       </Box>
@@ -244,7 +315,7 @@ const InvoiceDetail = () => {
           component={Link}
           href={`/apps/invoice/edit/${selectedInvoice.billFrom}`}
         >
-          Edit Invoice
+          Chỉnh sửa hóa đơn
         </Button>
         <Button
           variant="contained"
@@ -252,7 +323,7 @@ const InvoiceDetail = () => {
           component={Link}
           href="/apps/invoice/list"
         >
-          Back to Invoice List
+          Quay lại danh sách hóa đơn
         </Button>
       </Box>
     </>

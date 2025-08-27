@@ -320,7 +320,7 @@ const EventGuestsPage = () => {
 
   return (
     <PageContainer title="Quản lý khách mời sự kiện" description="Quản lý danh sách khách mời và đóng góp sự kiện">
-      <Breadcrumb title="Quản lý khách mời sự kiện" items={BCrumb} />
+      {/* <Breadcrumb title="Quản lý khách mời sự kiện" items={BCrumb} /> */}
 
       {/* Header */}
       <Box

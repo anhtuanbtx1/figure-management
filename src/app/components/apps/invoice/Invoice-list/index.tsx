@@ -44,6 +44,7 @@ import {
 } from "@tabler/icons-react";
 import CustomCheckbox from "@/app/components/forms/theme-elements/CustomCheckbox";
 import CustomSwitch from "@/app/components/forms/theme-elements/CustomSwitch";
+import { formatVndText } from "@/utils/currency";
 
 function InvoiceList() {
   const { invoices, deleteInvoice } = useContext(InvoiceContext);
@@ -78,6 +79,22 @@ function InvoiceList() {
   };
 
   const filteredInvoices = getFilteredInvoices();
+
+  // Map English status to Vietnamese label
+  const statusToVN = (status: string) => {
+    switch (status) {
+      case 'Shipped':
+        return 'Đã gửi';
+      case 'Delivered':
+        return 'Đã giao';
+      case 'Pending':
+        return 'Đang chờ';
+      case 'Cancelled':
+        return 'Đã hủy';
+      default:
+        return status || '';
+    }
+  };
 
   // Pagination hook
   const {
@@ -358,7 +375,7 @@ function InvoiceList() {
           type="text"
           size="small"
           variant="outlined"
-          placeholder="Search"
+          placeholder="Tìm kiếm"
           value={searchTerm}
           onChange={(e: any) => setSearchTerm(e.target.value)}
           InputProps={{
@@ -377,7 +394,7 @@ function InvoiceList() {
               onClick={handleDelete}
               startIcon={<IconTrash width={18} />}
             >
-              Delete All
+              Xóa tất cả
             </Button>
           )}
           <Button
@@ -386,7 +403,7 @@ function InvoiceList() {
             component={Link}
             href="/apps/invoice/create"
           >
-            New Invoice
+            Hóa đơn mới
           </Button>
         </Box>
       </Stack>
@@ -411,12 +428,12 @@ function InvoiceList() {
               </TableCell>
               <TableCell>
                 <Typography variant="h6" fontSize="14px">
-                  Bill From
+                  Người bán
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography variant="h6" fontSize="14px">
-                  Bill To
+                  Người mua
                 </Typography>
               </TableCell>
               <TableCell>
@@ -466,25 +483,31 @@ function InvoiceList() {
                     <Typography fontSize="14px">{invoice.billTo}</Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography fontSize="14px">{invoice.totalCost}</Typography>
+                    <Typography fontSize="14px">{formatVndText(invoice.totalCost)}</Typography>
                   </TableCell>
                   <TableCell>
                     {invoice.status === "Shipped" ? (
                       <Chip
                         color="primary"
-                        label={invoice.status}
+                        label={statusToVN(invoice.status)}
                         size="small"
                       />
                     ) : invoice.status === "Delivered" ? (
                       <Chip
                         color="success"
-                        label={invoice.status}
+                        label={statusToVN(invoice.status)}
                         size="small"
                       />
                     ) : invoice.status === "Pending" ? (
                       <Chip
                         color="warning"
-                        label={invoice.status}
+                        label={statusToVN(invoice.status)}
+                        size="small"
+                      />
+                    ) : invoice.status === "Cancelled" ? (
+                      <Chip
+                        color="error"
+                        label={statusToVN(invoice.status)}
                         size="small"
                       />
                     ) : (
@@ -496,7 +519,7 @@ function InvoiceList() {
                       <IconButton
                         color="success"
                         component={Link}
-                        href={`/apps/invoice/edit/${invoice.billFrom}`}
+                        href={`/apps/invoice/edit/${invoice.id}`}
                       >
                         <IconEdit width={22} />
                       </IconButton>
@@ -505,7 +528,7 @@ function InvoiceList() {
                       <IconButton
                         color="primary"
                         component={Link}
-                        href={`/apps/invoice/detail/${invoice.billFrom}`}
+                        href={`/apps/invoice/detail/${invoice.id}`}
                       >
                         <IconEye width={22} />
                       </IconButton>
@@ -550,25 +573,25 @@ function InvoiceList() {
       <Box sx={{ mt: 2, ml: 2 }}>
         <FormControlLabel
           control={<CustomSwitch checked={dense} onChange={handleChangeDense} />}
-          label="Dense padding"
+          label="Dòng bảng gọn (dense)"
         />
       </Box>
 
       <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>Xác nhận xóa</DialogTitle>
         <DialogContent>
-          Are you sure you want to delete selected invoices?
+          Bạn có chắc chắn muốn xóa các hóa đơn đã chọn? Hành động này không thể hoàn tác.
         </DialogContent>
         <DialogActions>
           <Button variant="contained" onClick={handleCloseDeleteDialog}>
-            Cancel
+            Hủy bỏ
           </Button>
           <Button
             color="error"
             variant="outlined"
             onClick={handleConfirmDelete}
           >
-            Delete
+            Xóa
           </Button>
         </DialogActions>
       </Dialog>

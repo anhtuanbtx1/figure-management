@@ -25,11 +25,14 @@ import { format, isValid } from "date-fns";
 import CustomFormLabel from "@/app/components/forms/theme-elements/CustomFormLabel";
 import CustomSelect from "@/app/components/forms/theme-elements/CustomSelect";
 import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
-import { IconSquareRoundedPlus, IconTrash } from "@tabler/icons-react";
+import { IconSquareRoundedPlus, IconTrash, IconArrowLeft } from "@tabler/icons-react";
+import { formatNumberToVn, parseVnToNumber } from "@/utils/currency";
+import axios from "@/utils/axios";
+import ModernNotification from "@/app/components/shared/ModernNotification";
 
 const EditInvoicePage = () => {
   const { invoices, updateInvoice } = useContext(InvoiceContext);
-  const [showAlert, setShowAlert] = useState(false);
+  const [notification, setNotification] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'warning' | 'info' }>({ open: false, message: '', severity: 'success' });
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [editedInvoice, setEditedInvoice]: any = useState(null);
@@ -57,37 +60,64 @@ const EditInvoicePage = () => {
   const getTitle = pathName.split("/").pop();
 
   useEffect(() => {
-    if (invoices.length > 0) {
-      // If there's a specific item to edit, use it
-      if (getTitle) {
-        const invoice = invoices.find(
-          (inv: { billFrom: string }) => inv.billFrom === getTitle
-        );
-        if (invoice) {
-          setSelectedInvoice(invoice);
-          setEditedInvoice({
-            ...invoice,
-            status: translateStatusToVietnamese(invoice.status)
-          });
-          setEditing(true);
-        } else {
-          // If specific item not found, fallback to default
-          setSelectedInvoice(invoices[0]);
-          setEditedInvoice({
-            ...invoices[0],
-            status: translateStatusToVietnamese(invoices[0].status)
-          });
-          setEditing(true);
-        }
-      } else {
-        // No specific item, default to the first invoice
-        setSelectedInvoice(invoices[0]);
-        setEditedInvoice({
-          ...invoices[0],
-          status: translateStatusToVietnamese(invoices[0].status)
-        });
+    const fetchInvoice = async (id: string) => {
+      try {
+        // Get header
+        const headerRes = await axios.get(`/api/invoices/${id}`);
+        const header = headerRes.data?.data;
+        // Get items
+        const itemsRes = await axios.get(`/api/invoices/${id}/items`);
+        const items = itemsRes.data?.data || [];
+
+        // Recalculate totals from items to ensure consistency
+        const subTotalCalc = items.reduce((sum: number, it: any) => {
+          const unitTotal = Number((it.UnitTotalPrice ?? (Number(it.UnitPrice) * Number(it.Units))) ?? 0);
+          return sum + unitTotal;
+        }, 0);
+        const vatCalc = 0; // default 0%
+        const grandTotalCalc = subTotalCalc + vatCalc;
+
+        const mapped = {
+          id: header?.Id,
+          billFrom: header?.BillFrom || '',
+          billFromEmail: header?.BillFromEmail || '',
+          billFromAddress: header?.BillFromAddress || '',
+          billFromPhone: header?.BillFromPhone || 0,
+          billFromFax: header?.BillFromFax || 0,
+          billTo: header?.BillTo || '',
+          billToEmail: header?.BillToEmail || '',
+          billToAddress: header?.BillToAddress || '',
+          billToPhone: header?.BillToPhone || 0,
+          billToFax: header?.BillToFax || 0,
+          orders: items.map((it: any) => ({
+            itemId: it.Id,
+            itemName: it.ItemName,
+            unitPrice: it.UnitPrice,
+            units: it.Units,
+            unitTotalPrice: it.UnitTotalPrice,
+          })),
+          orderDate: header?.OrderDate ? new Date(header.OrderDate) : new Date(),
+          totalCost: subTotalCalc,
+          vat: vatCalc,
+          grandTotal: grandTotalCalc,
+          status: translateStatusToVietnamese(header?.Status || 'Pending'),
+          completed: header?.Status === 'Delivered',
+          isSelected: false,
+        };
+
+        setSelectedInvoice(mapped);
+        setEditedInvoice(mapped);
         setEditing(true);
+      } catch (e) {
+        console.error('Failed to load invoice detail', e);
       }
+    };
+
+    if (invoices.length > 0) {
+      // Prefer match by id from URL; fallback to first
+      const idFromUrl = getTitle;
+      const id = idFromUrl || invoices[0]?.id;
+      if (id) fetchInvoice(String(id));
     }
   }, [getTitle, invoices]);
 
@@ -100,10 +130,56 @@ const EditInvoicePage = () => {
         ...editedInvoice,
         status: translateStatusToEnglish(editedInvoice.status)
       };
+
+      // Compute diffs for items (adds/updates/deletes)
+      // Assume selectedInvoice.orders holds original items with optional itemId
+      const originalItems = (selectedInvoice.orders || []).map((it: any) => ({
+        itemId: it.id || it.ItemId || it.itemId,
+        itemName: it.itemName,
+        unitPrice: it.unitPrice,
+        units: it.units,
+      }));
+      const currentItems = (editedInvoice.orders || []).map((it: any) => ({
+        itemId: it.id || it.itemId,
+        itemName: it.itemName,
+        unitPrice: it.unitPrice,
+        units: it.units,
+      }));
+
+      const origMap = new Map(originalItems.filter((x:any)=>x.itemId).map((x:any)=>[x.itemId, x]));
+      const currMap = new Map(currentItems.filter((x:any)=>x.itemId).map((x:any)=>[x.itemId, x]));
+
+      const updates: any[] = [];
+      for (const [id, curr] of currMap) {
+        const orig = origMap.get(id);
+        if (orig && (orig.itemName !== curr.itemName || Number(orig.unitPrice) !== Number(curr.unitPrice) || Number(orig.units) !== Number(curr.units))) {
+          updates.push({ itemId: id, itemName: curr.itemName, unitPrice: Number(curr.unitPrice)||0, units: Number(curr.units)||0 });
+        }
+      }
+
+      const deletes: any[] = [];
+      for (const [id, orig] of origMap) {
+        if (!currMap.has(id)) {
+          deletes.push(id);
+        }
+      }
+
+      const adds: any[] = [];
+      for (const curr of currentItems) {
+        if (!curr.itemId) {
+          adds.push({ itemName: curr.itemName, unitPrice: Number(curr.unitPrice)||0, units: Number(curr.units)||0 });
+        }
+      }
+
+      // Call batch API for items first
+      await axios.post(`/api/invoices/${editedInvoice.id}/items/batch`, { adds, updates, deletes });
+
+      // Then update header (status, etc.)
       await updateInvoice(invoiceToSave);
+
       setSelectedInvoice({ ...invoiceToSave });
       setEditing(false); // Exit editing mode
-      setShowAlert(true);
+      setNotification({ open: true, message: '✅ Đã lưu sản phẩm và hóa đơn thành công', severity: 'success' });
 
       // Navigate to the list page
       router.push("/apps/invoice/list");
@@ -112,8 +188,8 @@ const EditInvoicePage = () => {
     }
 
     setTimeout(() => {
-      setShowAlert(false);
-    }, 5000);
+      setNotification((prev) => ({ ...prev, open: false }));
+    }, 4500);
   };
 
   const handleCancel = () => {
@@ -195,12 +271,12 @@ const EditInvoicePage = () => {
     return orders.reduce((total, order) => total + order.unitTotalPrice, 0);
   };
 
-  const calculateVAT = (orders: any[]) => {
-    return orders.reduce((totalVAT, order) => totalVAT + order.units, 0);
+  const calculateVAT = (_orders: any[]) => {
+    return 0; // default 0%
   };
 
   const calculateGrandTotal = (totalCost: number, vat: number) => {
-    return (totalCost += (totalCost * vat) / 100);
+    return totalCost + vat;
   };
 
   if (!selectedInvoice) {
@@ -222,7 +298,12 @@ const EditInvoicePage = () => {
         alignItems="center"
         mb={3}
       >
-        <Typography variant="h5"># {editedInvoice.id}</Typography>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Button variant="text" startIcon={<IconArrowLeft />} onClick={() => router.push('/apps/invoice/list')}>
+            Quay lại
+          </Button>
+          <Typography variant="h5"># {editedInvoice.id}</Typography>
+        </Box>
         <Box display="flex" gap={1}>
           {editing ? (
             <>
@@ -453,15 +534,15 @@ const EditInvoicePage = () => {
             Tạm tính:
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {editedInvoice.totalCost.toLocaleString('vi-VN')} VNĐ
+            {formatNumberToVn(editedInvoice.totalCost)} VNĐ
           </Typography>
         </Box>
         <Box display="flex" justifyContent="end" gap={3} mb={3}>
           <Typography variant="body1" fontWeight={600}>
-            VAT (10%):
+            Thuế (VAT):
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {editedInvoice.vat.toLocaleString('vi-VN')} VNĐ
+            {formatNumberToVn(editedInvoice.vat)} VNĐ
           </Typography>
         </Box>
         <Box display="flex" justifyContent="end" gap={3}>
@@ -469,19 +550,15 @@ const EditInvoicePage = () => {
             Tổng cộng:
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {editedInvoice.grandTotal.toLocaleString('vi-VN')} VNĐ
+            {formatNumberToVn(editedInvoice.grandTotal)} VNĐ
           </Typography>
         </Box>
       </Box>
 
-      {showAlert && (
-        <Alert
-          severity="success"
-          sx={{ position: "fixed", top: 16, right: 16 }}
-        >
-          Dữ liệu hóa đơn đã được cập nhật thành công.
-        </Alert>
-      )}
+      <ModernNotification
+        notification={notification}
+        onClose={() => setNotification((prev) => ({ ...prev, open: false }))}
+      />
     </Box>
   );
 };

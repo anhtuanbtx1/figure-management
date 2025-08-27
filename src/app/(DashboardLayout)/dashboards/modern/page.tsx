@@ -17,6 +17,7 @@ import Social from "@/app/components/dashboards/modern/Social";
 import SellingProducts from "@/app/components/dashboards/modern/SellingProducts";
 import WeeklyStats from "@/app/components/dashboards/modern/WeeklyStats";
 import TopPerformers from "@/app/components/dashboards/modern/TopPerformers";
+import ToysTotalValueCard from "@/app/components/dashboards/modern/ToysTotalValueCard";
 import Welcome from "@/app/(DashboardLayout)/layout/shared/welcome/Welcome";
 
 export default function Dashboard() {
@@ -55,6 +56,10 @@ export default function Dashboard() {
           {/* column - Yearly Salary Card */}
           <Grid item xs={12} lg={4}>
             <YearlySalaryCard isLoading={isLoading} />
+          </Grid>
+          {/* column - Toys Total Value Card */}
+          <Grid item xs={12} lg={4}>
+            <ToysTotalValueCard isLoading={isLoading} />
           </Grid>
           {/* column */}
           <Grid item xs={12} lg={4}>

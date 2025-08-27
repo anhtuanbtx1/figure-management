@@ -10,12 +10,12 @@ import MonthlyEarnings from '@/app/components/dashboards/modern/MonthlyEarnings'
 import TopCards from '@/app/components/dashboards/modern/TopCards';
 import RevenueUpdates from '@/app/components/dashboards/modern/RevenueUpdates';
 import EmployeeSalary from '@/app/components/dashboards/modern/EmployeeSalary';
-import Customers from '@/app/components/dashboards/modern/Customers';
-import Projects from '@/app/components/dashboards/modern/Projects';
+import InvoiceTotalCostCard from '@/app/components/dashboards/modern/InvoiceTotalCostCard';
 import Social from '@/app/components/dashboards/modern/Social';
 import SellingProducts from '@/app/components/dashboards/modern/SellingProducts';
 import WeeklyStats from '@/app/components/dashboards/modern/WeeklyStats';
 import TopPerformers from '@/app/components/dashboards/modern/TopPerformers';
+import ToysTotalValueCard from '@/app/components/dashboards/modern/ToysTotalValueCard';
 
 
 export default function Dashboard (){
@@ -52,14 +52,15 @@ export default function Dashboard (){
           <Grid item xs={12} lg={4}>
             <EmployeeSalary isLoading={isLoading} />
           </Grid>
+          {/* column - Toys Total Value Card */}
+          <Grid item xs={12} lg={4}>
+            <ToysTotalValueCard isLoading={isLoading} />
+          </Grid>
           {/* column */}
           <Grid item xs={12} lg={4}>
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <Customers isLoading={isLoading} />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Projects isLoading={isLoading} />
+              <Grid item xs={12}>
+                <InvoiceTotalCostCard isLoading={isLoading} />
               </Grid>
               <Grid item xs={12}>
                 <Social />

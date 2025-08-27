@@ -281,18 +281,18 @@ const Menuitems: MenuitemsType[] = [
     icon: IconNotes,
     href: "/apps/notes",
   },
-  {
-    id: uniqueId(),
-    title: "Calendar",
-    icon: IconCalendar,
-    href: "/apps/calendar",
-  },
-  {
-    id: uniqueId(),
-    title: "Email",
-    icon: IconMail,
-    href: "/apps/email",
-  },
+  // {
+  //   id: uniqueId(),
+  //   title: "Calendar",
+  //   icon: IconCalendar,
+  //   href: "/apps/calendar",
+  // },
+  // {
+  //   id: uniqueId(),
+  //   title: "Email",
+  //   icon: IconMail,
+  //   href: "/apps/email",
+  // },
   {
     id: uniqueId(),
     title: "Tickets",
