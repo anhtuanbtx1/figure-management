@@ -151,9 +151,10 @@ const EditInvoicePage = () => {
 
       const updates: any[] = [];
       currMap.forEach((curr: any, id: any) => {
-        const orig = origMap.get(id);
-        if (orig && (orig.itemName !== curr.itemName || Number(orig.unitPrice) !== Number(curr.unitPrice) || Number(orig.units) !== Number(curr.units))) {
-          updates.push({ itemId: id, itemName: curr.itemName, unitPrice: Number(curr.unitPrice)||0, units: Number(curr.units)||0 });
+        const orig: any = origMap.get(id) as any;
+        const c: any = curr as any;
+        if (orig && (orig.itemName !== c.itemName || Number(orig.unitPrice) !== Number(c.unitPrice) || Number(orig.units) !== Number(c.units))) {
+          updates.push({ itemId: id, itemName: c.itemName, unitPrice: Number(c.unitPrice)||0, units: Number(c.units)||0 });
         }
       });
 

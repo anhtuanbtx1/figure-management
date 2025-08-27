@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardContent, Typography, Box, Stack, Avatar, Chip, LinearProgress, Tooltip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { IconCurrencyDollar, IconTrendingUp, IconToy, IconShoppingCart } from '@tabler/icons-react';
+import { IconCurrencyDollar, IconTrendingUp, IconShoppingCart } from '@tabler/icons-react';
 import { useToysTotalValue, formatVND, formatNumber } from '@/hooks/useToysTotalValue';
 
 interface ToysTotalValueCardProps {

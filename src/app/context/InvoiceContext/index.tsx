@@ -100,7 +100,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 invoiceHeader: header,
                 items,
             });
-            const inv = res.data;
+            const inv: any = res.data?.data || res.data;
             const mapped: InvoiceList = {
                 id: inv.Id,
                 billFrom: inv.BillFrom,
@@ -151,26 +151,26 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 notes: '',
             };
             const res = await InvoiceService.updateInvoice(String(updatedInvoice.id), payload);
-            const updated = res.data;
+            const updated: any = res.data;
             const mapped: InvoiceList = {
-                id: updated.Id,
-                billFrom: updated.BillFrom,
-                billFromEmail: updated.BillFromEmail || '',
-                billFromAddress: updated.BillFromAddress || '',
-                billFromPhone: updated.BillFromPhone ? Number(updated.BillFromPhone) : 0,
-                billFromFax: updated.BillFromFax ? Number(updated.BillFromFax) : 0,
-                billTo: updated.BillTo,
-                billToEmail: updated.BillToEmail || '',
-                billToAddress: updated.BillToAddress || '',
-                billToPhone: updated.BillToPhone ? Number(updated.BillToPhone) : 0,
-                billToFax: updated.BillToFax ? Number(updated.BillToFax) : 0,
+                id: (updated as any).Id ?? (updated as any).id,
+                billFrom: (updated as any).BillFrom ?? (updated as any).billFrom,
+                billFromEmail: (updated as any).BillFromEmail ?? (updated as any).billFromEmail ?? '',
+                billFromAddress: (updated as any).BillFromAddress ?? (updated as any).billFromAddress ?? '',
+                billFromPhone: Number((updated as any).BillFromPhone ?? (updated as any).billFromPhone ?? 0),
+                billFromFax: Number((updated as any).BillFromFax ?? (updated as any).billFromFax ?? 0),
+                billTo: (updated as any).BillTo ?? (updated as any).billTo,
+                billToEmail: (updated as any).BillToEmail ?? (updated as any).billToEmail ?? '',
+                billToAddress: (updated as any).BillToAddress ?? (updated as any).billToAddress ?? '',
+                billToPhone: Number((updated as any).BillToPhone ?? (updated as any).billToPhone ?? 0),
+                billToFax: Number((updated as any).BillToFax ?? (updated as any).billToFax ?? 0),
                 orders: [],
-                orderDate: updated.OrderDate ? new Date(updated.OrderDate) : new Date(),
-                totalCost: updated.GrandTotal ?? 0,
-                vat: updated.VAT ?? 0,
-                grandTotal: updated.GrandTotal ?? 0,
-                status: updated.Status || 'Pending',
-                completed: updated.Status === 'Delivered',
+                orderDate: (updated as any).OrderDate ? new Date((updated as any).OrderDate) : new Date(),
+                totalCost: (updated as any).GrandTotal ?? (updated as any).grandTotal ?? 0,
+                vat: (updated as any).VAT ?? (updated as any).vat ?? 0,
+                grandTotal: (updated as any).GrandTotal ?? (updated as any).grandTotal ?? 0,
+                status: (updated as any).Status ?? (updated as any).status ?? 'Pending',
+                completed: ((updated as any).Status ?? (updated as any).status) === 'Delivered',
                 isSelected: false,
             };
             setInvoices((prevInvoices) =>
