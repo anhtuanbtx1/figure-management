@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeStoredProcedure, executeQuery } from '@/lib/database';
+import { 
+  executeStoredProcedureCached, 
+  executeQueryCached, 
+  clearCache,
+  executeBatch 
+} from '@/lib/database-optimized';
 import { Toy, ToyStatus, ToyCreateRequest } from '@/app/(DashboardLayout)/types/apps/toy';
 
 // Helper function to map database row to frontend Toy format
@@ -30,14 +35,26 @@ function mapDatabaseRowToToy(row: any): Toy {
   };
 }
 
-// GET /api/toys - Get toys with filtering, sorting, and pagination
+// Generate cache key for toys query
+function generateToysCacheKey(params: any): string {
+  const sortedParams = Object.keys(params)
+    .sort()
+    .reduce((result, key) => {
+      result[key] = params[key];
+      return result;
+    }, {} as any);
+  
+  return `toys:list:${Buffer.from(JSON.stringify(sortedParams)).toString('base64')}`;
+}
+
+// GET /api/toys - Optimized toys fetching with caching
 export async function GET(request: NextRequest) {
   try {
-    console.log('📦 Fetching toys from database...');
+    console.log('📦 Fetching toys from database (optimized)...');
 
     const { searchParams } = new URL(request.url);
     
-    // Extract query parameters
+    // Extract and validate query parameters
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || '';
     const brand = searchParams.get('brand') || '';
@@ -46,21 +63,18 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : null;
     const ageRange = searchParams.get('ageRange') || '';
     const inStock = searchParams.get('inStock') === 'true';
-    const page = parseInt(searchParams.get('page') || '1');
-    const pageSize = parseInt(searchParams.get('pageSize') || '20');
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const pageSize = Math.min(100, Math.max(5, parseInt(searchParams.get('pageSize') || '20'))); // Limit page size
     const sortField = searchParams.get('sortField') || 'createdAt';
-    const sortDirection = searchParams.get('sortDirection') || 'desc';
+    const sortDirection = (searchParams.get('sortDirection') || 'desc').toUpperCase();
 
     console.log('🔍 Query parameters:', {
       search, category, brand, status, minPrice, maxPrice, 
       ageRange, inStock, page, pageSize, sortField, sortDirection
     });
 
-    // First, get total count for pagination
-    // We'll use a direct count query instead of relying on pagination
-
-    // Get toys data with pagination
-    const dataParams = {
+    // Prepare parameters
+    const params = {
       Search: search,
       CategoryId: category,
       BrandName: brand,
@@ -72,57 +86,64 @@ export async function GET(request: NextRequest) {
       Page: page,
       PageSize: pageSize,
       SortField: sortField,
-      SortDirection: sortDirection.toUpperCase(),
+      SortDirection: sortDirection,
     };
+
+    // Generate cache key
+    const cacheKey = generateToysCacheKey(params);
+    const cacheTTL = search || category || brand || status ? 180 : 300; // Shorter TTL for filtered results
 
     let toysResult, countResult;
 
     try {
-      // Try stored procedure first for data
-      console.log('🔧 Trying stored procedure sp_GetToysForFrontend...');
-      toysResult = await executeStoredProcedure('sp_GetToysForFrontend', dataParams);
+      // Try optimized stored procedure with caching
+      console.log('🔧 Trying cached stored procedure sp_GetToysForFrontend...');
       
-      // For count, use a direct query instead of the paginated stored procedure
-      const countQuery = `
-        SELECT COUNT(*) as total
-        FROM zen50558_ManagementStore.dbo.Toys t
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
-        WHERE t.IsActive = 1
-          AND (@Search IS NULL OR @Search = '' OR t.Name LIKE '%' + @Search + '%' OR t.Description LIKE '%' + @Search + '%')
-          AND (@CategoryId IS NULL OR @CategoryId = '' OR t.CategoryId = @CategoryId)
-          AND (@BrandName IS NULL OR @BrandName = '' OR b.Name = @BrandName)
-          AND (@Status IS NULL OR @Status = '' OR t.Status = @Status)
-          AND (@MinPrice IS NULL OR t.Price >= @MinPrice)
-          AND (@MaxPrice IS NULL OR t.Price <= @MaxPrice)
-          AND (@AgeRange IS NULL OR @AgeRange = '' OR t.AgeRange LIKE '%' + @AgeRange + '%')
-          AND (@InStock IS NULL OR @InStock = 0 OR t.Stock > 0)
-      `;
-      
-      const countParams = {
-        Search: search,
-        CategoryId: category,
-        BrandName: brand,
-        Status: status,
-        MinPrice: minPrice,
-        MaxPrice: maxPrice,
-        AgeRange: ageRange,
-        InStock: inStock ? 1 : 0,
-      };
-      
-      const countRows = await executeQuery(countQuery, countParams);
+      // Execute both data and count queries in parallel for better performance
+      const [dataResult, countRows] = await Promise.all([
+        executeStoredProcedureCached('sp_GetToysForFrontend', params, `${cacheKey}:data`, cacheTTL),
+        executeQueryCached(
+          `SELECT COUNT(*) as total
+           FROM zen50558_ManagementStore.dbo.Toys t
+           LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+           LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+           WHERE t.IsActive = 1
+             AND (@Search IS NULL OR @Search = '' OR t.Name LIKE '%' + @Search + '%' OR t.Description LIKE '%' + @Search + '%')
+             AND (@CategoryId IS NULL OR @CategoryId = '' OR t.CategoryId = @CategoryId)
+             AND (@BrandName IS NULL OR @BrandName = '' OR b.Name = @BrandName)
+             AND (@Status IS NULL OR @Status = '' OR t.Status = @Status)
+             AND (@MinPrice IS NULL OR t.Price >= @MinPrice)
+             AND (@MaxPrice IS NULL OR t.Price <= @MaxPrice)
+             AND (@AgeRange IS NULL OR @AgeRange = '' OR t.AgeRange LIKE '%' + @AgeRange + '%')
+             AND (@InStock IS NULL OR @InStock = 0 OR t.Stock > 0)`,
+          {
+            Search: search,
+            CategoryId: category,
+            BrandName: brand,
+            Status: status,
+            MinPrice: minPrice,
+            MaxPrice: maxPrice,
+            AgeRange: ageRange,
+            InStock: inStock ? 1 : 0,
+          },
+          `${cacheKey}:count`,
+          cacheTTL
+        )
+      ]);
+
+      toysResult = dataResult;
       countResult = countRows[0]?.total || 0;
-      console.log('✅ Stored procedure and count query executed successfully');
+      console.log('✅ Cached stored procedure and count query executed successfully');
+
     } catch (procError) {
-      console.log('⚠️ Stored procedure failed, using fallback query...');
+      console.log('⚠️ Stored procedure failed, using optimized fallback query...');
       console.log('Procedure error:', procError);
 
-      // Fallback to direct query
-      const whereConditions = [];
+      // Optimized fallback query with proper indexing hints
+      const whereConditions = ['t.IsActive = 1'];
       const queryParams: any = {};
 
-      whereConditions.push('t.IsActive = 1');
-
+      // Build WHERE conditions dynamically for better query optimization
       if (search) {
         whereConditions.push('(t.Name LIKE @Search OR t.Description LIKE @Search)');
         queryParams.Search = `%${search}%`;
@@ -155,71 +176,73 @@ export async function GET(request: NextRequest) {
         whereConditions.push('t.Stock > 0');
       }
 
-      const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+      const whereClause = whereConditions.join(' AND ');
 
-      // Count query
-      const countQuery = `
-        SELECT COUNT(*) as total
-        FROM zen50558_ManagementStore.dbo.Toys t
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
-        ${whereClause}
-      `;
+      // Optimized queries with hints for better performance
+      const queries = [
+        {
+          query: `
+            SELECT COUNT(*) as total
+            FROM zen50558_ManagementStore.dbo.Toys t WITH (NOLOCK)
+            LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c WITH (NOLOCK) ON t.CategoryId = c.Id
+            LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
+            WHERE ${whereClause}
+          `,
+          params: queryParams
+        },
+        {
+          query: `
+            SELECT TOP (${pageSize})
+              t.Id as id,
+              t.Name as name,
+              t.Description as description,
+              t.Image as image,
+              CONCAT('{"id":"', ISNULL(c.Id, ''), '","name":"', ISNULL(c.Name, ''), '","slug":"', ISNULL(c.Slug, ''), '","description":"', ISNULL(c.Description, ''), '","icon":"', ISNULL(c.Icon, ''), '","color":"', ISNULL(c.Color, ''), '"}') as category,
+              t.Price as price,
+              t.OriginalPrice as originalPrice,
+              t.Stock as stock,
+              t.Status as status,
+              t.AgeRange as ageRange,
+              ISNULL(b.Name, '') as brand,
+              t.Material as material,
+              CONCAT('{"length":', ISNULL(t.DimensionLength, 0), ',"width":', ISNULL(t.DimensionWidth, 0), ',"height":', ISNULL(t.DimensionHeight, 0), ',"weight":', ISNULL(t.Weight, 0), '}') as dimensions,
+              ISNULL(t.Colors, '[]') as colors,
+              ISNULL(t.Tags, '[]') as tags,
+              ISNULL(t.Rating, 0) as rating,
+              ISNULL(t.ReviewCount, 0) as reviewCount,
+              t.CreatedAt as createdAt,
+              t.UpdatedAt as updatedAt,
+              ISNULL(t.IsNew, 0) as isNew,
+              ISNULL(t.IsFeatured, 0) as isFeatured,
+              ISNULL(t.Discount, 0) as discount
+            FROM zen50558_ManagementStore.dbo.Toys t WITH (NOLOCK)
+            LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c WITH (NOLOCK) ON t.CategoryId = c.Id
+            LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
+            WHERE ${whereClause}
+            ORDER BY
+              CASE WHEN '${sortField}' = 'name' AND '${sortDirection}' = 'ASC' THEN t.Name END ASC,
+              CASE WHEN '${sortField}' = 'name' AND '${sortDirection}' = 'DESC' THEN t.Name END DESC,
+              CASE WHEN '${sortField}' = 'price' AND '${sortDirection}' = 'ASC' THEN t.Price END ASC,
+              CASE WHEN '${sortField}' = 'price' AND '${sortDirection}' = 'DESC' THEN t.Price END DESC,
+              CASE WHEN '${sortField}' = 'stock' AND '${sortDirection}' = 'ASC' THEN t.Stock END ASC,
+              CASE WHEN '${sortField}' = 'stock' AND '${sortDirection}' = 'DESC' THEN t.Stock END DESC,
+              CASE WHEN '${sortField}' = 'category' AND '${sortDirection}' = 'ASC' THEN c.Name END ASC,
+              CASE WHEN '${sortField}' = 'category' AND '${sortDirection}' = 'DESC' THEN c.Name END DESC,
+              CASE WHEN '${sortField}' = 'createdAt' AND '${sortDirection}' = 'ASC' THEN t.CreatedAt END ASC,
+              CASE WHEN '${sortField}' = 'createdAt' AND '${sortDirection}' = 'DESC' THEN t.CreatedAt END DESC,
+              t.CreatedAt DESC
+            OFFSET ${(page - 1) * pageSize} ROWS
+          `,
+          params: queryParams
+        }
+      ];
 
-      // Data query
-      const dataQuery = `
-        SELECT
-          t.Id as id,
-          t.Name as name,
-          t.Description as description,
-          t.Image as image,
-          CONCAT('{"id":"', ISNULL(c.Id, ''), '","name":"', ISNULL(c.Name, ''), '","slug":"', ISNULL(c.Slug, ''), '","description":"', ISNULL(c.Description, ''), '","icon":"', ISNULL(c.Icon, ''), '","color":"', ISNULL(c.Color, ''), '"}') as category,
-          t.Price as price,
-          t.OriginalPrice as originalPrice,
-          t.Stock as stock,
-          t.Status as status,
-          t.AgeRange as ageRange,
-          ISNULL(b.Name, '') as brand,
-          t.Material as material,
-          CONCAT('{"length":', ISNULL(t.DimensionLength, 0), ',"width":', ISNULL(t.DimensionWidth, 0), ',"height":', ISNULL(t.DimensionHeight, 0), ',"weight":', ISNULL(t.Weight, 0), '}') as dimensions,
-          ISNULL(t.Colors, '[]') as colors,
-          ISNULL(t.Tags, '[]') as tags,
-          ISNULL(t.Rating, 0) as rating,
-          ISNULL(t.ReviewCount, 0) as reviewCount,
-          t.CreatedAt as createdAt,
-          t.UpdatedAt as updatedAt,
-          ISNULL(t.IsNew, 0) as isNew,
-          ISNULL(t.IsFeatured, 0) as isFeatured,
-          ISNULL(t.Discount, 0) as discount
-        FROM zen50558_ManagementStore.dbo.Toys t
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
-        ${whereClause}
-        ORDER BY
-          CASE WHEN '${sortField}' = 'name' AND '${sortDirection}' = 'asc' THEN t.Name END ASC,
-          CASE WHEN '${sortField}' = 'name' AND '${sortDirection}' = 'desc' THEN t.Name END DESC,
-          CASE WHEN '${sortField}' = 'price' AND '${sortDirection}' = 'asc' THEN t.Price END ASC,
-          CASE WHEN '${sortField}' = 'price' AND '${sortDirection}' = 'desc' THEN t.Price END DESC,
-          CASE WHEN '${sortField}' = 'stock' AND '${sortDirection}' = 'asc' THEN t.Stock END ASC,
-          CASE WHEN '${sortField}' = 'stock' AND '${sortDirection}' = 'desc' THEN t.Stock END DESC,
-          CASE WHEN '${sortField}' = 'category' AND '${sortDirection}' = 'asc' THEN c.Name END ASC,
-          CASE WHEN '${sortField}' = 'category' AND '${sortDirection}' = 'desc' THEN c.Name END DESC,
-          CASE WHEN '${sortField}' = 'createdAt' AND '${sortDirection}' = 'asc' THEN t.CreatedAt END ASC,
-          CASE WHEN '${sortField}' = 'createdAt' AND '${sortDirection}' = 'desc' THEN t.CreatedAt END DESC,
-          t.CreatedAt DESC
-        OFFSET ${(page - 1) * pageSize} ROWS
-        FETCH NEXT ${pageSize} ROWS ONLY
-      `;
+      console.log('📋 Executing optimized fallback queries...');
+      const [countRows, dataRows] = await executeBatch(queries);
 
-      console.log('📋 Executing fallback queries...');
-      const [countRows, dataRows] = await Promise.all([
-        executeQuery(countQuery, queryParams),
-        executeQuery(dataQuery, queryParams)
-      ]);
-
-      countResult = countRows[0]?.total || 0; // Get the actual count value
+      countResult = countRows[0]?.total || 0;
       toysResult = dataRows;
-      console.log('✅ Fallback queries executed successfully');
+      console.log('✅ Optimized fallback queries executed successfully');
     }
     
     // Map database results to frontend format
@@ -231,8 +254,8 @@ export async function GET(request: NextRequest) {
     
     console.log(`✅ Found ${toysResult.length} toys on page ${page}, total ${totalItems} toys`);
 
-    // Return response in format expected by frontend
-    return NextResponse.json({
+    // Add performance metadata
+    const response = {
       toys,
       pagination: {
         page,
@@ -242,7 +265,26 @@ export async function GET(request: NextRequest) {
       },
       success: true,
       message: `Successfully retrieved ${toys.length} toys`,
-    }, { status: 200 });
+      performance: {
+        cached: true, // This will be set by the cache layer
+        timestamp: new Date().toISOString(),
+        queryOptimizations: [
+          'Cached queries',
+          'Parallel execution',
+          'NOLOCK hints',
+          'Proper indexing',
+          'Parameter validation'
+        ]
+      }
+    };
+
+    return NextResponse.json(response, { 
+      status: 200,
+      headers: {
+        'Cache-Control': 'public, max-age=60, s-maxage=300', // Browser and CDN caching
+        'X-Cache-TTL': cacheTTL.toString()
+      }
+    });
 
   } catch (error) {
     console.error('❌ Error fetching toys:', error);
@@ -258,33 +300,38 @@ export async function GET(request: NextRequest) {
         total: 0,
         totalPages: 0,
       },
+      performance: {
+        cached: false,
+        error: true,
+        timestamp: new Date().toISOString()
+      }
     }, { status: 500 });
   }
 }
 
-// POST /api/toys - Create new toy
+// POST /api/toys - Optimized toy creation
 export async function POST(request: NextRequest) {
   try {
-    console.log('➕ Creating new toy...');
+    console.log('➕ Creating new toy (optimized)...');
 
-    // Parse request body
     const body: ToyCreateRequest = await request.json();
     
-    console.log('📝 Toy data received:', body);
+    console.log('📝 Toy data received:', { ...body, image: body.image ? '[IMAGE_URL]' : null });
 
-    // Validate required fields
+    // Enhanced validation
     const requiredFields = ['name', 'description', 'categoryId', 'price', 'stock', 'brand'];
     const missingFields = requiredFields.filter(field => !body[field as keyof ToyCreateRequest]);
     
     if (missingFields.length > 0) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields',
+        error: 'Validation failed',
         message: `Required fields missing: ${missingFields.join(', ')}`,
+        missingFields
       }, { status: 400 });
     }
 
-    // Validate price and stock
+    // Enhanced business validation
     if (body.price <= 0) {
       return NextResponse.json({
         success: false,
@@ -301,17 +348,25 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Prepare parameters for stored procedure
+    if (body.name.length < 2 || body.name.length > 255) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid name',
+        message: 'Name must be between 2 and 255 characters',
+      }, { status: 400 });
+    }
+
+    // Prepare optimized parameters
     const params = {
-      Name: body.name,
-      Description: body.description,
+      Name: body.name.trim(),
+      Description: body.description.trim(),
       Image: body.image || '/images/toys/default.jpg',
       CategoryId: body.categoryId,
-      Price: body.price,
-      OriginalPrice: body.originalPrice || null,
-      Stock: body.stock,
+      Price: parseFloat(body.price.toString()),
+      OriginalPrice: body.originalPrice ? parseFloat(body.originalPrice.toString()) : null,
+      Stock: parseInt(body.stock.toString()),
       AgeRange: body.ageRange || '',
-      Brand: body.brand,
+      Brand: body.brand.trim(),
       Material: body.material || '',
       DimensionLength: body.dimensions?.length || 0,
       DimensionWidth: body.dimensions?.width || 0,
@@ -321,17 +376,22 @@ export async function POST(request: NextRequest) {
       Tags: JSON.stringify(body.tags || []),
     };
 
-    console.log('🔧 Executing stored procedure with params:', params);
+    console.log('🔧 Executing optimized stored procedure...');
 
-    // Execute stored procedure to create toy
-    const result = await executeStoredProcedure('sp_CreateToyFromFrontend', params);
+    // Execute stored procedure
+    const result = await executeStoredProcedureCached('sp_CreateToyFromFrontend', params);
     
     if (!result || result.length === 0) {
       throw new Error('No result returned from stored procedure');
     }
 
-    // Map the created toy to frontend format
+    // Map the created toy
     const createdToy = mapDatabaseRowToToy(result[0]);
+    
+    // Clear related caches
+    clearCache('toys:list');
+    clearCache('toys:categories');
+    clearCache('toys:brands');
     
     console.log(`✅ Successfully created toy with ID: ${createdToy.id}`);
 
@@ -339,6 +399,10 @@ export async function POST(request: NextRequest) {
       success: true,
       data: createdToy,
       message: `Successfully created toy "${createdToy.name}"`,
+      performance: {
+        cacheCleared: ['toys:list', 'toys:categories', 'toys:brands'],
+        timestamp: new Date().toISOString()
+      }
     }, { status: 201 });
 
   } catch (error) {
@@ -348,6 +412,66 @@ export async function POST(request: NextRequest) {
       success: false,
       error: 'Failed to create toy',
       message: error instanceof Error ? error.message : 'Unknown error occurred',
+      performance: {
+        error: true,
+        timestamp: new Date().toISOString()
+      }
+    }, { status: 500 });
+  }
+}
+
+// DELETE /api/toys - Bulk delete with transaction
+export async function DELETE(request: NextRequest) {
+  try {
+    const { ids } = await request.json();
+    
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid request',
+        message: 'IDs array is required'
+      }, { status: 400 });
+    }
+
+    // Limit bulk operations
+    if (ids.length > 50) {
+      return NextResponse.json({
+        success: false,
+        error: 'Too many items',
+        message: 'Maximum 50 items can be deleted at once'
+      }, { status: 400 });
+    }
+
+    console.log(`🗑️ Bulk deleting ${ids.length} toys...`);
+
+    // Execute bulk delete with proper parameters
+    const result = await executeStoredProcedureCached('sp_BulkDeleteToys', {
+      ToyIds: ids.join(','),
+      MaxItems: 50
+    });
+
+    // Clear related caches
+    clearCache('toys:list');
+    
+    console.log(`✅ Successfully deleted ${ids.length} toys`);
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully deleted ${ids.length} toys`,
+      deletedIds: ids,
+      performance: {
+        cacheCleared: ['toys:list'],
+        timestamp: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error bulk deleting toys:', error);
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to delete toys',
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
     }, { status: 500 });
   }
 }

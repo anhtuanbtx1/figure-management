@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:optimize": "node scripts/deploy-database-optimizations.js",
+    "db:test": "node scripts/test-database-performance.js"
   },
   "dependencies": {
     "@casl/ability": "^6.3.3",
