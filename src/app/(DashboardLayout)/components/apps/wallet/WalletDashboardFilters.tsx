@@ -81,7 +81,10 @@ const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
           if (filters.yearMonth) {
             const [year, month] = filters.yearMonth.split('-');
             dateFrom = new Date(parseInt(year), parseInt(month) - 1, 1).toISOString();
-            dateTo = new Date(parseInt(year), parseInt(month), 0).toISOString();
+            // Sửa lỗi: tính đúng ngày cuối tháng bằng cách lấy ngày đầu tháng sau rồi trừ 1 giây
+            const endOfMonth = new Date(parseInt(year), parseInt(month), 1);
+            endOfMonth.setSeconds(-1); // Lùi 1 giây từ 00:00:00 ngày đầu tháng sau
+            dateTo = endOfMonth.toISOString();
           }
           break;
         default:
@@ -92,6 +95,19 @@ const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
 
       newFilters.dateFrom = dateFrom;
       newFilters.dateTo = dateTo;
+    }
+
+    // Xử lý khi yearMonth thay đổi - tự động cập nhật dateFrom và dateTo
+    if (field === 'yearMonth' && value && filters.dateRangeType === 'yearMonth') {
+      const [year, month] = value.split('-');
+      // Ngày đầu tháng
+      const startOfMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
+      // Ngày cuối tháng - sử dụng ngày đầu tháng sau rồi trừ 1 giây
+      const endOfMonth = new Date(parseInt(year), parseInt(month), 1);
+      endOfMonth.setSeconds(-1);
+      
+      newFilters.dateFrom = startOfMonth.toISOString();
+      newFilters.dateTo = endOfMonth.toISOString();
     }
 
     onFiltersChange(newFilters);

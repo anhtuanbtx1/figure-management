@@ -13,7 +13,7 @@ import EmployeeSalary from '@/app/components/dashboards/modern/EmployeeSalary';
 import InvoiceTotalCostCard from '@/app/components/dashboards/modern/InvoiceTotalCostCard';
 import Social from '@/app/components/dashboards/modern/Social';
 import SellingProducts from '@/app/components/dashboards/modern/SellingProducts';
-import WeeklyStats from '@/app/components/dashboards/modern/WeeklyStats';
+import RecentWalletTransactions from '@/app/components/dashboards/modern/RecentWalletTransactions';
 import TopPerformers from '@/app/components/dashboards/modern/TopPerformers';
 import ToysTotalValueCard from '@/app/components/dashboards/modern/ToysTotalValueCard';
 
@@ -73,7 +73,7 @@ export default function Dashboard (){
           </Grid>
           {/* column */}
           <Grid item xs={12} lg={4}>
-            <WeeklyStats isLoading={isLoading} />
+            <RecentWalletTransactions />
           </Grid>
           {/* column */}
           <Grid item xs={12} lg={8}>
