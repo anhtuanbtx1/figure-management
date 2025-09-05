@@ -19,7 +19,7 @@ const BCrumb = [
   },
 ];
 
-function page() {
+function Page() {
   const theme = useTheme();
   const metricsRef = useRef<{ refreshStats: () => void } | null>(null);
 
@@ -168,4 +168,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;
