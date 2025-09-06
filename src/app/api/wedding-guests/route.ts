@@ -144,9 +144,13 @@ export async function GET(request: NextRequest) {
 
     // Optimized search logic
     if (search) {
+      // Decode and normalize search term for Vietnamese characters
+      const decodedSearch = decodeURIComponent(search);
+      const normalizedSearch = decodedSearch.normalize('NFC'); // Normalize Unicode
+
       // Use different search strategies based on search term characteristics
-      const isNumeric = /^\d+$/.test(search);
-      const searchTerm = `%${search}%`;
+      const isNumeric = /^\d+$/.test(normalizedSearch);
+      const searchTerm = `%${normalizedSearch}%`;
 
       if (isNumeric) {
         // Optimized numeric search using computed columns
@@ -156,15 +160,15 @@ export async function GET(request: NextRequest) {
           name LIKE @search OR
           unit LIKE @search
         )`);
-      } else if (search.length >= 3) {
-        // Use full-text search for longer terms (more efficient)
+      } else if (normalizedSearch.length >= 3) {
+        // Use LIKE search for longer terms (fallback since full-text index not available)
         whereConditions.push(`(
-          CONTAINS((name, unit, relationship, notes), @searchFTS) OR
           name LIKE @search OR
           unit LIKE @search OR
+          relationship LIKE @search OR
+          notes LIKE @search OR
           status LIKE @search
         )`);
-        queryParams.searchFTS = `"*${search}*"`;
       } else {
         // Use LIKE search for short terms (fallback)
         whereConditions.push(`(
@@ -258,6 +262,10 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Error fetching wedding guests:', error);
+
+    // Log additional context for debugging
+    console.error('Search params:', { search, status, page, pageSize });
+    console.error('Query params:', queryParams);
 
     return NextResponse.json({
       success: false,
