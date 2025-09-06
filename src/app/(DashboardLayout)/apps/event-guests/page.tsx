@@ -28,14 +28,7 @@ import ModernNotification from './components/ModernNotification';
 // Import notification utilities
 import createGuestNotification, { NotificationConfig } from './utils/notifications';
 
-// Utility function to remove Vietnamese accents for better search
-const removeVietnameseAccents = (str: string): string => {
-  return str
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D');
-};
+// Server-side search handles Vietnamese accents
 
 const BCrumb = [
   {
@@ -50,6 +43,9 @@ const BCrumb = [
 const EventGuestsPage = () => {
   // State management
   const [guests, setGuests] = useState<EventGuest[]>([]);
+  const [totalGuests, setTotalGuests] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [statistics, setStatistics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [snackbar, setSnackbar] = useState<NotificationConfig>({ open: false, message: '', severity: 'success' });
@@ -74,14 +70,44 @@ const EventGuestsPage = () => {
   // Load data from API
   useEffect(() => {
     loadGuests();
+    loadStatistics();
   }, []);
 
-  const loadGuests = async () => {
+  // Reload statistics when filters change
+  useEffect(() => {
+    loadStatistics();
+  }, [filters.search, filters.status]);
+
+  const loadGuests = async (options: {
+    page?: number;
+    search?: string;
+    status?: string;
+  } = {}) => {
     try {
       setLoading(true);
-      const guestsData = await GuestService.getAllGuests();
-      setGuests(guestsData);
-      console.log(`✅ Loaded ${guestsData.length} guests from database`);
+      const startTime = Date.now();
+
+      const result = await GuestService.getAllGuests({
+        page: options.page || currentPage,
+        pageSize: itemsPerPage,
+        search: options.search || filters.search,
+        status: options.status || filters.status,
+        sortField: 'createdDate',
+        sortDirection: 'DESC',
+      });
+
+      setGuests(result.guests);
+      setTotalGuests(result.pagination.totalCount);
+      setTotalPages(result.pagination.totalPages);
+
+      const loadTime = Date.now() - startTime;
+      console.log(`📊 Loaded ${result.guests.length} guests in ${loadTime}ms (server: ${result.performanceMs}ms)`);
+
+      // Show performance notification if load time is significant
+      if (result.performanceMs > 1000) {
+        console.warn(`⚠️ Slow query detected: ${result.performanceMs}ms`);
+      }
+
     } catch (error) {
       console.error('❌ Failed to load guests:', error);
       setSnackbar(createGuestNotification.error.loadFailed());
@@ -90,9 +116,138 @@ const EventGuestsPage = () => {
     }
   };
 
-  // Calculate stats synchronously from guests data
+  // Load statistics using multiple API calls to get ALL data
+  const loadStatistics = async (options: {
+    search?: string;
+    status?: string;
+  } = {}) => {
+    try {
+      console.log('📊 Loading statistics using multiple API calls...');
+
+      let allGuests: EventGuest[] = [];
+      let currentPage = 1;
+      let hasMorePages = true;
+      const pageSize = 100; // Use max allowed pageSize
+
+      // Keep fetching pages until we get all data
+      while (hasMorePages) {
+        const result = await GuestService.getAllGuests({
+          page: currentPage,
+          pageSize: pageSize,
+          search: options.search || filters.search,
+          status: options.status || filters.status,
+          sortField: 'createdDate',
+          sortDirection: 'DESC',
+        });
+
+        allGuests = [...allGuests, ...result.guests];
+        hasMorePages = result.pagination.hasNextPage;
+        currentPage++;
+
+        console.log(`📄 Loaded page ${currentPage - 1}: ${result.guests.length} guests (total so far: ${allGuests.length})`);
+
+        // Safety check to prevent infinite loop
+        if (currentPage > 10) {
+          console.warn('⚠️ Stopped loading after 10 pages to prevent infinite loop');
+          break;
+        }
+      }
+
+      console.log(`✅ Loaded all ${allGuests.length} guests for statistics`);
+
+      // Calculate statistics from all guests data
+      const totalGuests = allGuests.length;
+      const confirmedGuests = allGuests.filter(g => g.status === 'CONFIRMED').length;
+      const pendingGuests = allGuests.filter(g => g.status === 'PENDING').length;
+      const declinedGuests = allGuests.filter(g => g.status === 'DECLINED').length;
+
+      // Calculate total number of people
+      const totalPeople = allGuests.reduce((total, guest) => {
+        const people = Number(guest.numberOfPeople) || 0;
+        return total + people;
+      }, 0);
+
+      // Calculate confirmed people
+      const confirmedPeople = allGuests
+        .filter(g => g.status === 'CONFIRMED')
+        .reduce((total, guest) => {
+          const people = Number(guest.numberOfPeople) || 0;
+          return total + people;
+        }, 0);
+
+      // Calculate total contribution
+      const totalContribution = allGuests.reduce((sum, g) => {
+        const amount = g.contributionAmount;
+        if (amount === null || amount === undefined || isNaN(Number(amount))) {
+          return sum + 0;
+        }
+        return sum + Number(amount);
+      }, 0);
+
+      // Calculate confirmed contribution
+      const confirmedContribution = allGuests
+        .filter(g => g.status === 'CONFIRMED')
+        .reduce((sum, g) => {
+          const amount = g.contributionAmount;
+          if (amount === null || amount === undefined || isNaN(Number(amount))) {
+            return sum + 0;
+          }
+          return sum + Number(amount);
+        }, 0);
+
+      const averageContribution = totalGuests > 0 ? totalContribution / totalGuests : 0;
+
+      // Create statistics object
+      const stats = {
+        overview: {
+          totalGuests,
+          totalPeople,
+          totalContribution,
+          avgGiftAmount: Math.round(averageContribution),
+          maxGiftAmount: Math.max(...allGuests.map(g => g.contributionAmount || 0)),
+          minGiftAmount: Math.min(...allGuests.map(g => g.contributionAmount || 0)),
+        },
+        byStatus: {
+          confirmed: {
+            guests: confirmedGuests,
+            people: confirmedPeople,
+            contribution: confirmedContribution,
+          },
+          pending: {
+            guests: pendingGuests,
+            people: 0, // Can calculate if needed
+            contribution: 0, // Can calculate if needed
+          },
+          declined: {
+            guests: declinedGuests,
+          },
+          maybe: {
+            guests: 0, // Can calculate if needed
+          },
+        },
+        topUnits: [], // Can calculate if needed
+        filters: {
+          search: options.search || filters.search || null,
+          status: options.status || filters.status || null,
+        },
+      };
+
+      setStatistics(stats);
+      console.log('✅ Statistics calculated from', totalGuests, 'guests:', {
+        total: totalGuests,
+        confirmed: confirmedGuests,
+        totalContribution,
+      });
+
+    } catch (error) {
+      console.error('❌ Failed to load statistics:', error);
+      // Don't show error notification for stats, just log it
+    }
+  };
+
+  // Use statistics from API (all data) instead of calculating from paginated guests
   const stats = useMemo(() => {
-    if (!guests || guests.length === 0) {
+    if (!statistics) {
       return {
         totalGuests: 0,
         confirmedGuests: 0,
@@ -104,114 +259,55 @@ const EventGuestsPage = () => {
       };
     }
 
-    const totalGuests = guests.length;
-    const confirmedGuests = guests.filter(g => g.status === 'CONFIRMED').length;
-    const pendingGuests = guests.filter(g => g.status === 'PENDING').length;
-    const declinedGuests = guests.filter(g => g.status === 'DECLINED').length;
-
-    // Calculate total number of people (sum of numberOfPeople)
-    const totalPeople = guests.reduce((total, guest) => {
-      const people = Number(guest.numberOfPeople) || 0;
-      return total + people;
-    }, 0);
-
-    // Safely calculate total contribution with null/undefined handling
-    const totalContribution = guests.reduce((sum, g) => {
-      const amount = g.contributionAmount;
-      if (amount === null || amount === undefined || isNaN(Number(amount))) {
-        return sum + 0;
-      }
-      return sum + Number(amount);
-    }, 0);
-
-    const averageContribution = totalGuests > 0 ? totalContribution / totalGuests : 0;
-
     const result = {
-      totalGuests,
-      confirmedGuests,
-      pendingGuests,
-      declinedGuests,
-      totalContribution,
-      averageContribution,
-      totalPeople,
+      totalGuests: statistics.overview.totalGuests,
+      confirmedGuests: statistics.byStatus.confirmed.guests,
+      pendingGuests: statistics.byStatus.pending.guests,
+      declinedGuests: statistics.byStatus.declined.guests,
+      totalContribution: statistics.overview.totalContribution,
+      averageContribution: statistics.overview.avgGiftAmount,
+      totalPeople: statistics.overview.totalPeople,
     };
 
-    console.log('🔢 Stats calculation result:', result);
-    console.log('💰 Individual contributions:', guests.map(g => ({ name: g.fullName, amount: g.contributionAmount })));
+    console.log('📊 Stats from API:', result);
+    console.log('🔍 Applied filters:', statistics.filters);
 
     return result;
-  }, [guests]);
+  }, [statistics]);
 
-  // Filter and sort guests
-  const filteredAndSortedGuests = useMemo(() => {
-    let filtered = guests.filter(guest => {
-      // Enhanced search functionality - search across multiple fields with Vietnamese accent support
-      const matchesSearch = !filters.search || (() => {
-        const searchTerm = filters.search.toLowerCase().trim();
-        if (!searchTerm) return true;
+  // Server-side filtering and sorting - no need for client-side processing
 
-        // Normalize search term (remove accents)
-        const normalizedSearchTerm = removeVietnameseAccents(searchTerm);
-
-        // Search in multiple fields using LIKE-style matching
-        const searchableFields = [
-          guest.fullName?.toLowerCase() || '',
-          guest.unit?.toLowerCase() || '',
-          guest.relationship?.toLowerCase() || '',
-          guest.notes?.toLowerCase() || '',
-          guest.status?.toLowerCase() || '',
-          // Also search in formatted contribution amount
-          guest.contributionAmount?.toLocaleString('vi-VN') || '',
-          // Search in number of people
-          guest.numberOfPeople?.toString() || ''
-        ];
-
-        // Check if search term matches any field (LIKE behavior)
-        // Support both original and accent-removed search
-        return searchableFields.some(field => {
-          const normalizedField = removeVietnameseAccents(field);
-          return field.includes(searchTerm) || normalizedField.includes(normalizedSearchTerm);
-        });
-      })();
-
-      const matchesStatus = !filters.status || guest.status === filters.status;
-      const matchesContribution = guest.contributionAmount >= filters.contributionRange.min &&
-                                 guest.contributionAmount <= filters.contributionRange.max;
-
-      return matchesSearch && matchesStatus && matchesContribution;
-    });
-
-    // Sort
-    filtered.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-
-      // Handle null values
-      if (aValue === null && bValue === null) return 0;
-      if (aValue === null) return sortDirection === 'asc' ? 1 : -1;
-      if (bValue === null) return sortDirection === 'asc' ? -1 : 1;
-
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    return filtered;
-  }, [guests, filters, sortField, sortDirection]);
-
-  // Paginated guests
-  const paginatedGuests = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredAndSortedGuests.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredAndSortedGuests, currentPage, itemsPerPage]);
-
-  // Pagination info
-  const totalPages = Math.ceil(filteredAndSortedGuests.length / itemsPerPage);
+  // Server-side pagination - no need for client-side slicing
 
   // Handlers
   const handleFiltersChange = (newFilters: Partial<GuestFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(1);
+
+    // Reload guests and statistics with new filters
+    const updatedFilters = { ...filters, ...newFilters };
+    loadGuests({
+      page: 1,
+      search: updatedFilters.search,
+      status: updatedFilters.status
+    });
+    loadStatistics({
+      search: updatedFilters.search,
+      status: updatedFilters.status
+    });
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    loadGuests({ page: newPage });
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+    loadGuests({ page: 1 });
   };
 
   const handleClearFilters = () => {
@@ -237,7 +333,7 @@ const EventGuestsPage = () => {
   };
 
   const handleSelectAll = (selected: boolean) => {
-    setSelectedGuests(selected ? paginatedGuests.map(guest => guest.id) : []);
+    setSelectedGuests(selected ? guests.map(guest => guest.id) : []);
   };
 
   const handleEdit = (guest: EventGuest) => {
@@ -277,8 +373,8 @@ const EventGuestsPage = () => {
   const handleBulkExport = async () => {
     try {
       // Export all guests (not just selected ones)
-      const allGuests = await GuestService.getAllGuests();
-      const filename = GuestService.exportToExcel(allGuests);
+      const result = await GuestService.getAllGuests({ pageSize: 1000 }); // Get all guests for export
+      const filename = GuestService.exportToExcel(result.guests);
       setSnackbar({ open: true, message: `Đã xuất file Excel: ${filename}`, severity: 'success' });
     } catch (error) {
       console.error('Error exporting to Excel:', error);
@@ -308,17 +404,17 @@ const EventGuestsPage = () => {
       setLoading(true);
 
       if (editGuest) {
-        // TODO: Implement update API
-        setGuests(prev => prev.map(guest =>
-          guest.id === editGuest.id
-            ? { ...guest, ...guestData, updatedAt: new Date() }
-            : guest
-        ));
+        // Update existing guest via API
+        await GuestService.updateGuest(editGuest.id, guestData);
+
+        // Refresh the guest list to get updated data from database
+        await loadGuests();
+
         // Show detailed success notification for update
         setSnackbar(createGuestNotification.success.updated(guestData.fullName));
       } else {
         // Add new guest via API
-        const result = await GuestService.addGuest(guestData);
+        await GuestService.addGuest(guestData);
 
         // Refresh the guest list to get the new guest from database
         await loadGuests();
@@ -327,6 +423,9 @@ const EventGuestsPage = () => {
         // Show detailed success notification
         setSnackbar(createGuestNotification.success.added(guestData.fullName));
       }
+
+      // Reload statistics to reflect changes
+      await loadStatistics();
 
       setShowAddModal(false);
       setEditGuest(null);
@@ -521,7 +620,7 @@ const EventGuestsPage = () => {
 
           {/* Table */}
           <GuestTable
-            guests={paginatedGuests}
+            guests={guests}
             loading={loading}
             onEdit={handleEdit}
             onDelete={handleDelete}
@@ -538,13 +637,10 @@ const EventGuestsPage = () => {
           <GuestPagination
             currentPage={currentPage}
             totalPages={totalPages}
-            totalItems={filteredAndSortedGuests.length}
+            totalItems={totalGuests}
             itemsPerPage={itemsPerPage}
-            onPageChange={setCurrentPage}
-            onItemsPerPageChange={(limit) => {
-              setItemsPerPage(limit);
-              setCurrentPage(1);
-            }}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
           />
         </CardContent>
       </BlankCard>

@@ -35,6 +35,7 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
   editGuest,
 }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showCustomUnit, setShowCustomUnit] = useState(false);
   const [formData, setFormData] = useState<GuestCreateRequest>({
     fullName: '',
     unit: '',
@@ -47,8 +48,18 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
 
   // Reset form when modal opens/closes or editGuest changes
   useEffect(() => {
+    console.log('🔄 Modal useEffect triggered:', { open, editGuest: editGuest?.fullName });
     if (open) {
       if (editGuest) {
+        const predefinedUnits = ['OTS', 'Bạn bè', 'Eximbank', 'Bên nội', 'Bên ngoại', 'Bạn bố', 'Bạn mẹ', 'Bên vợ'];
+        const isCustomUnit = !predefinedUnits.includes(editGuest.unit);
+
+        console.log('📝 Setting edit guest data:', {
+          unit: editGuest.unit,
+          isCustomUnit,
+          predefinedUnits
+        });
+
         setFormData({
           fullName: editGuest.fullName,
           unit: editGuest.unit,
@@ -58,7 +69,9 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
           relationship: editGuest.relationship,
           notes: editGuest.notes,
         });
+        setShowCustomUnit(isCustomUnit);
       } else {
+        console.log('📝 Setting new guest data');
         setFormData({
           fullName: '',
           unit: '',
@@ -68,13 +81,19 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
           relationship: null,
           notes: '',
         });
+        setShowCustomUnit(false);
       }
       setErrors({});
     }
   }, [open, editGuest]);
 
   const handleInputChange = (field: keyof GuestCreateRequest, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    console.log(`🔄 handleInputChange: ${field} = ${value}`);
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      console.log('📝 New form data:', newData);
+      return newData;
+    });
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -88,8 +107,8 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
       newErrors.fullName = 'Họ và tên là bắt buộc';
     }
 
-    if (!formData.unit.trim()) {
-      newErrors.unit = 'Đơn vị là bắt buộc';
+    if (!formData.unit || !formData.unit.trim()) {
+      newErrors.unit = 'Vui lòng chọn đơn vị';
     }
 
     if (formData.numberOfPeople < 1) {
@@ -105,8 +124,12 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
   };
 
   const handleSubmit = () => {
+    console.log('🚀 handleSubmit called with formData:', formData);
     if (validateForm()) {
+      console.log('✅ Form validation passed, submitting...');
       onSubmit(formData);
+    } else {
+      console.log('❌ Form validation failed, errors:', errors);
     }
   };
 
@@ -174,15 +197,54 @@ const AddGuestModal: React.FC<AddGuestModalProps> = ({
 
             {/* Unit */}
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Đơn vị *"
-                value={formData.unit}
-                onChange={(e) => handleInputChange('unit', e.target.value)}
-                error={!!errors.unit}
-                helperText={errors.unit}
-                placeholder="VD: Đồng nghiệp, Bạn bè, Gia đình"
-              />
+              <FormControl fullWidth error={!!errors.unit}>
+                <InputLabel>Đơn vị *</InputLabel>
+                <Select
+                  value={showCustomUnit ? 'custom' : (formData.unit || '')}
+                  label="Đơn vị *"
+                  onChange={(e) => {
+                    const selectedValue = e.target.value as string;
+                    console.log('🔄 Unit selected:', selectedValue);
+
+                    if (selectedValue === 'custom') {
+                      setShowCustomUnit(true);
+                      handleInputChange('unit', '');
+                    } else {
+                      setShowCustomUnit(false);
+                      handleInputChange('unit', selectedValue);
+                      console.log('✅ Unit set to:', selectedValue);
+                    }
+                  }}
+                >
+                  <MenuItem value="OTS">OTS</MenuItem>
+                  <MenuItem value="Bạn bè">Bạn bè</MenuItem>
+                  <MenuItem value="Eximbank">Eximbank</MenuItem>
+                   <MenuItem value="Bên vợ">Bên vợ</MenuItem>
+                  <MenuItem value="Bên nội">Bên nội</MenuItem>
+                  <MenuItem value="Bên ngoại">Bên ngoại</MenuItem>
+                  <MenuItem value="Bạn bố">Bạn bố</MenuItem>
+                  <MenuItem value="Bạn mẹ">Bạn mẹ</MenuItem>
+                  <MenuItem value="custom">Khác (nhập tùy chỉnh)</MenuItem>
+                </Select>
+                {errors.unit && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                    {errors.unit}
+                  </Typography>
+                )}
+              </FormControl>
+
+              {/* Custom Unit Input */}
+              {showCustomUnit && (
+                <TextField
+                  fullWidth
+                  label="Nhập đơn vị tùy chỉnh"
+                  value={formData.unit}
+                  onChange={(e) => handleInputChange('unit', e.target.value)}
+                  placeholder="VD: Công ty ABC, Trường XYZ..."
+                  sx={{ mt: 2 }}
+                  size="small"
+                />
+              )}
             </Grid>
 
             {/* Number of People */}

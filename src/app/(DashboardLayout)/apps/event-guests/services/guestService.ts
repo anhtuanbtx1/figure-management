@@ -25,12 +25,42 @@ const API_BASE_URL = '/api/wedding-guests';
 // Guest Service Class
 export class GuestService {
   
-  // Get all wedding guests
-  static async getAllGuests(): Promise<EventGuest[]> {
+  // Get wedding guests with pagination and performance optimization
+  static async getAllGuests(options: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    status?: string;
+    sortField?: string;
+    sortDirection?: string;
+  } = {}): Promise<{
+    guests: EventGuest[];
+    pagination: {
+      page: number;
+      pageSize: number;
+      totalCount: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+    performanceMs: number;
+  }> {
     try {
-      console.log('🔍 Fetching guests from API...');
+      const startTime = Date.now();
+      console.log('🔍 Fetching guests from API with options:', options);
 
-      const response = await fetch(API_BASE_URL, {
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (options.page) params.append('page', options.page.toString());
+      if (options.pageSize) params.append('pageSize', options.pageSize.toString());
+      if (options.search?.trim()) params.append('search', options.search.trim());
+      if (options.status?.trim()) params.append('status', options.status.trim());
+      if (options.sortField) params.append('sortField', options.sortField);
+      if (options.sortDirection) params.append('sortDirection', options.sortDirection);
+
+      const url = params.toString() ? `${API_BASE_URL}?${params.toString()}` : API_BASE_URL;
+
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -42,19 +72,34 @@ export class GuestService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result: ApiResponse<EventGuest[]> = await response.json();
+      const result: ApiResponse<EventGuest[]> & {
+        pagination: any;
+        performanceMs: number;
+      } = await response.json();
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch guests');
       }
 
-      console.log(`✅ Successfully fetched ${result.data.length} guests`);
-      return result.data;
+      const clientTime = Date.now() - startTime;
+      console.log(`✅ Successfully fetched ${result.data.length} guests in ${clientTime}ms (server: ${result.performanceMs}ms)`);
+
+      return {
+        guests: result.data,
+        pagination: result.pagination,
+        performanceMs: result.performanceMs,
+      };
 
     } catch (error) {
       console.error('❌ Error fetching guests:', error);
       throw new Error(`Failed to fetch guests: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  // Legacy method for backward compatibility
+  static async getAllGuestsLegacy(): Promise<EventGuest[]> {
+    const result = await this.getAllGuests({ pageSize: 1000 }); // Get large page for legacy support
+    return result.guests;
   }
 
   // Search wedding guests with server-side filtering
@@ -96,6 +141,123 @@ export class GuestService {
     } catch (error) {
       console.error('❌ Error searching guests:', error);
       throw error;
+    }
+  }
+
+  // Update existing wedding guest
+  static async updateGuest(id: string, guestData: GuestCreateRequest): Promise<void> {
+    try {
+      console.log('✏️ Updating guest via API...', { id, guestData });
+
+      const response = await fetch(API_BASE_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id,
+          ...guestData,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const result: ApiResponse<any> = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update guest');
+      }
+
+      console.log(`✅ Successfully updated guest: ${guestData.fullName}`);
+
+    } catch (error) {
+      console.error('❌ Error updating guest:', error);
+      throw error;
+    }
+  }
+
+  // Get wedding guests statistics
+  static async getGuestStatistics(options: {
+    search?: string;
+    status?: string;
+  } = {}): Promise<{
+    overview: {
+      totalGuests: number;
+      totalPeople: number;
+      totalContribution: number;
+      avgGiftAmount: number;
+      maxGiftAmount: number;
+      minGiftAmount: number;
+    };
+    byStatus: {
+      confirmed: {
+        guests: number;
+        people: number;
+        contribution: number;
+      };
+      pending: {
+        guests: number;
+        people: number;
+        contribution: number;
+      };
+      declined: {
+        guests: number;
+      };
+      maybe: {
+        guests: number;
+      };
+    };
+    topUnits: Array<{
+      unit: string;
+      count: number;
+    }>;
+    filters: {
+      search: string | null;
+      status: string | null;
+    };
+  }> {
+    try {
+      const startTime = Date.now();
+      console.log('📊 Fetching guest statistics...', options);
+
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (options.search?.trim()) params.append('search', options.search.trim());
+      if (options.status?.trim()) params.append('status', options.status.trim());
+
+      const url = params.toString() ? `${API_BASE_URL}/stats?${params.toString()}` : `${API_BASE_URL}/stats`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store', // Always fetch fresh data
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result: ApiResponse<any> & {
+        performanceMs: number;
+      } = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch statistics');
+      }
+
+      const clientTime = Date.now() - startTime;
+      console.log(`✅ Successfully fetched statistics in ${clientTime}ms (server: ${result.performanceMs}ms)`);
+
+      return result.data;
+
+    } catch (error) {
+      console.error('❌ Error fetching statistics:', error);
+      throw new Error(`Failed to fetch statistics: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
