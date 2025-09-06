@@ -17,6 +17,7 @@ import {
   Collapse,
   InputAdornment,
   useTheme,
+  Tooltip,
 } from '@mui/material';
 import {
   IconSearch,
@@ -82,19 +83,36 @@ const GuestFilters: React.FC<GuestFiltersProps> = ({
         <Grid container spacing={2} alignItems="center">
           {/* Search */}
           <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Tìm kiếm theo tên khách mời..."
-              value={filters.search}
-              onChange={(e) => onFiltersChange({ search: e.target.value })}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <IconSearch size={18} />
-                  </InputAdornment>
-                ),
-              }}
+            <Tooltip
+              title={
+                <Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>Tìm kiếm thông minh:</Typography>
+                  <Typography variant="body2">• Tìm theo tên khách mời</Typography>
+                  <Typography variant="body2">• Tìm theo đơn vị/công ty</Typography>
+                  <Typography variant="body2">• Tìm theo mối quan hệ</Typography>
+                  <Typography variant="body2">• Tìm theo ghi chú</Typography>
+                  <Typography variant="body2">• Tìm theo số tiền đóng góp</Typography>
+                  <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                    Hỗ trợ tiếng Việt có/không dấu
+                  </Typography>
+                </Box>
+              }
+              arrow
+              placement="top"
+            >
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Tìm kiếm theo tên, đơn vị, quan hệ, ghi chú..."
+                value={filters.search}
+                onChange={(e) => onFiltersChange({ search: e.target.value })}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <IconSearch size={18} />
+                    </InputAdornment>
+                  ),
+                }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
@@ -154,6 +172,7 @@ const GuestFilters: React.FC<GuestFiltersProps> = ({
                 },
               }}
             />
+            </Tooltip>
           </Grid>
 
           {/* Status Filter */}

@@ -28,6 +28,15 @@ import ModernNotification from './components/ModernNotification';
 // Import notification utilities
 import createGuestNotification, { NotificationConfig } from './utils/notifications';
 
+// Utility function to remove Vietnamese accents for better search
+const removeVietnameseAccents = (str: string): string => {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D');
+};
+
 const BCrumb = [
   {
     to: '/',
@@ -136,8 +145,34 @@ const EventGuestsPage = () => {
   // Filter and sort guests
   const filteredAndSortedGuests = useMemo(() => {
     let filtered = guests.filter(guest => {
-      const matchesSearch = !filters.search ||
-        guest.fullName.toLowerCase().includes(filters.search.toLowerCase());
+      // Enhanced search functionality - search across multiple fields with Vietnamese accent support
+      const matchesSearch = !filters.search || (() => {
+        const searchTerm = filters.search.toLowerCase().trim();
+        if (!searchTerm) return true;
+
+        // Normalize search term (remove accents)
+        const normalizedSearchTerm = removeVietnameseAccents(searchTerm);
+
+        // Search in multiple fields using LIKE-style matching
+        const searchableFields = [
+          guest.fullName?.toLowerCase() || '',
+          guest.unit?.toLowerCase() || '',
+          guest.relationship?.toLowerCase() || '',
+          guest.notes?.toLowerCase() || '',
+          guest.status?.toLowerCase() || '',
+          // Also search in formatted contribution amount
+          guest.contributionAmount?.toLocaleString('vi-VN') || '',
+          // Search in number of people
+          guest.numberOfPeople?.toString() || ''
+        ];
+
+        // Check if search term matches any field (LIKE behavior)
+        // Support both original and accent-removed search
+        return searchableFields.some(field => {
+          const normalizedField = removeVietnameseAccents(field);
+          return field.includes(searchTerm) || normalizedField.includes(normalizedSearchTerm);
+        });
+      })();
 
       const matchesStatus = !filters.status || guest.status === filters.status;
       const matchesContribution = guest.contributionAmount >= filters.contributionRange.min &&

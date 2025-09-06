@@ -107,13 +107,18 @@ function mapToEventGuest(row: WeddingGuestRow): EventGuest {
   };
 }
 
-// GET /api/wedding-guests - Get all wedding guests
+// GET /api/wedding-guests - Get all wedding guests with optional search
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 Fetching wedding guests from database...');
 
-    // Query to get all wedding guests (using actual database column names)
-    const query = `
+    // Get search parameters
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search')?.trim() || '';
+    const status = searchParams.get('status')?.trim() || '';
+
+    // Build dynamic query with search functionality
+    let query = `
       SELECT
         id,
         name,
@@ -130,12 +135,37 @@ export async function GET(request: NextRequest) {
         isActive
       FROM WeddingGuests
       WHERE isActive = 1
-      ORDER BY createdDate DESC
     `;
 
+    const queryParams: any = {};
+
+    // Add search condition (LIKE search across multiple fields)
+    if (search) {
+      query += ` AND (
+        name LIKE @search OR
+        unit LIKE @search OR
+        relationship LIKE @search OR
+        notes LIKE @search OR
+        status LIKE @search OR
+        CAST(giftAmount AS NVARCHAR) LIKE @search OR
+        CAST(numberOfPeople AS NVARCHAR) LIKE @search
+      )`;
+      queryParams.search = `%${search}%`;
+    }
+
+    // Add status filter
+    if (status) {
+      query += ` AND status = @status`;
+      queryParams.status = status;
+    }
+
+    query += ` ORDER BY createdDate DESC`;
+
+    console.log('🔍 Executing query with search:', search, 'status:', status);
+
     // Execute query
-    const rows = await executeQuery<WeddingGuestRow>(query);
-    
+    const rows = await executeQuery<WeddingGuestRow>(query, queryParams);
+
     console.log(`✅ Found ${rows.length} wedding guests`);
 
     // Map database rows to EventGuest interface
@@ -147,11 +177,13 @@ export async function GET(request: NextRequest) {
       data: guests,
       count: guests.length,
       message: `Successfully retrieved ${guests.length} wedding guests`,
+      searchTerm: search,
+      statusFilter: status,
     }, { status: 200 });
 
   } catch (error) {
     console.error('❌ Error fetching wedding guests:', error);
-    
+
     return NextResponse.json({
       success: false,
       error: 'Failed to fetch wedding guests',

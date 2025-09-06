@@ -141,32 +141,6 @@ const Menuitems = [
         title: "Invoice",
         icon: IconPoint,
         href: "/apps/invoice/list",
-        children: [
-          {
-            id: uniqueId(),
-            title: "List",
-            icon: IconPoint,
-            href: "/apps/invoice/list",
-          },
-          {
-            id: uniqueId(),
-            title: "Details",
-            icon: IconPoint,
-            href: "/apps/invoice/detail/PineappleInc",
-          },
-          {
-            id: uniqueId(),
-            title: "Create",
-            icon: IconPoint,
-            href: "/apps/invoice/create",
-          },
-          {
-            id: uniqueId(),
-            title: "Edit",
-            icon: IconPoint,
-            href: "/apps/invoice/edit/PineappleInc",
-          },
-        ],
       },
       {
         id: uniqueId(),

@@ -29,7 +29,7 @@ export class GuestService {
   static async getAllGuests(): Promise<EventGuest[]> {
     try {
       console.log('🔍 Fetching guests from API...');
-      
+
       const response = await fetch(API_BASE_URL, {
         method: 'GET',
         headers: {
@@ -43,7 +43,7 @@ export class GuestService {
       }
 
       const result: ApiResponse<EventGuest[]> = await response.json();
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch guests');
       }
@@ -54,6 +54,48 @@ export class GuestService {
     } catch (error) {
       console.error('❌ Error fetching guests:', error);
       throw new Error(`Failed to fetch guests: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Search wedding guests with server-side filtering
+  static async searchGuests(searchTerm: string, status?: string): Promise<EventGuest[]> {
+    try {
+      console.log('🔍 Searching guests from API...', { searchTerm, status });
+
+      const params = new URLSearchParams();
+      if (searchTerm.trim()) {
+        params.append('search', searchTerm.trim());
+      }
+      if (status && status.trim()) {
+        params.append('status', status.trim());
+      }
+
+      const url = params.toString() ? `${API_BASE_URL}?${params.toString()}` : API_BASE_URL;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store', // Always fetch fresh data
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result: ApiResponse<EventGuest[]> = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to search guests');
+      }
+
+      console.log(`✅ Successfully found ${result.data.length} guests matching search`);
+      return result.data;
+
+    } catch (error) {
+      console.error('❌ Error searching guests:', error);
+      throw error;
     }
   }
 
