@@ -73,10 +73,10 @@ const EventGuestsPage = () => {
     loadStatistics();
   }, []);
 
-  // Reload statistics when filters change
+  // Reload statistics when status filter changes (not search - search is now manual)
   useEffect(() => {
     loadStatistics();
-  }, [filters.search, filters.status]);
+  }, [filters.status]);
 
   const loadGuests = async (options: {
     page?: number;
@@ -281,20 +281,46 @@ const EventGuestsPage = () => {
 
   // Handlers
   const handleFiltersChange = (newFilters: Partial<GuestFilters>) => {
+    const prevFilters = filters;
+    const updatedFilters = { ...filters, ...newFilters };
+
+    console.log('📝 Filters change:', {
+      prevFilters,
+      newFilters,
+      updatedFilters
+    });
+
     setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(1);
 
-    // Reload guests and statistics with new filters
-    const updatedFilters = { ...filters, ...newFilters };
-    loadGuests({
-      page: 1,
-      search: updatedFilters.search,
-      status: updatedFilters.status
+    // Check if search actually changed (manual search) or status changed
+    const searchChanged = newFilters.search !== undefined && newFilters.search !== prevFilters.search;
+    const statusChanged = newFilters.status !== undefined && newFilters.status !== prevFilters.status;
+    const contributionChanged = newFilters.contributionRange !== undefined;
+
+    // Special case: Always allow search (including empty search for reset)
+    const isSearchTrigger = newFilters.search !== undefined;
+
+    console.log('🔄 Change detection:', {
+      searchChanged,
+      statusChanged,
+      contributionChanged,
+      isSearchTrigger,
+      shouldReload: isSearchTrigger || statusChanged || contributionChanged
     });
-    loadStatistics({
-      search: updatedFilters.search,
-      status: updatedFilters.status
-    });
+
+    if (isSearchTrigger || statusChanged || contributionChanged) {
+      console.log('🚀 Reloading data with filters:', updatedFilters);
+      loadGuests({
+        page: 1,
+        search: updatedFilters.search,
+        status: updatedFilters.status
+      });
+      loadStatistics({
+        search: updatedFilters.search,
+        status: updatedFilters.status
+      });
+    }
   };
 
   // Handle page change
@@ -605,6 +631,7 @@ const EventGuestsPage = () => {
             filters={filters}
             onFiltersChange={handleFiltersChange}
             onClearFilters={handleClearFilters}
+            loading={loading}
           />
 
           {/* Bulk Actions */}

@@ -57,6 +57,7 @@ export interface GuestFiltersProps {
   filters: GuestFilters;
   onFiltersChange: (filters: Partial<GuestFilters>) => void;
   onClearFilters: () => void;
+  loading?: boolean;
 }
 
 export interface GuestPaginationProps {

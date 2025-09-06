@@ -34,10 +34,19 @@ const GuestFilters: React.FC<GuestFiltersProps> = ({
   filters,
   onFiltersChange,
   onClearFilters,
+  loading = false,
 }) => {
   const theme = useTheme();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [contributionRange, setContributionRange] = useState([filters.contributionRange.min, filters.contributionRange.max]);
+
+  // Local search state for manual search
+  const [searchInput, setSearchInput] = useState(filters.search);
+
+  // Sync local search input with global filters when filters change
+  React.useEffect(() => {
+    setSearchInput(filters.search);
+  }, [filters.search]);
 
   const handleContributionChange = (event: Event, newValue: number | number[]) => {
     const value = newValue as number[];
@@ -49,6 +58,40 @@ const GuestFilters: React.FC<GuestFiltersProps> = ({
     onFiltersChange({
       contributionRange: { min: value[0], max: value[1] }
     });
+  };
+
+  // Handle manual search
+  const handleSearch = () => {
+    const trimmedSearch = searchInput.trim();
+    console.log('🔍 Manual search triggered:', {
+      searchInput,
+      trimmedSearch,
+      currentFiltersSearch: filters.search,
+      willTriggerChange: true
+    });
+
+    // Always trigger search, even with empty input (acts as reset when empty)
+    // Force trigger by ensuring the search value is explicitly set
+    onFiltersChange({ search: trimmedSearch });
+  };
+
+  // Handle search input change (local state only)
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value);
+  };
+
+  // Handle Enter key press in search input
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // Handle clear search
+  const handleClearSearch = () => {
+    console.log('🗑️ Clear search triggered');
+    setSearchInput('');
+    onFiltersChange({ search: '' });
   };
 
   const formatCurrency = (value: number) => {
@@ -81,7 +124,7 @@ const GuestFilters: React.FC<GuestFiltersProps> = ({
       <CardContent sx={{ pb: 2 }}>
         {/* Basic Filters Row */}
         <Grid container spacing={2} alignItems="center">
-          {/* Search */}
+          {/* Search Input */}
           <Grid item xs={12} sm={6} md={4}>
             <Tooltip
               title={
@@ -95,6 +138,9 @@ const GuestFilters: React.FC<GuestFiltersProps> = ({
                   <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
                     Hỗ trợ tiếng Việt có/không dấu
                   </Typography>
+                  <Typography variant="body2" sx={{ mt: 1, fontWeight: 'bold', color: 'primary.main' }}>
+                    Nhấn Enter hoặc nút Tìm kiếm để thực hiện
+                  </Typography>
                 </Box>
               }
               arrow
@@ -104,79 +150,98 @@ const GuestFilters: React.FC<GuestFiltersProps> = ({
                 fullWidth
                 size="small"
                 placeholder="Tìm kiếm theo tên, đơn vị, quan hệ, ghi chú..."
-                value={filters.search}
-                onChange={(e) => onFiltersChange({ search: e.target.value })}
+                value={searchInput}
+                onChange={handleSearchInputChange}
+                onKeyDown={handleSearchKeyDown}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <IconSearch size={18} />
                     </InputAdornment>
                   ),
+                  endAdornment: searchInput && (
+                    <InputAdornment position="end">
+                      <Tooltip title="Xóa tìm kiếm">
+                        <Button
+                          size="small"
+                          onClick={handleClearSearch}
+                          sx={{
+                            minWidth: 'auto',
+                            p: 0.5,
+                            color: 'text.secondary',
+                            '&:hover': { color: 'error.main' }
+                          }}
+                        >
+                          <IconX size={16} />
+                        </Button>
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
                 }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  backgroundColor: theme.palette.mode === 'dark'
-                    ? 'rgba(255,255,255,0.05)'
-                    : 'rgba(0,0,0,0.02)',
-                  transition: 'all 0.2s ease-in-out',
-
-                  '&:hover': {
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
                     backgroundColor: theme.palette.mode === 'dark'
-                      ? 'rgba(255,255,255,0.08)'
-                      : 'rgba(0,0,0,0.04)',
+                      ? 'rgba(255,255,255,0.05)'
+                      : 'rgba(0,0,0,0.02)',
+                    transition: 'all 0.2s ease-in-out',
+
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'rgba(0,0,0,0.04)',
+                    },
+
+                    '&.Mui-focused': {
+                      backgroundColor: theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.1)'
+                        : 'rgba(255,255,255,0.9)',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? `0 0 0 2px ${theme.palette.primary.main}40`
+                        : `0 0 0 2px ${theme.palette.primary.main}20`,
+                    },
+
+                    // Input text color
+                    '& input': {
+                      color: theme.palette.text.primary,
+                    },
+
+                    // Placeholder color
+                    '& input::placeholder': {
+                      color: theme.palette.text.secondary,
+                      opacity: 0.7,
+                    },
+
+                    // Border color
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.12)'
+                        : 'rgba(0,0,0,0.12)',
+                    },
+
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.2)'
+                        : 'rgba(0,0,0,0.2)',
+                    },
+
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.primary.main,
+                      borderWidth: 2,
+                    },
                   },
 
-                  '&.Mui-focused': {
-                    backgroundColor: theme.palette.mode === 'dark'
-                      ? 'rgba(255,255,255,0.1)'
-                      : 'rgba(255,255,255,0.9)',
-                    boxShadow: theme.palette.mode === 'dark'
-                      ? `0 0 0 2px ${theme.palette.primary.main}40`
-                      : `0 0 0 2px ${theme.palette.primary.main}20`,
-                  },
-
-                  // Input text color
-                  '& input': {
-                    color: theme.palette.text.primary,
-                  },
-
-                  // Placeholder color
-                  '& input::placeholder': {
+                  // Icon color in InputAdornment
+                  '& .MuiInputAdornment-root': {
                     color: theme.palette.text.secondary,
-                    opacity: 0.7,
                   },
-
-                  // Border color
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: theme.palette.mode === 'dark'
-                      ? 'rgba(255,255,255,0.12)'
-                      : 'rgba(0,0,0,0.12)',
-                  },
-
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: theme.palette.mode === 'dark'
-                      ? 'rgba(255,255,255,0.2)'
-                      : 'rgba(0,0,0,0.2)',
-                  },
-
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: theme.palette.primary.main,
-                    borderWidth: 2,
-                  },
-                },
-
-                // Icon color in InputAdornment
-                '& .MuiInputAdornment-root': {
-                  color: theme.palette.text.secondary,
-                },
-              }}
-            />
+                }}
+              />
             </Tooltip>
           </Grid>
 
           {/* Status Filter */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={4} md={3}>
             <FormControl fullWidth size="small">
               <InputLabel
                 sx={{
@@ -251,8 +316,53 @@ const GuestFilters: React.FC<GuestFiltersProps> = ({
             </FormControl>
           </Grid>
 
+          {/* Search Button */}
+          <Grid item xs={12} sm={2} md={2}>
+            <Box display="flex" gap={1}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleSearch}
+                disabled={loading}
+                sx={{
+                  minWidth: 'auto',
+                  px: 3,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  width: '100%',
+                }}
+              >
+                {loading ? 'Đang tìm...' : 'Tìm kiếm'}
+              </Button>
+
+              {/* Clear Button */}
+              {filters.search && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleClearSearch}
+                  sx={{
+                    minWidth: 'auto',
+                    px: 2,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    color: 'text.secondary',
+                    borderColor: 'divider',
+                    '&:hover': {
+                      borderColor: 'error.main',
+                      color: 'error.main',
+                    },
+                  }}
+                >
+                  Xóa
+                </Button>
+              )}
+            </Box>
+          </Grid>
+
           {/* Action Buttons */}
-          <Grid item xs={12} md={5}>
+          <Grid item xs={12} md={3}>
             <Box display="flex" gap={1} alignItems="center" justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
               <Button
                 variant="outlined"
