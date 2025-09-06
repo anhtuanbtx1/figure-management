@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 // GET /api/kanban/stats - Get comprehensive Kanban board statistics
 export async function GET(request: NextRequest) {
   try {

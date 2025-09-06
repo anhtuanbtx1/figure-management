@@ -1,13 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 // GET /api/wedding-guests/stats - Get wedding guests statistics
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     console.log('📊 Fetching wedding guests statistics...');
 
+    // Add timeout to prevent deployment issues
+    const timeoutPromise = new Promise<NextResponse>((_, reject) => {
+      setTimeout(() => reject(new Error('Statistics query timeout')), 15000); // 15 second timeout
+    });
+
+    const statsPromise = getWeddingGuestsStats(request);
+    const result = await Promise.race([statsPromise, timeoutPromise]);
+
+    return result;
+
+  } catch (error) {
+    console.error('❌ Error fetching statistics:', error);
+
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch statistics',
+      stats: {
+        totalGuests: 0,
+        confirmedGuests: 0,
+        pendingGuests: 0,
+        declinedGuests: 0,
+        totalContributions: 0,
+        averageContribution: 0
+      }
+    }, { status: 500 });
+  }
+}
+
+async function getWeddingGuestsStats(request: NextRequest): Promise<NextResponse> {
+  const startTime = Date.now();
+
+  try {
     // Get search parameters for filtered stats
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search')?.trim() || '';

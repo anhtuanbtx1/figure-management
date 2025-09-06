@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 // GET /api/toys/count - Return total number of toys (active by default)
 // Optional query params:
 //   - status: filter by status value (e.g., 'active', 'inactive', 'out_of_stock', 'discontinued')

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 // GET /api/toys/stats/brands - Return counts of toys grouped by brand
 // Optional query params:
 //   - status: filter by status value (e.g., 'active'); default: active records (IsActive=1)
