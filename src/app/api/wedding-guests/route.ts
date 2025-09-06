@@ -142,12 +142,12 @@ export async function GET(request: NextRequest) {
     let whereConditions = ['isActive = 1'];
     let joinClause = '';
 
+    // Decode and normalize search term for Vietnamese characters (for error logging)
+    const decodedSearch = search ? decodeURIComponent(search) : '';
+    const normalizedSearch = decodedSearch ? decodedSearch.normalize('NFC') : '';
+
     // Optimized search logic
     if (search) {
-      // Decode and normalize search term for Vietnamese characters
-      const decodedSearch = decodeURIComponent(search);
-      const normalizedSearch = decodedSearch.normalize('NFC'); // Normalize Unicode
-
       // Use different search strategies based on search term characteristics
       const isNumeric = /^\d+$/.test(normalizedSearch);
       const searchTerm = `%${normalizedSearch}%`;
@@ -263,9 +263,19 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Error fetching wedding guests:', error);
 
-    // Log additional context for debugging
-    console.error('Search params:', { search, status, page, pageSize });
-    console.error('Query params:', queryParams);
+    // Log additional context for debugging (re-extract params for error context)
+    const { searchParams: errorSearchParams } = new URL(request.url);
+    const errorSearch = errorSearchParams.get('search')?.trim() || '';
+    const errorStatus = errorSearchParams.get('status')?.trim() || '';
+    const errorPage = parseInt(errorSearchParams.get('page') || '1');
+    const errorPageSize = parseInt(errorSearchParams.get('pageSize') || '50');
+
+    console.error('Search params:', {
+      originalSearch: errorSearch,
+      status: errorStatus,
+      page: errorPage,
+      pageSize: errorPageSize
+    });
 
     return NextResponse.json({
       success: false,
