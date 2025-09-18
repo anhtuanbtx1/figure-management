@@ -81,6 +81,8 @@ import {
   IconNotebook,
   IconFileCheck,
   IconLayout,
+  IconBell,
+  IconClock,
 } from "@tabler/icons-react";
 
 const Menuitems: MenuitemsType[] = [
@@ -132,6 +134,38 @@ const Menuitems: MenuitemsType[] = [
     title: "Hóa đơn",
     icon: IconFileCheck,
     href: "/apps/invoice/list",
+  },
+  {
+    id: uniqueId(),
+    title: "Nhắc nhở",
+    icon: IconBell,
+    href: "/apps/reminders",
+    children: [
+      {
+        id: uniqueId(),
+        title: "Danh sách nhắc nhở",
+        icon: IconPoint,
+        href: "/apps/reminders/list",
+      },
+      {
+        id: uniqueId(),
+        title: "Tạo nhắc nhở mới",
+        icon: IconPoint,
+        href: "/apps/reminders/create",
+      },
+      {
+        id: uniqueId(),
+        title: "Lịch nhắc nhở",
+        icon: IconClock,
+        href: "/apps/reminders/calendar",
+      },
+      {
+        id: uniqueId(),
+        title: "Cài đặt Telegram",
+        icon: IconPoint,
+        href: "/apps/reminders/telegram-settings",
+      },
+    ],
   },
   {
     navlabel: true,
