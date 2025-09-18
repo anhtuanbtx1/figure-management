@@ -16,10 +16,10 @@ import SecurityTab from '@/app/components/pages/account-setting/SecurityTab';
 const BCrumb = [
   {
     to: '/',
-    title: 'Home',
+    title: 'Trang chủ',
   },
   {
-    title: 'Account Setting',
+    title: 'Cài đặt tài khoản',
   },
 ];
 
@@ -60,9 +60,9 @@ const AccountSetting = () => {
   };
 
   return (
-    <PageContainer title="Account Setting" description="this is Account Setting">
+    <PageContainer title="Cài đặt tài khoản" description="Trang cài đặt tài khoản người dùng">
       {/* breadcrumb */}
-      <Breadcrumb title="Account Setting" items={BCrumb} />
+      <Breadcrumb title="Cài đặt tài khoản" items={BCrumb} />
       {/* end breadcrumb */}
 
       <Grid container spacing={3}>
@@ -78,26 +78,26 @@ const AccountSetting = () => {
                 <Tab
                   iconPosition="start"
                   icon={<IconUserCircle size="22" />}
-                  label="Account"
+                  label="Tài khoản"
                   {...a11yProps(0)}
                 />
 
                 <Tab
                   iconPosition="start"
                   icon={<IconBell size="22" />}
-                  label="Notifications"
+                  label="Thông báo"
                   {...a11yProps(1)}
                 />
                 <Tab
                   iconPosition="start"
                   icon={<IconArticle size="22" />}
-                  label="Bills"
+                  label="Thanh toán"
                   {...a11yProps(2)}
                 />
                 <Tab
                   iconPosition="start"
                   icon={<IconLock size="22" />}
-                  label="Security"
+                  label="Bảo mật"
                   {...a11yProps(3)}
                 />
               </Tabs>
