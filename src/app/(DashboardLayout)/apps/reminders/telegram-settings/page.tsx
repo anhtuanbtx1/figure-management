@@ -1,10 +1,11 @@
+
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PageContainer from "@/app/components/container/PageContainer";
-import BlankCard from "@/app/components/shared/BlankCard";
 import {
   Box,
   Button,
+  Card,
   CardContent,
   Stack,
   Typography,
@@ -12,415 +13,192 @@ import {
   Grid,
   Alert,
   Snackbar,
+  CircularProgress,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
-  Chip,
+  DialogActions
 } from "@mui/material";
-import {
-  IconBrandTelegram,
-  IconSettings,
-  IconPlus,
-  IconTrash,
-  IconCheck,
-  IconX,
-  IconSend,
-  IconRefresh,
-} from "@tabler/icons-react";
+import { IconBrandTelegram, IconSettings, IconCheck, IconX, IconSend } from "@tabler/icons-react";
 
+// Interface matches the API response and the database schema
 interface TelegramSettings {
-  bot_token: string;
-  chat_id: string;
-  is_active: boolean;
-  updated_at?: string;
+  id: number | null;
+  botToken: string;
+  botUsername: string;
+  defaultChatIds: string;
 }
 
-interface Subscriber {
-  subscriber_id: number;
-  chat_id: string;
-  username?: string;
-  first_name?: string;
-  last_name?: string;
-  is_active: boolean;
-}
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE_URL = "/api/telegram";
 
 const TelegramSettingsPage = () => {
   const [settings, setSettings] = useState<TelegramSettings>({
-    bot_token: "",
-    chat_id: "",
-    is_active: true,
+    id: null,
+    botToken: "",
+    botUsername: "",
+    defaultChatIds: "",
   });
-  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [testDialog, setTestDialog] = useState(false);
-  const [testMessage, setTestMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [testDialogOpen, setTestDialogOpen] = useState(false);
+  const [testMessage, setTestMessage] = useState("This is a test message from the Reminder System.");
+  const [testChatId, setTestChatId] = useState("");
+  const [sendingTest, setSendingTest] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "success" as "success" | "error",
+    severity: "success" as "success" | "error" | "info",
   });
 
-  // Load settings
-  useEffect(() => {
-    fetchSettings();
-    fetchSubscribers();
-  }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/telegram/settings`);
-      const data = await response.json();
-      if (data.success && data.data) {
-        setSettings(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching settings:", error);
-    }
-  };
-
-  const fetchSubscribers = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/telegram/subscribers`);
-      const data = await response.json();
-      if (data.success) {
-        setSubscribers(data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching subscribers:", error);
-    }
-  };
-
-  const handleSaveSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/telegram/settings`, {
+      const response = await fetch(`${API_BASE_URL}/settings`);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        setSettings(result.data);
+        // Pre-fill the test chat ID with the first one from the list
+        const firstChatId = result.data.defaultChatIds?.split(',')[0] || '';
+        setTestChatId(firstChatId);
+      } else {
+        throw new Error(result.message || "Failed to fetch settings");
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      setSnackbar({
+        open: true,
+        message: `Error loading settings: ${errorMessage}`,
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/settings`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       });
 
-      const data = await response.json();
-      if (data.success) {
-        setSnackbar({
-          open: true,
-          message: "Cài đặt đã được lưu thành công",
-          severity: "success",
-        });
-      }
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Lỗi khi lưu cài đặt",
-        severity: "error",
-      });
-    }
-    setLoading(false);
-  };
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message);
 
-  const handleTestConnection = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/telegram/test`, {
-        method: "POST",
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setSnackbar({
-          open: true,
-          message: "Kết nối Telegram thành công!",
-          severity: "success",
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          message: data.message || "Không thể kết nối với Telegram",
-          severity: "error",
-        });
-      }
+      setSnackbar({ open: true, message: "Settings saved successfully!", severity: "success" });
+      fetchSettings();
     } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Lỗi khi kiểm tra kết nối",
-        severity: "error",
-      });
+      setSnackbar({ open: true, message: `Error saving settings: ${error instanceof Error ? error.message : 'Unknown error'}`, severity: "error" });
+    } finally {
+      setSaving(false);
     }
-    setLoading(false);
   };
+  
+  const handleOpenTestDialog = () => {
+    // Ensure the test chat ID is up-to-date when opening the dialog
+    const firstChatId = settings.defaultChatIds?.split(',')[0] || '';
+    setTestChatId(firstChatId);
+    setTestDialogOpen(true);
+  }
 
   const handleSendTestMessage = async () => {
-    setLoading(true);
+    setSendingTest(true);
     try {
-      const response = await fetch(`${API_URL}/api/reminders/test/notification`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: "Test Notification",
-          description: testMessage || "Đây là tin nhắn test từ hệ thống nhắc nhở",
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setSnackbar({
-          open: true,
-          message: "Tin nhắn test đã được gửi!",
-          severity: "success",
+        const response = await fetch(`${API_BASE_URL}/test-message`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: testMessage, chatId: testChatId }),
         });
-        setTestDialog(false);
-        setTestMessage("");
-      }
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Lỗi khi gửi tin nhắn test",
-        severity: "error",
-      });
-    }
-    setLoading(false);
-  };
 
-  const handleDeleteSubscriber = async (id: number) => {
-    try {
-      const response = await fetch(`${API_URL}/api/telegram/subscribers/${id}`, {
-        method: "DELETE",
-      });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || `Request failed with status ${response.status}`);
 
-      if (response.ok) {
-        setSnackbar({
-          open: true,
-          message: "Đã xóa subscriber",
-          severity: "success",
-        });
-        fetchSubscribers();
-      }
+        setSnackbar({ open: true, message: result.message, severity: 'success' });
+        setTestDialogOpen(false);
+
     } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Lỗi khi xóa subscriber",
-        severity: "error",
-      });
+        setSnackbar({ open: true, message: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`, severity: 'error' });
+    } finally {
+        setSendingTest(false);
     }
-  };
+  }
+
+  const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
   return (
-    <PageContainer title="Cài đặt Telegram" description="Cấu hình Telegram Bot">
-      <BlankCard>
+    <PageContainer title="Telegram Settings" description="Configure the Telegram Bot for reminders">
+      <Card variant="outlined">
         <CardContent>
-          {/* Header */}
-          <Stack direction="row" alignItems="center" mb={3}>
-            <IconBrandTelegram size={32} style={{ marginRight: 12, color: "#0088cc" }} />
-            <Typography variant="h4">Cài đặt Telegram</Typography>
+          <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+            <IconBrandTelegram size={32} color="#0088cc" />
+            <Typography variant="h4">Telegram Bot Settings</Typography>
           </Stack>
 
-          <Grid container spacing={3}>
-            {/* Bot Configuration */}
-            <Grid item xs={12} md={6}>
-              <Paper elevation={0} sx={{ p: 3, bgcolor: "grey.50", height: "100%" }}>
-                <Typography variant="h6" gutterBottom>
-                  <IconSettings size={20} style={{ verticalAlign: "middle", marginRight: 8 }} />
-                  Cấu hình Bot
-                </Typography>
-                
-                <Stack spacing={2} mt={2}>
-                  <TextField
-                    fullWidth
-                    label="Bot Token"
-                    value={settings.bot_token}
-                    onChange={(e) => setSettings({ ...settings, bot_token: e.target.value })}
-                    placeholder="Nhập Bot Token từ BotFather"
-                    helperText="Token nhận được từ @BotFather khi tạo bot"
-                  />
-                  
-                  <TextField
-                    fullWidth
-                    label="Chat ID"
-                    value={settings.chat_id}
-                    onChange={(e) => setSettings({ ...settings, chat_id: e.target.value })}
-                    placeholder="Nhập Chat ID"
-                    helperText="ID của chat hoặc group để gửi thông báo"
-                  />
-
-                  <Stack direction="row" spacing={2}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={handleSaveSettings}
-                      disabled={loading}
-                      startIcon={<IconCheck />}
-                    >
-                      Lưu cài đặt
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={handleTestConnection}
-                      disabled={loading || !settings.bot_token}
-                      startIcon={<IconRefresh />}
-                    >
-                      Test kết nối
-                    </Button>
+          {loading ? (
+            <Box textAlign="center" p={5}><CircularProgress /><Typography>Loading settings...</Typography></Box>
+          ) : (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={8}>
+                <Paper variant="outlined" sx={{ p: 3 }}>
+                  <Stack spacing={3}>
+                    <TextField fullWidth required label="Bot Token" value={settings.botToken} onChange={(e) => setSettings({ ...settings, botToken: e.target.value })} placeholder="Enter token from @BotFather" helperText="Secret token to authenticate your bot." />
+                    <TextField fullWidth label="Bot Username" value={settings.botUsername} onChange={(e) => setSettings({ ...settings, botUsername: e.target.value })} placeholder="(Optional) @MyReminderBot" helperText="Your bot\'s username." />
+                    <TextField fullWidth multiline rows={2} label="Default Chat IDs" value={settings.defaultChatIds} onChange={(e) => setSettings({ ...settings, defaultChatIds: e.target.value })} placeholder="Comma-separated chat or group IDs" helperText="Default destination for notifications." />
+                    <Stack direction="row" spacing={2}>
+                      <Button variant="contained" color="primary" onClick={handleSaveSettings} disabled={saving} startIcon={saving ? <CircularProgress size={20} /> : <IconCheck />}>
+                        {saving ? "Saving..." : "Save Settings"}
+                      </Button>
+                       <Button variant="outlined" color="secondary" onClick={handleOpenTestDialog} disabled={!settings.botToken || saving} startIcon={<IconSend />}>
+                        Send Test Message
+                      </Button>
+                    </Stack>
                   </Stack>
-                </Stack>
-              </Paper>
+                </Paper>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                 <Paper variant="outlined" sx={{ p: 3, backgroundColor: 'action.hover'}}>
+                    <Typography variant="h6" gutterBottom>Configuration Guide</Typography>
+                    <Typography variant='body2' component='div'>
+                      <ol style={{paddingLeft: '20px', marginTop: 0}}>
+                        <li>Find <b>@BotFather</b> on Telegram.</li>
+                        <li>Use <code>/newbot</code> to create a bot.</li>
+                        <li>Paste the <b>Bot Token</b> above.</li>
+                        <li>To get a <b>Chat ID</b>, message your bot and visit <code>https://api.telegram.org/bot[YOUR_TOKEN]/getUpdates</code>.</li>
+                      </ol>
+                    </Typography>
+                 </Paper>
+              </Grid>
             </Grid>
-
-            {/* Quick Actions */}
-            <Grid item xs={12} md={6}>
-              <Paper elevation={0} sx={{ p: 3, bgcolor: "grey.50", height: "100%" }}>
-                <Typography variant="h6" gutterBottom>
-                  <IconSend size={20} style={{ verticalAlign: "middle", marginRight: 8 }} />
-                  Hành động nhanh
-                </Typography>
-
-                <Stack spacing={2} mt={2}>
-                  <Alert severity="info">
-                    Bot Token: {settings.bot_token ? "Đã cấu hình" : "Chưa cấu hình"}
-                  </Alert>
-                  <Alert severity={settings.chat_id ? "success" : "warning"}>
-                    Chat ID: {settings.chat_id || "Chưa cấu hình"}
-                  </Alert>
-                  
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => setTestDialog(true)}
-                    disabled={!settings.bot_token || !settings.chat_id}
-                    startIcon={<IconSend />}
-                  >
-                    Gửi tin nhắn test
-                  </Button>
-                </Stack>
-              </Paper>
-            </Grid>
-
-            {/* Subscribers List */}
-            <Grid item xs={12}>
-              <Paper elevation={0} sx={{ p: 3, bgcolor: "grey.50" }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6">
-                    Danh sách Subscribers
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<IconRefresh />}
-                    onClick={fetchSubscribers}
-                  >
-                    Làm mới
-                  </Button>
-                </Stack>
-
-                {subscribers.length > 0 ? (
-                  <List>
-                    {subscribers.map((sub) => (
-                      <ListItem
-                        key={sub.subscriber_id}
-                        secondaryAction={
-                          <IconButton
-                            edge="end"
-                            onClick={() => handleDeleteSubscriber(sub.subscriber_id)}
-                          >
-                            <IconTrash size={18} />
-                          </IconButton>
-                        }
-                      >
-                        <ListItemIcon>
-                          <Chip
-                            label={sub.is_active ? "Active" : "Inactive"}
-                            color={sub.is_active ? "success" : "default"}
-                            size="small"
-                          />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={`${sub.first_name || ""} ${sub.last_name || ""} ${sub.username ? `(@${sub.username})` : ""}`}
-                          secondary={`Chat ID: ${sub.chat_id}`}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                ) : (
-                  <Alert severity="info">
-                    Chưa có subscriber nào. Subscribers sẽ được thêm tự động khi người dùng tương tác với bot.
-                  </Alert>
-                )}
-              </Paper>
-            </Grid>
-
-            {/* Instructions */}
-            <Grid item xs={12}>
-              <Paper elevation={0} sx={{ p: 3, bgcolor: "blue.50" }}>
-                <Typography variant="h6" gutterBottom>
-                  Hướng dẫn cấu hình
-                </Typography>
-                <Box component="ol" sx={{ pl: 2 }}>
-                  <li>Truy cập @BotFather trên Telegram</li>
-                  <li>Gửi lệnh /newbot để tạo bot mới</li>
-                  <li>Đặt tên và username cho bot</li>
-                  <li>Copy Bot Token và dán vào ô Bot Token ở trên</li>
-                  <li>Để lấy Chat ID, gửi tin nhắn cho bot và truy cập: 
-                    <code style={{ marginLeft: 4 }}>
-                      https://api.telegram.org/bot[TOKEN]/getUpdates
-                    </code>
-                  </li>
-                  <li>Tìm "chat": {"{"}"id": XXXXX{"}"} trong response</li>
-                  <li>Copy Chat ID và dán vào ô Chat ID ở trên</li>
-                  <li>Nhấn "Lưu cài đặt" và "Test kết nối"</li>
-                </Box>
-              </Paper>
-            </Grid>
-          </Grid>
+          )}
         </CardContent>
-      </BlankCard>
+      </Card>
 
-      {/* Test Message Dialog */}
-      <Dialog open={testDialog} onClose={() => setTestDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Gửi tin nhắn test</DialogTitle>
+      <Dialog open={testDialogOpen} onClose={() => setTestDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Send a Test Message</DialogTitle>
         <DialogContent>
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            label="Nội dung tin nhắn"
-            value={testMessage}
-            onChange={(e) => setTestMessage(e.target.value)}
-            placeholder="Nhập nội dung tin nhắn test..."
-            sx={{ mt: 2 }}
-          />
+            <Stack spacing={2} sx={{pt: 1}}>
+                <TextField fullWidth label="Target Chat ID" value={testChatId} onChange={(e) => setTestChatId(e.target.value)} placeholder="Enter the destination Chat ID" />
+                <TextField fullWidth multiline rows={4} label="Message" value={testMessage} onChange={(e) => setTestMessage(e.target.value)} placeholder="Enter your test message..." />
+            </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setTestDialog(false)}>Hủy</Button>
-          <Button
-            onClick={handleSendTestMessage}
-            variant="contained"
-            disabled={loading}
-            startIcon={<IconSend />}
-          >
-            Gửi
+          <Button onClick={() => setTestDialogOpen(false)} color="inherit">Cancel</Button>
+          <Button onClick={handleSendTestMessage} variant="contained" disabled={sendingTest || !testChatId || !testMessage} startIcon={sendingTest ? <CircularProgress size={20}/> : <IconSend />}>
+            {sendingTest ? 'Sending...' : 'Send'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert severity={snackbar.severity} sx={{ width: "100%" }}>
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>

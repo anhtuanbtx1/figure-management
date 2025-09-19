@@ -25,37 +25,32 @@ import {
   IconBell,
   IconDeviceFloppy,
   IconArrowLeft,
-  IconCalendar,
-  IconClock,
 } from "@tabler/icons-react";
 import { format } from "date-fns";
 
 interface Category {
-  category_id: number;
-  category_name: string;
+  id: number;
+  name: string;
 }
 
 interface Template {
-  template_id: number;
-  template_name: string;
-  template_content: string;
+  id: number;
+  name: string;
+  content: string; // Add content field
 }
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 const CreateReminder = () => {
   const router = useRouter();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    reminder_date: new Date(),
-    reminder_time: new Date(),
-    frequency: "ONCE",
-    priority: "MEDIUM",
-    category_id: "",
-    template_id: "",
-    is_active: true,
-    attachments: [],
+    reminderDate: new Date(),
+    reminderTime: new Date(),
+    reminderType: "once",
+    priority: "medium",
+    categoryId: "",
+    templateId: "",
+    isActive: true,
   });
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -67,7 +62,6 @@ const CreateReminder = () => {
     severity: "success" as "success" | "error",
   });
 
-  // Load categories và templates
   useEffect(() => {
     fetchCategories();
     fetchTemplates();
@@ -75,7 +69,7 @@ const CreateReminder = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/reminders/categories`);
+      const response = await fetch(`/api/reminder-categories`);
       const data = await response.json();
       if (data.success) {
         setCategories(data.data);
@@ -87,7 +81,7 @@ const CreateReminder = () => {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/reminders/templates`);
+      const response = await fetch(`/api/notification-templates`);
       const data = await response.json();
       if (data.success) {
         setTemplates(data.data);
@@ -97,16 +91,15 @@ const CreateReminder = () => {
     }
   };
 
-  // Khi chọn template
+  // Handle template selection
   const handleTemplateChange = (templateId: string) => {
-    const template = templates.find(t => t.template_id === parseInt(templateId));
-    if (template) {
-      setFormData({
-        ...formData,
-        template_id: templateId,
-        description: template.template_content,
-      });
-    }
+    const selectedTemplate = templates.find(t => t.id === parseInt(templateId));
+    setFormData(prevData => ({
+      ...prevData,
+      templateId: templateId,
+      // Update description with template content
+      description: selectedTemplate ? selectedTemplate.content : prevData.description,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,13 +109,14 @@ const CreateReminder = () => {
     try {
       const submitData = {
         ...formData,
-        reminder_date: format(formData.reminder_date, "yyyy-MM-dd"),
-        reminder_time: format(formData.reminder_time, "HH:mm:ss"),
-        category_id: formData.category_id || null,
-        template_id: formData.template_id || null,
+        reminderDate: format(formData.reminderDate, "yyyy-MM-dd"),
+        reminderTime: format(formData.reminderTime, "HH:mm:ss"),
+        categoryId: formData.categoryId || null,
+        templateId: formData.templateId || null,
+        startDate: format(new Date(), "yyyy-MM-dd"), 
       };
 
-      const response = await fetch(`${API_URL}/api/reminders`, {
+      const response = await fetch(`/api/reminders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -169,7 +163,6 @@ const CreateReminder = () => {
     <PageContainer title="Tạo nhắc nhở mới" description="Tạo nhắc nhở mới">
       <BlankCard>
         <CardContent>
-          {/* Header */}
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
             <Typography variant="h4">
               <IconBell size={28} style={{ verticalAlign: "middle", marginRight: 8 }} />
@@ -184,10 +177,8 @@ const CreateReminder = () => {
             </Button>
           </Stack>
 
-          {/* Form */}
           <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
-              {/* Thông tin cơ bản */}
               <Grid item xs={12}>
                 <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50" }}>
                   <Typography variant="h6" gutterBottom>
@@ -207,16 +198,16 @@ const CreateReminder = () => {
                       <FormControl fullWidth>
                         <InputLabel>Danh mục</InputLabel>
                         <Select
-                          value={formData.category_id}
-                          onChange={(e) => handleFieldChange("category_id", e.target.value)}
+                          value={formData.categoryId}
+                          onChange={(e) => handleFieldChange("categoryId", e.target.value)}
                           label="Danh mục"
                         >
                           <MenuItem value="">
                             <em>Không chọn</em>
                           </MenuItem>
                           {categories.map((cat) => (
-                            <MenuItem key={cat.category_id} value={cat.category_id}>
-                              {cat.category_name}
+                            <MenuItem key={cat.id} value={cat.id}>
+                              {cat.name}
                             </MenuItem>
                           ))}
                         </Select>
@@ -226,7 +217,7 @@ const CreateReminder = () => {
                       <FormControl fullWidth>
                         <InputLabel>Mẫu nhắc nhở</InputLabel>
                         <Select
-                          value={formData.template_id}
+                          value={formData.templateId}
                           onChange={(e) => handleTemplateChange(e.target.value as string)}
                           label="Mẫu nhắc nhở"
                         >
@@ -234,8 +225,8 @@ const CreateReminder = () => {
                             <em>Không sử dụng mẫu</em>
                           </MenuItem>
                           {templates.map((template) => (
-                            <MenuItem key={template.template_id} value={template.template_id}>
-                              {template.template_name}
+                            <MenuItem key={template.id} value={template.id}>
+                              {template.name}
                             </MenuItem>
                           ))}
                         </Select>
@@ -256,7 +247,6 @@ const CreateReminder = () => {
                 </Paper>
               </Grid>
 
-              {/* Thời gian */}
               <Grid item xs={12}>
                 <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50" }}>
                   <Typography variant="h6" gutterBottom>
@@ -268,8 +258,8 @@ const CreateReminder = () => {
                         fullWidth
                         label="Ngày nhắc nhở"
                         type="date"
-                        value={format(formData.reminder_date, "yyyy-MM-dd")}
-                        onChange={(e) => handleFieldChange("reminder_date", new Date(e.target.value))}
+                        value={format(formData.reminderDate, "yyyy-MM-dd")}
+                        onChange={(e) => handleFieldChange("reminderDate", new Date(e.target.value))}
                         InputLabelProps={{
                           shrink: true,
                         }}
@@ -280,12 +270,12 @@ const CreateReminder = () => {
                         fullWidth
                         label="Giờ nhắc nhở"
                         type="time"
-                        value={format(formData.reminder_time, "HH:mm")}
+                        value={format(formData.reminderTime, "HH:mm")}
                         onChange={(e) => {
                           const [hours, minutes] = e.target.value.split(":");
                           const newTime = new Date();
                           newTime.setHours(parseInt(hours), parseInt(minutes));
-                          handleFieldChange("reminder_time", newTime);
+                          handleFieldChange("reminderTime", newTime);
                         }}
                         InputLabelProps={{
                           shrink: true,
@@ -296,15 +286,15 @@ const CreateReminder = () => {
                       <FormControl fullWidth>
                         <InputLabel>Tần suất</InputLabel>
                         <Select
-                          value={formData.frequency}
-                          onChange={(e) => handleFieldChange("frequency", e.target.value)}
+                          value={formData.reminderType}
+                          onChange={(e) => handleFieldChange("reminderType", e.target.value)}
                           label="Tần suất"
                         >
-                          <MenuItem value="ONCE">Một lần</MenuItem>
-                          <MenuItem value="DAILY">Hàng ngày</MenuItem>
-                          <MenuItem value="WEEKLY">Hàng tuần</MenuItem>
-                          <MenuItem value="MONTHLY">Hàng tháng</MenuItem>
-                          <MenuItem value="YEARLY">Hàng năm</MenuItem>
+                          <MenuItem value="once">Một lần</MenuItem>
+                          <MenuItem value="daily">Hàng ngày</MenuItem>
+                          <MenuItem value="weekly">Hàng tuần</MenuItem>
+                          <MenuItem value="monthly">Hàng tháng</MenuItem>
+                          <MenuItem value="yearly">Hàng năm</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
@@ -312,7 +302,6 @@ const CreateReminder = () => {
                 </Paper>
               </Grid>
 
-              {/* Cài đặt */}
               <Grid item xs={12}>
                 <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50" }}>
                   <Typography variant="h6" gutterBottom>
@@ -327,9 +316,9 @@ const CreateReminder = () => {
                           onChange={(e) => handleFieldChange("priority", e.target.value)}
                           label="Độ ưu tiên"
                         >
-                          <MenuItem value="LOW">Thấp</MenuItem>
-                          <MenuItem value="MEDIUM">Trung bình</MenuItem>
-                          <MenuItem value="HIGH">Cao</MenuItem>
+                          <MenuItem value="low">Thấp</MenuItem>
+                          <MenuItem value="medium">Trung bình</MenuItem>
+                          <MenuItem value="high">Cao</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
@@ -337,8 +326,8 @@ const CreateReminder = () => {
                       <FormControlLabel
                         control={
                           <Checkbox
-                            checked={formData.is_active}
-                            onChange={(e) => handleFieldChange("is_active", e.target.checked)}
+                            checked={formData.isActive}
+                            onChange={(e) => handleFieldChange("isActive", e.target.checked)}
                           />
                         }
                         label="Kích hoạt nhắc nhở"
@@ -348,7 +337,6 @@ const CreateReminder = () => {
                 </Paper>
               </Grid>
 
-              {/* Buttons */}
               <Grid item xs={12}>
                 <Stack direction="row" spacing={2} justifyContent="flex-end">
                   <Button
@@ -373,7 +361,6 @@ const CreateReminder = () => {
         </CardContent>
       </BlankCard>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

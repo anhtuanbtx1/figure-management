@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import sql from 'mssql';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic';
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
       ORDER BY ThuTu ASC
     `;
 
-    const rows = await executeQuery(query, { boardId });
+    const rows = await executeQuery(query, { boardId: { type: sql.NVarChar, value: boardId } });
 
     // Check if we have all 4 expected columns, create missing ones
     const expectedColumns = [
@@ -47,16 +48,16 @@ export async function GET(request: NextRequest) {
           (Id, BoardId, TenCot, MaCot, ThuTu, NgayTao, NgayCapNhat, IsActive)
           VALUES (@id, @boardId, @name, @code, @order, SYSUTCDATETIME(), SYSUTCDATETIME(), 1)
         `, {
-          id: col.id,
-          boardId,
-          name: col.name,
-          code: col.code,
-          order: col.order,
+          id: { type: sql.NVarChar, value: col.id },
+          boardId: { type: sql.NVarChar, value: boardId },
+          name: { type: sql.NVarChar, value: col.name },
+          code: { type: sql.NVarChar, value: col.code },
+          order: { type: sql.Int, value: col.order },
         });
       }
 
       // Fetch all columns again (existing + newly created)
-      const allRows = await executeQuery(query, { boardId });
+      const allRows = await executeQuery(query, { boardId: { type: sql.NVarChar, value: boardId } });
       return NextResponse.json({
         success: true,
         message: `Columns fetched successfully (${missingColumns.length} created)`,

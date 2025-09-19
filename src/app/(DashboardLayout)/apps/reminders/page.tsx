@@ -22,16 +22,27 @@ import {
   Schedule as ScheduleIcon,
   NotificationsActive as BellIcon,
 } from '@mui/icons-material';
-import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
-import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
+import PageContainer from '@/app/components/container/PageContainer';
+import DashboardCard from '@/app/components/shared/DashboardCard';
 import ReminderList from './components/ReminderList';
 import ReminderForm from './components/ReminderForm';
 import ReminderStats from './components/ReminderStats';
 import TelegramTestDialog from './components/TelegramTestDialog';
-import reminderApi, { Reminder } from '@/app/api/reminders/reminderApi';
+import * as reminderApi from './utils/reminderApi';
+import { Reminder, ReminderCategory } from './types';
+
+// This should be in reminderApi.ts, but for a quick fix, I'll add it here and move it later.
+async function getCategories(): Promise<ReminderCategory[]> {
+  return [
+    { id: 1, name: 'Công việc', icon: '💼' },
+    { id: 2, name: 'Cá nhân', icon: '👤' },
+    { id: 3, name: 'Học tập', icon: '📚' },
+  ];
+}
 
 export default function RemindersPage() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [categories, setCategories] = useState<ReminderCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [openForm, setOpenForm] = useState(false);
   const [openTelegramTest, setOpenTelegramTest] = useState(false);
@@ -44,9 +55,29 @@ export default function RemindersPage() {
   });
 
   useEffect(() => {
-    loadReminders();
-    checkSchedulerStatus();
+    loadInitialData();
   }, []);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      const [remindersResponse, categoriesResponse] = await Promise.all([
+        reminderApi.getAllReminders(),
+        getCategories(), // Using placeholder
+      ]);
+
+      if (remindersResponse.success && remindersResponse.data) {
+        setReminders(remindersResponse.data);
+      }
+      setCategories(categoriesResponse);
+      checkSchedulerStatus();
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+      showSnackbar('Lỗi khi tải dữ liệu', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadReminders = async () => {
     try {
@@ -88,11 +119,9 @@ export default function RemindersPage() {
     if (!confirm('Bạn có chắc chắn muốn xóa nhắc nhở này?')) return;
 
     try {
-      const response = await reminderApi.deleteReminder(id);
-      if (response.success) {
-        showSnackbar('Xóa nhắc nhở thành công', 'success');
-        loadReminders();
-      }
+      await reminderApi.deleteReminder(id);
+      showSnackbar('Xóa nhắc nhở thành công', 'success');
+      loadReminders();
     } catch (error) {
       showSnackbar('Lỗi khi xóa nhắc nhở', 'error');
     }
@@ -100,10 +129,8 @@ export default function RemindersPage() {
 
   const handleTriggerReminder = async (id: number) => {
     try {
-      const response = await reminderApi.triggerReminder(id);
-      if (response.success) {
-        showSnackbar('Đã gửi thông báo nhắc nhở', 'success');
-      }
+      await reminderApi.triggerReminder(id);
+      showSnackbar('Đã gửi thông báo nhắc nhở', 'success');
     } catch (error) {
       showSnackbar('Lỗi khi gửi thông báo', 'error');
     }
@@ -111,16 +138,14 @@ export default function RemindersPage() {
 
   const handleTogglePause = async (reminder: Reminder) => {
     try {
-      const response = await reminderApi.updateReminder(reminder.id!, {
+      await reminderApi.updateReminder(reminder.id!, {
         isPaused: !reminder.isPaused,
       });
-      if (response.success) {
-        showSnackbar(
-          reminder.isPaused ? 'Đã kích hoạt lại nhắc nhở' : 'Đã tạm dừng nhắc nhở',
-          'success'
-        );
-        loadReminders();
-      }
+      showSnackbar(
+        reminder.isPaused ? 'Đã kích hoạt lại nhắc nhở' : 'Đã tạm dừng nhắc nhở',
+        'success'
+      );
+      loadReminders();
     } catch (error) {
       showSnackbar('Lỗi khi cập nhật trạng thái', 'error');
     }
@@ -135,16 +160,12 @@ export default function RemindersPage() {
     try {
       if (selectedReminder?.id) {
         // Update existing
-        const response = await reminderApi.updateReminder(selectedReminder.id, reminderData);
-        if (response.success) {
-          showSnackbar('Cập nhật nhắc nhở thành công', 'success');
-        }
+        await reminderApi.updateReminder(selectedReminder.id, reminderData);
+        showSnackbar('Cập nhật nhắc nhở thành công', 'success');
       } else {
         // Create new
-        const response = await reminderApi.createReminder(reminderData);
-        if (response.success) {
-          showSnackbar('Tạo nhắc nhở mới thành công', 'success');
-        }
+        await reminderApi.createReminder(reminderData);
+        showSnackbar('Tạo nhắc nhở mới thành công', 'success');
       }
       loadReminders();
       handleFormClose();
@@ -223,6 +244,7 @@ export default function RemindersPage() {
               ) : (
                 <ReminderList
                   reminders={reminders}
+                  categories={categories}
                   onEdit={handleEditReminder}
                   onDelete={handleDeleteReminder}
                   onTrigger={handleTriggerReminder}
@@ -249,6 +271,7 @@ export default function RemindersPage() {
           onClose={handleFormClose}
           onSave={handleFormSave}
           reminder={selectedReminder}
+          categories={categories}
         />
 
         <TelegramTestDialog

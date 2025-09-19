@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeStoredProcedure } from '@/lib/database';
+import sql from 'mssql';
 
 // POST /api/invoices/create-with-items
 // Body: { invoiceHeader: {...}, items: [{ itemName, unitPrice, units } ...] }
@@ -44,22 +45,22 @@ export async function POST(request: NextRequest) {
       }))
     );
 
-    const params: Record<string, any> = {
-      InvoiceNumber: invoiceNumber,
-      BillFrom: billFrom,
-      BillFromEmail: billFromEmail,
-      BillFromAddress: billFromAddress,
-      BillFromPhone: billFromPhone,
-      BillFromFax: billFromFax,
-      BillTo: billTo,
-      BillToEmail: billToEmail,
-      BillToAddress: billToAddress,
-      BillToPhone: billToPhone,
-      BillToFax: billToFax,
-      OrderDate: orderDate,
-      Status: status || 'Pending',
-      Notes: notes,
-      Items: itemsJson,
+    const params = {
+      InvoiceNumber: { type: sql.NVarChar, value: invoiceNumber },
+      BillFrom: { type: sql.NVarChar, value: billFrom },
+      BillFromEmail: { type: sql.NVarChar, value: billFromEmail },
+      BillFromAddress: { type: sql.NVarChar, value: billFromAddress },
+      BillFromPhone: { type: sql.NVarChar, value: billFromPhone },
+      BillFromFax: { type: sql.NVarChar, value: billFromFax },
+      BillTo: { type: sql.NVarChar, value: billTo },
+      BillToEmail: { type: sql.NVarChar, value: billToEmail },
+      BillToAddress: { type: sql.NVarChar, value: billToAddress },
+      BillToPhone: { type: sql.NVarChar, value: billToPhone },
+      BillToFax: { type: sql.NVarChar, value: billToFax },
+      OrderDate: { type: sql.Date, value: orderDate },
+      Status: { type: sql.NVarChar, value: status || 'Pending' },
+      Notes: { type: sql.NVarChar, value: notes },
+      Items: { type: sql.NVarChar(sql.MAX), value: itemsJson },
     };
 
     const rows = await executeStoredProcedure('sp_CreateInvoiceWithItemsFromFrontend', params);
@@ -73,4 +74,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

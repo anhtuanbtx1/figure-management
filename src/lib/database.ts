@@ -1,3 +1,4 @@
+
 import sql from 'mssql';
 
 // Database configuration
@@ -15,56 +16,25 @@ const config: sql.config = {
     }
   },
   pool: {
-    max: 5, // Reduce pool size
+    max: 10, 
     min: 0,
     idleTimeoutMillis: 30000,
   },
-  requestTimeout: 60000, // Increase timeout
+  requestTimeout: 60000, 
   connectionTimeout: 60000,
 };
 
-// Connection pool
 let pool: sql.ConnectionPool | null = null;
-let isConnecting = false;
 
-export async function getConnection(): Promise<sql.ConnectionPool> {
+async function getConnection(): Promise<sql.ConnectionPool> {
+  if (pool && pool.connected) {
+    return pool;
+  }
   try {
-    // If pool exists and is connected, return it
-    if (pool && pool.connected) {
-      return pool;
-    }
-
-    // If already connecting, wait for it
-    if (isConnecting) {
-      while (isConnecting) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      if (pool && pool.connected) {
-        return pool;
-      }
-    }
-
-    // Start connecting
-    isConnecting = true;
-
-    // Close existing pool if not connected
-    if (pool && !pool.connected) {
-      try {
-        await pool.close();
-      } catch (closeError) {
-        console.warn('Warning closing existing pool:', closeError);
-      }
-    }
-
-    // Create new pool
-    pool = new sql.ConnectionPool(config);
-    await pool.connect();
-
-    isConnecting = false;
+    pool = await new sql.ConnectionPool(config).connect();
     console.log('✅ Connected to SQL Server database');
     return pool;
   } catch (error) {
-    isConnecting = false;
     console.error('❌ Database connection failed:', error);
     throw new Error(`Database connection failed: ${error}`);
   }
@@ -82,45 +52,57 @@ export async function closeConnection(): Promise<void> {
   }
 }
 
-// Helper function to execute queries
+// -- THE REAL FIX --
+// This function was fundamentally broken. It was passing the entire parameter object as the value.
+// It has been rewritten to correctly unpack the {type, value} and pass them to request.input().
 export async function executeQuery<T = any>(
   query: string,
-  params?: Record<string, any>
+  params?: Record<string, { type: any; value: any }>
 ): Promise<T[]> {
   const connection = await getConnection();
   const request = connection.request();
 
-  // Add parameters if provided
   if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      request.input(key, value);
-    });
+    for (const key in params) {
+      if (Object.prototype.hasOwnProperty.call(params, key)) {
+        const param = params[key];
+        if (param && param.type && param.value !== undefined) {
+          request.input(key, param.type, param.value);
+        } else {
+          console.warn(`Skipping invalid parameter: ${key}`);
+        }
+      }
+    }
   }
 
   const result = await request.query(query);
   return result.recordset;
 }
 
-// Helper function to execute stored procedures
 export async function executeStoredProcedure<T = any>(
   procedureName: string,
-  params?: Record<string, any>
+  params?: Record<string, { type: any; value: any }>
 ): Promise<T[]> {
   const connection = await getConnection();
   const request = connection.request();
 
-  // Add parameters if provided
   if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      request.input(key, value);
-    });
+    for (const key in params) {
+      if (Object.prototype.hasOwnProperty.call(params, key)) {
+        const param = params[key];
+        if (param && param.type && param.value !== undefined) {
+          request.input(key, param.type, param.value);
+        } else {
+          console.warn(`Skipping invalid parameter for stored procedure ${procedureName}: ${key}`);
+        }
+      }
+    }
   }
 
   const result = await request.execute(procedureName);
   return result.recordset;
 }
 
-// Graceful shutdown
 process.on('SIGINT', async () => {
   await closeConnection();
   process.exit(0);

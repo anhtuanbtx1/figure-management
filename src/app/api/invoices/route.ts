@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeStoredProcedure } from '@/lib/database';
+import sql from 'mssql';
 
 // GET /api/invoices - list invoices with filters/pagination/sorting
 export async function GET(request: NextRequest) {
@@ -16,15 +17,15 @@ export async function GET(request: NextRequest) {
     const sortDirection = (searchParams.get('sortDirection') || 'DESC').toUpperCase();
 
     const params: Record<string, any> = {
-      Page: page,
-      PageSize: pageSize,
-      SortField: sortField,
-      SortDirection: sortDirection,
+      Page: { type: sql.Int, value: page },
+      PageSize: { type: sql.Int, value: pageSize },
+      SortField: { type: sql.NVarChar, value: sortField },
+      SortDirection: { type: sql.NVarChar, value: sortDirection },
     };
-    if (search) params.Search = search;
-    if (status) params.Status = status;
-    if (dateFrom) params.DateFrom = dateFrom;
-    if (dateTo) params.DateTo = dateTo;
+    if (search) params.Search = { type: sql.NVarChar, value: search };
+    if (status) params.Status = { type: sql.NVarChar, value: status };
+    if (dateFrom) params.DateFrom = { type: sql.Date, value: dateFrom };
+    if (dateTo) params.DateTo = { type: sql.Date, value: dateTo };
 
     const rows = await executeStoredProcedure('sp_GetInvoicesForFrontend', params);
 
@@ -81,24 +82,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const params: Record<string, any> = {
-      InvoiceNumber: invoiceNumber,
-      BillFrom: billFrom,
-      BillFromEmail: billFromEmail,
-      BillFromAddress: billFromAddress,
-      BillFromPhone: billFromPhone,
-      BillFromFax: billFromFax,
-      BillTo: billTo,
-      BillToEmail: billToEmail,
-      BillToAddress: billToAddress,
-      BillToPhone: billToPhone,
-      BillToFax: billToFax,
-      OrderDate: orderDate,
-      SubTotal: typeof subTotal === 'number' ? subTotal : 0,
-      VAT: typeof vat === 'number' ? vat : 0,
-      GrandTotal: typeof grandTotal === 'number' ? grandTotal : (typeof subTotal === 'number' ? subTotal : 0) + (typeof vat === 'number' ? vat : 0),
-      Status: status || 'Pending',
-      Notes: notes,
+    const params = {
+      InvoiceNumber: { type: sql.NVarChar, value: invoiceNumber },
+      BillFrom: { type: sql.NVarChar, value: billFrom },
+      BillFromEmail: { type: sql.NVarChar, value: billFromEmail },
+      BillFromAddress: { type: sql.NVarChar, value: billFromAddress },
+      BillFromPhone: { type: sql.NVarChar, value: billFromPhone },
+      BillFromFax: { type: sql.NVarChar, value: billFromFax },
+      BillTo: { type: sql.NVarChar, value: billTo },
+      BillToEmail: { type: sql.NVarChar, value: billToEmail },
+      BillToAddress: { type: sql.NVarChar, value: billToAddress },
+      BillToPhone: { type: sql.NVarChar, value: billToPhone },
+      BillToFax: { type: sql.NVarChar, value: billToFax },
+      OrderDate: { type: sql.Date, value: orderDate },
+      SubTotal: { type: sql.Decimal, value: typeof subTotal === 'number' ? subTotal : 0 },
+      VAT: { type: sql.Decimal, value: typeof vat === 'number' ? vat : 0 },
+      GrandTotal: {
+        type: sql.Decimal,
+        value: typeof grandTotal === 'number' ? grandTotal : (typeof subTotal === 'number' ? subTotal : 0) + (typeof vat === 'number' ? vat : 0),
+      },
+      Status: { type: sql.NVarChar, value: status || 'Pending' },
+      Notes: { type: sql.NVarChar, value: notes },
     };
 
     const rows = await executeStoredProcedure('sp_CreateInvoiceFromFrontend', params);
@@ -112,4 +116,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -27,16 +27,18 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/vi';
-import reminderApi, { Reminder, ReminderCategory } from '@/app/api/reminders/reminderApi';
+import * as reminderApi from '../utils/reminderApi';
+import { Reminder, ReminderCategory } from '../types';
 
 interface ReminderFormProps {
   open: boolean;
   onClose: () => void;
   onSave: (reminder: Partial<Reminder>) => void;
   reminder: Reminder | null;
+  categories: ReminderCategory[];
 }
 
-const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, reminder }) => {
+const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, reminder, categories }) => {
   const [formData, setFormData] = useState<Partial<Reminder>>({
     title: '',
     description: '',
@@ -48,15 +50,10 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
     isPaused: false,
     telegramChatIds: '',
   });
-  const [categories, setCategories] = useState<ReminderCategory[]>([]);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [selectedTime, setSelectedTime] = useState<Dayjs | null>(dayjs('09:00', 'HH:mm'));
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [dayOfMonth, setDayOfMonth] = useState<number>(1);
-
-  useEffect(() => {
-    loadCategories();
-  }, []);
 
   useEffect(() => {
     if (reminder) {
@@ -65,7 +62,7 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
         setSelectedDate(dayjs(reminder.reminderDate));
       }
       if (reminder.reminderTime) {
-        setSelectedTime(dayjs(reminder.reminderTime, 'HH:mm:ss'));
+        setSelectedTime(dayjs(reminder.reminderTime as string, 'HH:mm:ss'));
       }
       if (reminder.repeatDaysOfWeek) {
         setSelectedDays(reminder.repeatDaysOfWeek.split(','));
@@ -92,15 +89,6 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
       setDayOfMonth(1);
     }
   }, [reminder]);
-
-  const loadCategories = async () => {
-    try {
-      const cats = await reminderApi.getCategories();
-      setCategories(cats);
-    } catch (error) {
-      console.error('Error loading categories:', error);
-    }
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -244,12 +232,8 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
               <TimePicker
                 label="Thời gian nhắc nhở"
                 value={selectedTime}
-                onChange={(newValue) => setSelectedTime(newValue)}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                  },
-                }}
+                onChange={(newValue: Dayjs | null) => setSelectedTime(newValue)}
+                renderInput={(params) => <TextField {...params} fullWidth />}
               />
             </Grid>
 
@@ -258,13 +242,9 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
                 <DatePicker
                   label="Ngày nhắc nhở"
                   value={selectedDate}
-                  onChange={(newValue) => setSelectedDate(newValue)}
-                  format="DD/MM/YYYY"
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                    },
-                  }}
+                  onChange={(newValue: Dayjs | null) => setSelectedDate(newValue)}
+                  inputFormat="DD/MM/YYYY"
+                  renderInput={(params) => <TextField {...params} fullWidth />}
                 />
               </Grid>
             )}
@@ -279,7 +259,6 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
                     value={selectedDays}
                     onChange={handleDayToggle}
                     aria-label="days of week"
-                    multiple
                   >
                     {daysOfWeek.map((day) => (
                       <ToggleButton key={day.value} value={day.value} aria-label={day.label}>

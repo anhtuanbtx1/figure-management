@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Telegram as TelegramIcon } from '@mui/icons-material';
-import reminderApi from '@/app/api/reminders/reminderApi';
+import * as reminderApi from '../utils/reminderApi';
 
 interface TelegramTestDialogProps {
   open: boolean;
@@ -22,8 +22,7 @@ interface TelegramTestDialogProps {
 }
 
 const TelegramTestDialog: React.FC<TelegramTestDialogProps> = ({ open, onClose }) => {
-  const [title, setTitle] = useState('Test Notification');
-  const [description, setDescription] = useState('');
+  const [message, setMessage] = useState('Đây là một tin nhắn thử nghiệm từ hệ thống Modernize.');
   const [chatId, setChatId] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
@@ -31,44 +30,16 @@ const TelegramTestDialog: React.FC<TelegramTestDialogProps> = ({ open, onClose }
     message: string;
   } | null>(null);
 
-  const handleTestConnection = async () => {
-    setLoading(true);
-    setResult(null);
-    try {
-      const response = await reminderApi.testTelegramConnection();
-      setResult({
-        success: response.success,
-        message: response.success
-          ? 'Kết nối Telegram thành công!'
-          : 'Kết nối Telegram thất bại',
-      });
-    } catch (error) {
-      setResult({
-        success: false,
-        message: 'Lỗi khi test kết nối: ' + (error as Error).message,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSendTest = async () => {
-    if (!title || !description) {
-      setResult({
-        success: false,
-        message: 'Vui lòng nhập tiêu đề và nội dung',
-      });
+    if (!message) {
+      setResult({ success: false, message: 'Vui lòng nhập nội dung tin nhắn' });
       return;
     }
 
     setLoading(true);
     setResult(null);
     try {
-      const response = await reminderApi.sendTestNotification({
-        title,
-        description: description || `Test message sent at ${new Date().toLocaleString('vi-VN')}`,
-        chatId: chatId || undefined,
-      });
+        const response = await reminderApi.sendTestTelegramMessage(message);
 
       setResult({
         success: response.success,
@@ -87,8 +58,7 @@ const TelegramTestDialog: React.FC<TelegramTestDialogProps> = ({ open, onClose }
   };
 
   const handleClose = () => {
-    setTitle('Test Notification');
-    setDescription('');
+    setMessage('Đây là một tin nhắn thử nghiệm từ hệ thống Modernize.');
     setChatId('');
     setResult(null);
     onClose();
@@ -104,35 +74,14 @@ const TelegramTestDialog: React.FC<TelegramTestDialogProps> = ({ open, onClose }
       </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleTestConnection}
-            disabled={loading}
-            startIcon={loading ? <CircularProgress size={20} /> : <TelegramIcon />}
-          >
-            Test kết nối Telegram Bot
-          </Button>
-
-          <Typography variant="subtitle2" color="textSecondary" sx={{ mt: 2 }}>
-            Hoặc gửi thông báo test:
-          </Typography>
-
-          <TextField
-            fullWidth
-            label="Tiêu đề"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            disabled={loading}
-          />
-
+          
           <TextField
             fullWidth
             label="Nội dung"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
             multiline
-            rows={3}
+            rows={4}
             disabled={loading}
             placeholder="Nhập nội dung test..."
           />

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState, useEffect } from "react";
 import PageContainer from "@/app/components/container/PageContainer";
 import BlankCard from "@/app/components/shared/BlankCard";
@@ -18,10 +18,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   Snackbar,
 } from "@mui/material";
@@ -42,30 +38,16 @@ import Link from "next/link";
 
 interface Reminder {
   id: number;
-  reminder_id?: number; // For compatibility
   title: string;
   description: string;
   reminderDate: string | null;
-  reminder_date?: string | null; // For compatibility
   reminderTime: string | null;
-  reminder_time?: string | null; // For compatibility
   reminderType: string;
-  frequency?: string; // For compatibility
   priority: string;
   categoryName?: string;
-  category_name?: string; // For compatibility
-  categoryId?: number;
   isActive: boolean;
-  is_active?: boolean; // For compatibility  
   isPaused?: boolean;
-  is_sent?: boolean;
-  createdDate: string;
-  created_at?: string; // For compatibility
-  startDate?: string;
-  endDate?: string | null;
 }
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 const ReminderList = () => {
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -80,15 +62,21 @@ const ReminderList = () => {
     severity: "success" as "success" | "error",
   });
 
-  // Load reminders từ API
   const fetchReminders = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/reminders`);
-      const data = await response.json();
-      if (data.success) {
-        setReminders(data.data);
-        setFilteredReminders(data.data);
+      const response = await fetch(`/api/reminders`);
+      const responseData = await response.json();
+      if (responseData.success) {
+        setReminders(responseData.data);
+        setFilteredReminders(responseData.data);
+      } else {
+        console.error("Error fetching reminders:", responseData.message);
+        setSnackbar({
+            open: true,
+            message: responseData.message || "Lỗi khi tải danh sách nhắc nhở",
+            severity: "error",
+        });
       }
     } catch (error) {
       console.error("Error fetching reminders:", error);
@@ -105,34 +93,42 @@ const ReminderList = () => {
     fetchReminders();
   }, []);
 
-  // Tìm kiếm
   useEffect(() => {
     const filtered = reminders.filter((reminder) =>
       reminder.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reminder.description.toLowerCase().includes(searchTerm.toLowerCase())
+      (reminder.description && reminder.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     setFilteredReminders(filtered);
   }, [searchTerm, reminders]);
 
-  // Xóa reminder
   const handleDelete = async () => {
     if (!selectedReminder) return;
-    const reminderId = selectedReminder.id || selectedReminder.reminder_id;
-    
     try {
-      const response = await fetch(`${API_URL}/api/reminders/${reminderId}`, {
-        method: "DELETE",
+      const response = await fetch(`/api/reminders`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: selectedReminder.id }),
       });
-      
+
       if (response.ok) {
         setSnackbar({
           open: true,
           message: "Đã xóa nhắc nhở thành công",
           severity: "success",
         });
-        fetchReminders();
+        fetchReminders(); // Refresh the list
+      } else {
+        const errorData = await response.json();
+        setSnackbar({
+          open: true,
+          message: errorData.message || "Lỗi khi xóa nhắc nhở",
+          severity: "error",
+        });
       }
     } catch (error) {
+      console.error("Error deleting reminder:", error);
       setSnackbar({
         open: true,
         message: "Lỗi khi xóa nhắc nhở",
@@ -142,57 +138,23 @@ const ReminderList = () => {
     setDeleteDialog(false);
   };
 
-  // Trigger reminder thủ công
-  const handleTrigger = async (id: number) => {
-    try {
-      const response = await fetch(`${API_URL}/api/reminders/trigger/${id}`, {
-        method: "POST",
-      });
-      
-      if (response.ok) {
-        setSnackbar({
-          open: true,
-          message: "Đã gửi nhắc nhở qua Telegram",
-          severity: "success",
-        });
-        fetchReminders();
-      }
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Lỗi khi gửi nhắc nhở",
-        severity: "error",
-      });
-    }
-  };
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "HIGH": return "error";
-      case "MEDIUM": return "warning";
-      case "LOW": return "success";
+      case "high": return "error";
+      case "medium": return "warning";
+      case "low": return "success";
       default: return "default";
     }
   };
 
   const getStatusColor = (reminder: Reminder) => {
-    const isActive = reminder.isActive ?? reminder.is_active;
-    const isPaused = reminder.isPaused ?? false;
-    const isSent = reminder.is_sent ?? false;
-    
-    if (isSent) return "default";
-    if (!isActive || isPaused) return "default";
+    if (!reminder.isActive || reminder.isPaused) return "default";
     return "primary";
   };
 
   const getStatusLabel = (reminder: Reminder) => {
-    const isActive = reminder.isActive ?? reminder.is_active;
-    const isPaused = reminder.isPaused ?? false;
-    const isSent = reminder.is_sent ?? false;
-    
-    if (isSent) return "Đã gửi";
-    if (isPaused) return "Tạm dừng";
-    if (!isActive) return "Không hoạt động";
+    if (reminder.isPaused) return "Tạm dừng";
+    if (!reminder.isActive) return "Không hoạt động";
     return "Đang hoạt động";
   };
 
@@ -200,7 +162,6 @@ const ReminderList = () => {
     <PageContainer title="Danh sách nhắc nhở" description="Quản lý nhắc nhở">
       <BlankCard>
         <CardContent>
-          {/* Header */}
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
             <Typography variant="h4">
               <IconBell size={28} style={{ verticalAlign: "middle", marginRight: 8 }} />
@@ -226,7 +187,6 @@ const ReminderList = () => {
             </Stack>
           </Stack>
 
-          {/* Search bar */}
           <Box mb={3}>
             <TextField
               fullWidth
@@ -243,17 +203,9 @@ const ReminderList = () => {
             />
           </Box>
 
-          {/* Reminder Grid */}
           <Grid container spacing={3}>
-            {filteredReminders.map((reminder) => {
-              const reminderId = reminder.id || reminder.reminder_id || 0;
-              const reminderDate = reminder.reminderDate || reminder.reminder_date;
-              const reminderTime = reminder.reminderTime || reminder.reminder_time;
-              const categoryName = reminder.categoryName || reminder.category_name;
-              const reminderType = reminder.reminderType || reminder.frequency || "";
-              
-              return (
-              <Grid item xs={12} sm={6} md={4} key={reminderId}>
+            {filteredReminders.map((reminder) => (
+              <Grid item xs={12} sm={6} md={4} key={reminder.id}>
                 <Card sx={{ height: "100%" }}>
                   <CardContent>
                     <Stack spacing={2}>
@@ -274,34 +226,18 @@ const ReminderList = () => {
                       </Box>
 
                       <Stack direction="row" spacing={1}>
-                        {reminderDate && (
+                        {reminder.reminderDate && (
                           <Chip
                             icon={<IconCalendar size={16} />}
-                            label={format(new Date(reminderDate), "dd/MM/yyyy", { locale: vi })}
+                            label={format(new Date(reminder.reminderDate), "dd/MM/yyyy", { locale: vi })}
                             size="small"
                             variant="outlined"
                           />
                         )}
-                        {reminderTime && (
+                        {reminder.reminderTime && (
                           <Chip
                             icon={<IconClock size={16} />}
-                            label={
-                              (() => {
-                                if (typeof reminderTime === 'string' && reminderTime.includes('T')) {
-                                  // ISO string with date 1970-01-01
-                                  // Extract just the time part without timezone conversion
-                                  const timePart = reminderTime.split('T')[1];
-                                  if (timePart) {
-                                    // Remove Z or timezone info and take HH:mm
-                                    const time = timePart.split('.')[0];
-                                    return time.substring(0, 5); // HH:mm
-                                  }
-                                } else if (reminderTime instanceof Date) {
-                                  return format(reminderTime, "HH:mm");
-                                }
-                                return reminderTime;
-                              })()
-                            }
+                            label={reminder.reminderTime}
                             size="small"
                             variant="outlined"
                           />
@@ -316,16 +252,16 @@ const ReminderList = () => {
                             size="small"
                           />
                         )}
-                        {categoryName && (
+                        {reminder.categoryName && (
                           <Chip
-                            label={categoryName}
+                            label={reminder.categoryName}
                             size="small"
                             variant="outlined"
                           />
                         )}
-                        {reminderType && reminderType !== "once" && (
+                        {reminder.reminderType && reminder.reminderType !== "once" && (
                           <Chip
-                            label={reminderType}
+                            label={reminder.reminderType}
                             size="small"
                             variant="outlined"
                           />
@@ -336,12 +272,11 @@ const ReminderList = () => {
                         <IconButton
                           size="small"
                           color="info"
-                          onClick={() => handleTrigger(reminderId)}
                           title="Gửi ngay"
                         >
                           <IconBellRinging size={18} />
                         </IconButton>
-                        <Link href={`/apps/reminders/edit/${reminderId}`} passHref>
+                        <Link href={`/apps/reminders/edit/${reminder.id}`} passHref>
                           <IconButton size="small" color="primary" title="Chỉnh sửa">
                             <IconEdit size={18} />
                           </IconButton>
@@ -362,11 +297,10 @@ const ReminderList = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              );
-            })}
+            ))}
           </Grid>
 
-          {filteredReminders.length === 0 && (
+          {filteredReminders.length === 0 && !loading && (
             <Box textAlign="center" py={5}>
               <Typography variant="h6" color="text.secondary">
                 Không có nhắc nhở nào
@@ -376,12 +310,11 @@ const ReminderList = () => {
         </CardContent>
       </BlankCard>
 
-      {/* Delete Dialog */}
       <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
         <DialogTitle>Xác nhận xóa</DialogTitle>
         <DialogContent>
           <Typography>
-            Bạn có chắc chắn muốn xóa nhắc nhở "{selectedReminder?.title}"?
+            Bạn có chắc chắn muốn xóa nhắc nhở &quot;{selectedReminder?.title}&quot;?
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -392,7 +325,6 @@ const ReminderList = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
