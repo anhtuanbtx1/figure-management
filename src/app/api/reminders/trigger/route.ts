@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { executeQuery } from '@/lib/database';
@@ -104,12 +103,6 @@ async function triggerReminders() {
 export async function GET(request: NextRequest) {
     const headersList = headers();
     const authHeader = headersList.get('authorization');
-
-    // --- DEBUGGING START ---
-    console.log('--- CRON JOB DEBUGGING ---');
-    console.log('CRON_SECRET environment variable exists:', !!process.env.CRON_SECRET);
-    console.log('Received Authorization Header:', authHeader);
-    // --- DEBUGGING END ---
 
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return new NextResponse('Unauthorized', { status: 401 });
