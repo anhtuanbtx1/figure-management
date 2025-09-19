@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import sql from 'mssql';
 
 // GET /api/kanban/tasks - list tasks (optionally by boardId)
 export async function GET(request: NextRequest) {
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
       ORDER BY c.ThuTu ASC, t.ThuTu ASC
     `;
 
-    const rows = await executeQuery(query, { boardId });
+    const rows = await executeQuery(query, { boardId: { type: sql.NVarChar, value: boardId } });
 
     return NextResponse.json({
       success: true,
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
     } = body || {};
 
     if (!columnId || !title) {
-      return NextResponse.json({ success: false, message: 'columnId và title là bắt buộc', data: null }, { status: 400 });
+      return NextResponse.json({ success: false, message: 'columnId and title are required', data: null }, { status: 400 });
     }
 
     const id = `task-${Date.now()}`;
@@ -69,7 +70,10 @@ export async function POST(request: Request) {
       FROM zen50558_ManagementStore.dbo.KanbanTasks
       WHERE BoardId = @boardId AND ColumnId = @columnId AND IsActive = 1
     `;
-    const [{ nextOrder }] = await executeQuery(nextOrderQuery, { boardId, columnId });
+    const [{ nextOrder }] = await executeQuery(nextOrderQuery, {
+      boardId: { type: sql.NVarChar, value: boardId },
+      columnId: { type: sql.NVarChar, value: columnId },
+    });
 
     const insertQuery = `
       INSERT INTO zen50558_ManagementStore.dbo.KanbanTasks
@@ -78,15 +82,15 @@ export async function POST(request: Request) {
     `;
 
     await executeQuery(insertQuery, {
-      id,
-      boardId,
-      columnId,
-      title,
-      description,
-      priority,
-      orderIndex: nextOrder,
-      assignee,
-      metadata,
+      id: { type: sql.NVarChar, value: id },
+      boardId: { type: sql.NVarChar, value: boardId },
+      columnId: { type: sql.NVarChar, value: columnId },
+      title: { type: sql.NVarChar, value: title },
+      description: { type: sql.NVarChar, value: description },
+      priority: { type: sql.NVarChar, value: priority },
+      orderIndex: { type: sql.Int, value: nextOrder },
+      assignee: { type: sql.NVarChar, value: assignee },
+      metadata: { type: sql.NVarChar, value: metadata },
     });
 
     const fetchQuery = `
@@ -98,7 +102,7 @@ export async function POST(request: Request) {
       WHERE t.Id = @id
     `;
 
-    const [created] = await executeQuery(fetchQuery, { id });
+    const [created] = await executeQuery(fetchQuery, { id: { type: sql.NVarChar, value: id } });
 
     return NextResponse.json({ success: true, message: 'Task created', data: created });
   } catch (error) {
@@ -106,4 +110,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: 'Failed to create task', data: null }, { status: 500 });
   }
 }
-

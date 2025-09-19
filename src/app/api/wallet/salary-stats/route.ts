@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import sql from 'mssql';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic';
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
     `;
 
     const currentMonthResult = await executeQuery(currentMonthQuery, { 
-      categoryId: salaryCategory.Id 
+      categoryId: { type: sql.NVarChar, value: salaryCategory.Id } 
     });
 
     // Get last month salary statistics for comparison
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
     `;
 
     const lastMonthResult = await executeQuery(lastMonthQuery, { 
-      categoryId: salaryCategory.Id 
+      categoryId: { type: sql.NVarChar, value: salaryCategory.Id } 
     });
 
     // Get monthly trend for last N months
@@ -118,8 +119,8 @@ export async function GET(request: NextRequest) {
     `;
 
     const monthlyTrend = await executeQuery(monthlyTrendQuery, {
-      categoryId: salaryCategory.Id,
-      startDate: startDate.toISOString()
+      categoryId: { type: sql.NVarChar, value: salaryCategory.Id },
+      startDate: { type: sql.DateTime, value: startDate }
     });
 
     // Get year-to-date statistics
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
     `;
 
     const ytdResult = await executeQuery(ytdQuery, {
-      categoryId: salaryCategory.Id
+      categoryId: { type: sql.NVarChar, value: salaryCategory.Id }
     });
 
     // Log year-to-date results for debugging
@@ -161,7 +162,7 @@ export async function GET(request: NextRequest) {
     `;
 
     const recentSalaries = await executeQuery(recentSalariesQuery, {
-      categoryId: salaryCategory.Id
+      categoryId: { type: sql.NVarChar, value: salaryCategory.Id }
     });
 
     // Calculate monthly profit (assuming 15% profit margin as example)

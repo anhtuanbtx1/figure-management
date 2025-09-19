@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 import { GuestStatus } from '@/app/(DashboardLayout)/types/apps/eventGuest';
+import sql from 'mssql';
 
 // Helper: read allowed values from a CHECK constraint definition (SQL Server)
 async function getAllowedValuesFromCheckConstraint(constraintName: string): Promise<string[] | null> {
   try {
     const rows = await executeQuery(
       `SELECT OBJECT_DEFINITION(OBJECT_ID(@constraintName)) AS definition`,
-      { constraintName }
+      { constraintName: { type: sql.NVarChar, value: constraintName } }
     );
     const def: string | undefined = rows?.[0]?.definition;
     if (!def) return null;
@@ -177,13 +178,13 @@ export async function GET(request: NextRequest) {
           status LIKE @search
         )`);
       }
-      queryParams.search = searchTerm;
+      queryParams.search = { type: sql.NVarChar, value: searchTerm };
     }
 
     // Add status filter
     if (status) {
       whereConditions.push('status = @status');
-      queryParams.status = status;
+      queryParams.status = { type: sql.NVarChar, value: status };
     }
 
     // Validate sort field to prevent SQL injection
@@ -228,8 +229,8 @@ export async function GET(request: NextRequest) {
       executeQuery<{ TotalCount: number }>(countQuery, queryParams),
       executeQuery<WeddingGuestRow>(dataQuery, {
         ...queryParams,
-        offset,
-        pageSize: validPageSize
+        offset: { type: sql.Int, value: offset },
+        pageSize: { type: sql.Int, value: validPageSize }
       })
     ]);
 
@@ -425,14 +426,14 @@ export async function POST(request: NextRequest) {
 
     // Execute insert query
     const result = await executeQuery(insertQuery, {
-      fullName: fullName.trim(),
-      unit: unit.trim(),
-      numberOfPeople: Number(numberOfPeople) || 1,
-      contributionAmount: Number(contributionAmount) || 0,
-      status: dbStatus,
-      relationship: relationship || null,
-      notes: notes || '',
-      createdBy: 'System', // TODO: Replace with actual user when auth is implemented
+      fullName: { type: sql.NVarChar, value: fullName.trim() },
+      unit: { type: sql.NVarChar, value: unit.trim() },
+      numberOfPeople: { type: sql.Int, value: Number(numberOfPeople) || 1 },
+      contributionAmount: { type: sql.Decimal, value: Number(contributionAmount) || 0 },
+      status: { type: sql.NVarChar, value: dbStatus },
+      relationship: { type: sql.NVarChar, value: relationship || null },
+      notes: { type: sql.NText, value: notes || '' },
+      createdBy: { type: sql.NVarChar, value: 'System' } // TODO: Replace with actual user when auth is implemented
     });
 
     const newGuestId = result[0]?.id;
@@ -495,7 +496,7 @@ export async function PUT(request: NextRequest) {
 
     // Check if guest exists
     const existsQuery = `SELECT id FROM WeddingGuests WHERE id = @id AND isActive = 1`;
-    const existingGuest = await executeQuery(existsQuery, { id: Number(id) });
+    const existingGuest = await executeQuery(existsQuery, { id: { type: sql.Int, value: Number(id) } });
 
     if (existingGuest.length === 0) {
       return NextResponse.json({
@@ -561,15 +562,15 @@ export async function PUT(request: NextRequest) {
 
     // Execute update query
     await executeQuery(updateQuery, {
-      id: Number(id),
-      fullName: fullName.trim(),
-      unit: unit.trim(),
-      numberOfPeople: Number(numberOfPeople) || 1,
-      contributionAmount: Number(contributionAmount) || 0,
-      status: dbStatus,
-      relationship: relationship || null,
-      notes: notes || '',
-      updatedBy: 'System', // TODO: Replace with actual user when auth is implemented
+      id: { type: sql.Int, value: Number(id) },
+      fullName: { type: sql.NVarChar, value: fullName.trim() },
+      unit: { type: sql.NVarChar, value: unit.trim() },
+      numberOfPeople: { type: sql.Int, value: Number(numberOfPeople) || 1 },
+      contributionAmount: { type: sql.Decimal, value: Number(contributionAmount) || 0 },
+      status: { type: sql.NVarChar, value: dbStatus },
+      relationship: { type: sql.NVarChar, value: relationship || null },
+      notes: { type: sql.NText, value: notes || '' },
+      updatedBy: { type: sql.NVarChar, value: 'System' } // TODO: Replace with actual user when auth is implemented
     });
 
     console.log(`✅ Successfully updated guest with ID: ${id}`);

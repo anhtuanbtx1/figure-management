@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import sql from 'mssql';
 
 // GET /api/wallet/categories - Fetch all wallet categories for dropdown
 export async function GET() {
@@ -94,10 +95,10 @@ export async function POST(request: Request) {
     `;
 
     await executeQuery(insertQuery, {
-      id,
-      name,
-      type,
-      color: color || '#4CAF50'
+      id: { type: sql.NVarChar, value: id },
+      name: { type: sql.NVarChar, value: name },
+      type: { type: sql.NVarChar, value: type },
+      color: { type: sql.NVarChar, value: color || '#4CAF50' }
     });
 
     console.log(`✅ Created new wallet category: ${name}`);

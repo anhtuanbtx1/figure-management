@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery, executeStoredProcedure } from '@/lib/database';
 import { ToyCategory } from '@/app/(DashboardLayout)/types/apps/toy';
+import sql from 'mssql';
 
 // Helper function to map database row to frontend ToyCategory format
 function mapDatabaseRowToCategory(row: any): ToyCategory {
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
     // Check if slug already exists
     const existingCategory = await executeQuery(
       'SELECT Id FROM ToyCategories WHERE Slug = @slug AND IsActive = 1',
-      { slug }
+      { slug: { type: sql.NVarChar, value: slug } }
     );
 
     if (existingCategory.length > 0) {
@@ -127,12 +128,12 @@ export async function POST(request: NextRequest) {
     `;
 
     await executeQuery(insertQuery, {
-      id: newId,
-      name,
-      slug,
-      description: description || '',
-      icon: icon || '',
-      color: color || '#000000',
+      id: { type: sql.NVarChar, value: newId },
+      name: { type: sql.NVarChar, value: name },
+      slug: { type: sql.NVarChar, value: slug },
+      description: { type: sql.NVarChar, value: description || '' },
+      icon: { type: sql.NVarChar, value: icon || '' },
+      color: { type: sql.NVarChar, value: color || '#000000' },
     });
 
     // Fetch the created category
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
               Icon as icon, Color as color 
        FROM ToyCategories 
        WHERE Id = @id`,
-      { id: newId }
+      { id: { type: sql.NVarChar, value: newId } }
     );
 
     const category = mapDatabaseRowToCategory(createdCategory[0]);

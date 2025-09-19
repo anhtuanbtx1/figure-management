@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery, executeStoredProcedure } from '@/lib/database';
+import sql from 'mssql';
 
 // GET /api/toys/test - Test database connection and API endpoints
 export async function GET(request: NextRequest) {
@@ -157,10 +158,10 @@ export async function GET(request: NextRequest) {
     // Test 7: Test stored procedure sp_GetToysForFrontend
     try {
       const result = await executeStoredProcedure('sp_GetToysForFrontend', {
-        Page: 1,
-        PageSize: 5,
-        SortField: 'CreatedAt',
-        SortDirection: 'DESC',
+        Page: { type: sql.Int, value: 1 },
+        PageSize: { type: sql.Int, value: 5 },
+        SortField: { type: sql.NVarChar, value: 'CreatedAt' },
+        SortDirection: { type: sql.NVarChar, value: 'DESC' },
       });
       
       testResults.push({

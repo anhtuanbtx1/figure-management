@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery, executeStoredProcedure } from '@/lib/database';
+import sql from 'mssql';
 
 // GET /api/toys/brands - Get all toy brands
 export async function GET() {
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
     // Check if brand already exists
     const existingBrand = await executeQuery(
       'SELECT Id FROM ToyBrands WHERE Name = @name AND IsActive = 1',
-      { name }
+      { name: { type: sql.NVarChar, value: name } }
     );
 
     if (existingBrand.length > 0) {
@@ -108,11 +109,11 @@ export async function POST(request: NextRequest) {
     `;
 
     await executeQuery(insertQuery, {
-      id: newId,
-      name,
-      description: description || '',
-      website: website || '',
-      logo: logo || '',
+      id: { type: sql.NVarChar, value: newId },
+      name: { type: sql.NVarChar, value: name },
+      description: { type: sql.NVarChar, value: description || '' },
+      website: { type: sql.NVarChar, value: website || '' },
+      logo: { type: sql.NVarChar, value: logo || '' },
     });
 
     console.log(`✅ Successfully created brand with ID: ${newId}`);

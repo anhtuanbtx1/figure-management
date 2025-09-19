@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import sql from 'mssql';
 
 // GET /api/wallet/transactions/[id] - Get single transaction
 export async function GET(
@@ -28,7 +29,7 @@ export async function GET(
       WHERE t.Id = @id AND t.IsActive = 1
     `;
 
-    const result = await executeQuery(query, { id: params.id });
+    const result = await executeQuery(query, { id: { type: sql.NVarChar, value: params.id } });
 
     if (result.length === 0) {
       return NextResponse.json({
@@ -97,7 +98,7 @@ export async function PUT(
       WHERE Id = @id AND IsActive = 1
     `;
     
-    const existingTransaction = await executeQuery(checkQuery, { id: params.id });
+    const existingTransaction = await executeQuery(checkQuery, { id: { type: sql.NVarChar, value: params.id } });
     
     if (existingTransaction.length === 0) {
       return NextResponse.json({
@@ -121,13 +122,13 @@ export async function PUT(
     `;
 
     await executeQuery(updateQuery, {
-      id: params.id,
-      type,
-      amount: parseFloat(amount),
-      description,
-      categoryId,
-      transactionDate: transactionDate || new Date().toISOString(),
-      status: status || 'Hoàn thành'
+      id: { type: sql.NVarChar, value: params.id },
+      type: { type: sql.NVarChar, value: type },
+      amount: { type: sql.Decimal, value: parseFloat(amount) },
+      description: { type: sql.NText, value: description },
+      categoryId: { type: sql.NVarChar, value: categoryId },
+      transactionDate: { type: sql.DateTime, value: transactionDate ? new Date(transactionDate) : new Date() },
+      status: { type: sql.NVarChar, value: status || 'Hoàn thành' }
     });
 
     console.log(`✅ Updated wallet transaction: ${params.id}`);
@@ -151,7 +152,7 @@ export async function PUT(
       WHERE t.Id = @id
     `;
 
-    const result = await executeQuery(fetchQuery, { id: params.id });
+    const result = await executeQuery(fetchQuery, { id: { type: sql.NVarChar, value: params.id } });
     const transaction = result[0];
 
     return NextResponse.json({
@@ -198,7 +199,7 @@ export async function DELETE(
       WHERE Id = @id AND IsActive = 1
     `;
     
-    const existingTransaction = await executeQuery(checkQuery, { id: params.id });
+    const existingTransaction = await executeQuery(checkQuery, { id: { type: sql.NVarChar, value: params.id } });
     
     if (existingTransaction.length === 0) {
       return NextResponse.json({
@@ -216,7 +217,7 @@ export async function DELETE(
     `;
 
     await executeQuery(deleteQuery, {
-      id: params.id
+      id: { type: sql.NVarChar, value: params.id }
     });
 
     console.log(`✅ Deleted wallet transaction: ${params.id}`);

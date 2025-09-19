@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeStoredProcedure, executeQuery } from '@/lib/database';
 import { Toy, ToyStatus, ToyCreateRequest } from '@/app/(DashboardLayout)/types/apps/toy';
+import sql from 'mssql';
 
 // Helper function to map database row to frontend Toy format
 function mapDatabaseRowToToy(row: any): Toy {
@@ -61,18 +62,18 @@ export async function GET(request: NextRequest) {
 
     // Get toys data with pagination
     const dataParams = {
-      Search: search,
-      CategoryId: category,
-      BrandName: brand,
-      Status: status,
-      MinPrice: minPrice,
-      MaxPrice: maxPrice,
-      AgeRange: ageRange,
-      InStock: inStock ? 1 : 0,
-      Page: page,
-      PageSize: pageSize,
-      SortField: sortField,
-      SortDirection: sortDirection.toUpperCase(),
+      Search: { type: sql.NVarChar, value: search },
+      CategoryId: { type: sql.NVarChar, value: category },
+      BrandName: { type: sql.NVarChar, value: brand },
+      Status: { type: sql.NVarChar, value: status },
+      MinPrice: { type: sql.Decimal, value: minPrice },
+      MaxPrice: { type: sql.Decimal, value: maxPrice },
+      AgeRange: { type: sql.NVarChar, value: ageRange },
+      InStock: { type: sql.Bit, value: inStock ? 1 : 0 },
+      Page: { type: sql.Int, value: page },
+      PageSize: { type: sql.Int, value: pageSize },
+      SortField: { type: sql.NVarChar, value: sortField },
+      SortDirection: { type: sql.NVarChar, value: sortDirection.toUpperCase() },
     };
 
     let toysResult, countResult;
@@ -100,14 +101,14 @@ export async function GET(request: NextRequest) {
       `;
       
       const countParams = {
-        Search: search,
-        CategoryId: category,
-        BrandName: brand,
-        Status: status,
-        MinPrice: minPrice,
-        MaxPrice: maxPrice,
-        AgeRange: ageRange,
-        InStock: inStock ? 1 : 0,
+        Search: { type: sql.NVarChar, value: search },
+        CategoryId: { type: sql.NVarChar, value: category },
+        BrandName: { type: sql.NVarChar, value: brand },
+        Status: { type: sql.NVarChar, value: status },
+        MinPrice: { type: sql.Decimal, value: minPrice },
+        MaxPrice: { type: sql.Decimal, value: maxPrice },
+        AgeRange: { type: sql.NVarChar, value: ageRange },
+        InStock: { type: sql.Bit, value: inStock ? 1 : 0 },
       };
       
       const countRows = await executeQuery(countQuery, countParams);
@@ -125,31 +126,31 @@ export async function GET(request: NextRequest) {
 
       if (search) {
         whereConditions.push('(t.Name LIKE @Search OR t.Description LIKE @Search)');
-        queryParams.Search = `%${search}%`;
+        queryParams.Search = { type: sql.NVarChar, value: `%${search}%` };
       }
       if (category) {
         whereConditions.push('t.CategoryId = @CategoryId');
-        queryParams.CategoryId = category;
+        queryParams.CategoryId = { type: sql.NVarChar, value: category };
       }
       if (brand) {
         whereConditions.push('b.Name = @BrandName');
-        queryParams.BrandName = brand;
+        queryParams.BrandName = { type: sql.NVarChar, value: brand };
       }
       if (status) {
         whereConditions.push('t.Status = @Status');
-        queryParams.Status = status;
+        queryParams.Status = { type: sql.NVarChar, value: status };
       }
       if (minPrice !== null) {
         whereConditions.push('t.Price >= @MinPrice');
-        queryParams.MinPrice = minPrice;
+        queryParams.MinPrice = { type: sql.Decimal, value: minPrice };
       }
       if (maxPrice !== null) {
         whereConditions.push('t.Price <= @MaxPrice');
-        queryParams.MaxPrice = maxPrice;
+        queryParams.MaxPrice = { type: sql.Decimal, value: maxPrice };
       }
       if (ageRange) {
         whereConditions.push('t.AgeRange LIKE @AgeRange');
-        queryParams.AgeRange = `%${ageRange}%`;
+        queryParams.AgeRange = { type: sql.NVarChar, value: `%${ageRange}%` };
       }
       if (inStock) {
         whereConditions.push('t.Stock > 0');
@@ -303,22 +304,22 @@ export async function POST(request: NextRequest) {
 
     // Prepare parameters for stored procedure
     const params = {
-      Name: body.name,
-      Description: body.description,
-      Image: body.image || '/images/toys/default.jpg',
-      CategoryId: body.categoryId,
-      Price: body.price,
-      OriginalPrice: body.originalPrice || null,
-      Stock: body.stock,
-      AgeRange: body.ageRange || '',
-      Brand: body.brand,
-      Material: body.material || '',
-      DimensionLength: body.dimensions?.length || 0,
-      DimensionWidth: body.dimensions?.width || 0,
-      DimensionHeight: body.dimensions?.height || 0,
-      Weight: body.dimensions?.weight || 0,
-      Colors: JSON.stringify(body.colors || []),
-      Tags: JSON.stringify(body.tags || []),
+      Name: { type: sql.NVarChar, value: body.name },
+      Description: { type: sql.NText, value: body.description },
+      Image: { type: sql.NVarChar, value: body.image || '/images/toys/default.jpg' },
+      CategoryId: { type: sql.NVarChar, value: body.categoryId },
+      Price: { type: sql.Decimal, value: body.price },
+      OriginalPrice: { type: sql.Decimal, value: body.originalPrice || null },
+      Stock: { type: sql.Int, value: body.stock },
+      AgeRange: { type: sql.NVarChar, value: body.ageRange || '' },
+      Brand: { type: sql.NVarChar, value: body.brand },
+      Material: { type: sql.NVarChar, value: body.material || '' },
+      DimensionLength: { type: sql.Decimal, value: body.dimensions?.length || 0 },
+      DimensionWidth: { type: sql.Decimal, value: body.dimensions?.width || 0 },
+      DimensionHeight: { type: sql.Decimal, value: body.dimensions?.height || 0 },
+      Weight: { type: sql.Decimal, value: body.dimensions?.weight || 0 },
+      Colors: { type: sql.NVarChar, value: JSON.stringify(body.colors || []) },
+      Tags: { type: sql.NVarChar, value: JSON.stringify(body.tags || []) },
     };
 
     console.log('🔧 Executing stored procedure with params:', params);

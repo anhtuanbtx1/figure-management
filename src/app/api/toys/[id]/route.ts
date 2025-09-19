@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeStoredProcedure, executeQuery } from '@/lib/database';
 import { Toy, ToyStatus, ToyUpdateRequest } from '@/app/(DashboardLayout)/types/apps/toy';
+import sql from 'mssql';
 
 // Helper function to map database row to frontend Toy format
 function mapDatabaseRowToToy(row: any): Toy {
@@ -41,7 +42,7 @@ export async function GET(
 
     // Execute stored procedure to get single toy
     const result = await executeStoredProcedure('sp_GetToyByIdForFrontend', {
-      ToyId: toyId,
+      ToyId: { type: sql.NVarChar, value: toyId },
     });
 
     if (!result || result.length === 0) {
@@ -90,7 +91,7 @@ export async function PUT(
 
     // Check if toy exists
     const existingToy = await executeStoredProcedure('sp_GetToyByIdForFrontend', {
-      ToyId: toyId,
+      ToyId: { type: sql.NVarChar, value: toyId },
     });
 
     if (!existingToy || existingToy.length === 0) {
@@ -103,23 +104,23 @@ export async function PUT(
 
     // Build update query dynamically based on provided fields
     const updateFields: string[] = [];
-    const params: Record<string, any> = { id: toyId };
+    const params: Record<string, any> = { id: { type: sql.NVarChar, value: toyId } };
 
     if (body.name !== undefined) {
       updateFields.push('Name = @name');
-      params.name = body.name;
+      params.name = { type: sql.NVarChar, value: body.name };
     }
     if (body.description !== undefined) {
       updateFields.push('Description = @description');
-      params.description = body.description;
+      params.description = { type: sql.NText, value: body.description };
     }
     if (body.image !== undefined) {
       updateFields.push('Image = @image');
-      params.image = body.image;
+      params.image = { type: sql.NVarChar, value: body.image };
     }
     if (body.categoryId !== undefined) {
       updateFields.push('CategoryId = @categoryId');
-      params.categoryId = body.categoryId;
+      params.categoryId = { type: sql.NVarChar, value: body.categoryId };
     }
     if (body.price !== undefined) {
       if (body.price <= 0) {
@@ -130,11 +131,11 @@ export async function PUT(
         }, { status: 400 });
       }
       updateFields.push('Price = @price');
-      params.price = body.price;
+      params.price = { type: sql.Decimal, value: body.price };
     }
     if (body.originalPrice !== undefined) {
       updateFields.push('OriginalPrice = @originalPrice');
-      params.originalPrice = body.originalPrice;
+      params.originalPrice = { type: sql.Decimal, value: body.originalPrice };
     }
     if (body.stock !== undefined) {
       if (body.stock < 0) {
@@ -145,21 +146,21 @@ export async function PUT(
         }, { status: 400 });
       }
       updateFields.push('Stock = @stock');
-      params.stock = body.stock;
+      params.stock = { type: sql.Int, value: body.stock };
     }
     if (body.status !== undefined) {
       updateFields.push('Status = @status');
-      params.status = body.status;
+      params.status = { type: sql.NVarChar, value: body.status };
     }
     if (body.ageRange !== undefined) {
       updateFields.push('AgeRange = @ageRange');
-      params.ageRange = body.ageRange;
+      params.ageRange = { type: sql.NVarChar, value: body.ageRange };
     }
     if (body.brand !== undefined) {
       // Handle brand update - need to get or create brand ID
       const brandResult = await executeQuery(
         'SELECT Id FROM ToyBrands WHERE Name = @brandName AND IsActive = 1',
-        { brandName: body.brand }
+        { brandName: { type: sql.NVarChar, value: body.brand } }
       );
       
       let brandId: string;
@@ -170,41 +171,44 @@ export async function PUT(
         brandId = `brand-${Date.now()}`;
         await executeQuery(
           'INSERT INTO ToyBrands (Id, Name, IsActive, CreatedAt, UpdatedAt) VALUES (@id, @name, 1, GETDATE(), GETDATE())',
-          { id: brandId, name: body.brand }
+          { 
+              id: { type: sql.NVarChar, value: brandId }, 
+              name: { type: sql.NVarChar, value: body.brand } 
+          }
         );
       }
       updateFields.push('BrandId = @brandId');
-      params.brandId = brandId;
+      params.brandId = { type: sql.NVarChar, value: brandId };
     }
     if (body.material !== undefined) {
       updateFields.push('Material = @material');
-      params.material = body.material;
+      params.material = { type: sql.NVarChar, value: body.material };
     }
     if (body.dimensions !== undefined) {
       if (body.dimensions.length !== undefined) {
         updateFields.push('DimensionLength = @dimensionLength');
-        params.dimensionLength = body.dimensions.length;
+        params.dimensionLength = { type: sql.Decimal, value: body.dimensions.length };
       }
       if (body.dimensions.width !== undefined) {
         updateFields.push('DimensionWidth = @dimensionWidth');
-        params.dimensionWidth = body.dimensions.width;
+        params.dimensionWidth = { type: sql.Decimal, value: body.dimensions.width };
       }
       if (body.dimensions.height !== undefined) {
         updateFields.push('DimensionHeight = @dimensionHeight');
-        params.dimensionHeight = body.dimensions.height;
+        params.dimensionHeight = { type: sql.Decimal, value: body.dimensions.height };
       }
       if (body.dimensions.weight !== undefined) {
         updateFields.push('Weight = @weight');
-        params.weight = body.dimensions.weight;
+        params.weight = { type: sql.Decimal, value: body.dimensions.weight };
       }
     }
     if (body.colors !== undefined) {
       updateFields.push('Colors = @colors');
-      params.colors = JSON.stringify(body.colors);
+      params.colors = { type: sql.NVarChar, value: JSON.stringify(body.colors) };
     }
     if (body.tags !== undefined) {
       updateFields.push('Tags = @tags');
-      params.tags = JSON.stringify(body.tags);
+      params.tags = { type: sql.NVarChar, value: JSON.stringify(body.tags) };
     }
 
     // Always update the UpdatedAt field
@@ -229,7 +233,7 @@ export async function PUT(
 
     // Fetch updated toy
     const updatedResult = await executeStoredProcedure('sp_GetToyByIdForFrontend', {
-      ToyId: toyId,
+      ToyId: { type: sql.NVarChar, value: toyId },
     });
 
     const updatedToy = mapDatabaseRowToToy(updatedResult[0]);
@@ -265,7 +269,7 @@ export async function DELETE(
     // Check if toy exists
     const existingToy = await executeQuery(
       'SELECT Id, Name FROM Toys WHERE Id = @id AND IsActive = 1',
-      { id: toyId }
+      { id: { type: sql.NVarChar, value: toyId } }
     );
 
     if (existingToy.length === 0) {
@@ -281,7 +285,7 @@ export async function DELETE(
     // Soft delete - set IsActive to 0
     await executeQuery(
       'UPDATE Toys SET IsActive = 0, UpdatedAt = GETDATE() WHERE Id = @id',
-      { id: toyId }
+      { id: { type: sql.NVarChar, value: toyId } }
     );
 
     console.log(`✅ Successfully deleted toy: ${toyName}`);

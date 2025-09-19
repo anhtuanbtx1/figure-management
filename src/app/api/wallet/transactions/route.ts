@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import sql from 'mssql';
 
 // GET /api/wallet/transactions - Fetch transactions with pagination and filtering
 export async function GET(request: NextRequest) {
@@ -25,25 +26,25 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       whereConditions.push('(t.Description LIKE @search OR t.Type LIKE @search)');
-      queryParams.search = `%${search}%`;
+      queryParams.search = { type: sql.NVarChar, value: `%${search}%` };
     }
 
     if (type) {
       whereConditions.push('t.Type = @type');
-      queryParams.type = type;
+      queryParams.type = { type: sql.NVarChar, value: type };
     }
 
     if (categoryId) {
       whereConditions.push('t.CategoryId = @categoryId');
-      queryParams.categoryId = categoryId;
+      queryParams.categoryId = { type: sql.NVarChar, value: categoryId };
     }
 
     if (status) {
       whereConditions.push('t.Status = @status');
-      queryParams.status = status;
+      queryParams.status = { type: sql.NVarChar, value: status };
     }
 
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    const whereClause = whereConditions.length > 1 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
     // Get total count
     const countQuery = `
@@ -150,7 +151,7 @@ export async function POST(request: Request) {
 
     // Generate ID
     const id = `txn-${Date.now()}`;
-    const now = new Date().toISOString();
+    const now = new Date();
 
     // Insert new transaction
     const insertQuery = `
@@ -160,14 +161,14 @@ export async function POST(request: Request) {
     `;
 
     await executeQuery(insertQuery, {
-      id,
-      type,
-      amount: parseFloat(amount),
-      description,
-      categoryId,
-      transactionDate: transactionDate || now,
-      status: status || 'Hoàn thành',
-      createdAt: now
+      id: { type: sql.NVarChar, value: id },
+      type: { type: sql.NVarChar, value: type },
+      amount: { type: sql.Decimal, value: parseFloat(amount) },
+      description: { type: sql.NText, value: description },
+      categoryId: { type: sql.NVarChar, value: categoryId },
+      transactionDate: { type: sql.DateTime, value: transactionDate ? new Date(transactionDate) : now },
+      status: { type: sql.NVarChar, value: status || 'Hoàn thành' },
+      createdAt: { type: sql.DateTime, value: now }
     });
 
     console.log(`✅ Created new wallet transaction: ${description}`);
@@ -191,7 +192,7 @@ export async function POST(request: Request) {
       WHERE t.Id = @id
     `;
 
-    const result = await executeQuery(fetchQuery, { id });
+    const result = await executeQuery(fetchQuery, { id: { type: sql.NVarChar, value: id } });
     const transaction = result[0];
 
     return NextResponse.json({

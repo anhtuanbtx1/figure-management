@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import sql from 'mssql';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic';
@@ -88,9 +89,9 @@ export async function GET(request: NextRequest) {
       ORDER BY taskCount DESC
     `;
 
-    const params = { 
-      boardId, 
-      startDate: startDate.toISOString() 
+    const params = {
+      boardId: { type: sql.NVarChar, value: boardId },
+      startDate: { type: sql.DateTime, value: startDate.toISOString() },
     };
 
     // Execute all queries in parallel
@@ -100,10 +101,10 @@ export async function GET(request: NextRequest) {
       completionStats,
       topAssignees
     ] = await Promise.all([
-      executeQuery(statsQuery, params),
+      executeQuery(statsQuery, { boardId: params.boardId }),
       executeQuery(recentActivityQuery, params),
       executeQuery(completionQuery, params),
-      executeQuery(topAssigneesQuery, params)
+      executeQuery(topAssigneesQuery, { boardId: params.boardId })
     ]);
 
     const stats = mainStats[0];
