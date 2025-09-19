@@ -52,7 +52,7 @@ async function triggerReminders() {
             title: reminder.title,
             description: reminder.description || 'Không có mô tả',
             reminderDate: format(new Date(reminder.reminderDate), 'dd/MM/yyyy'),
-            reminderTime: format(new Date(reminder.reminderTime), 'HH:mm'), // CORRECTED: Was reminder.reminderTime.substring(0, 5)
+            reminderTime: format(new Date(reminder.reminderTime), 'HH:mm'),
             reminderType: reminder.reminderType, 
             priority: reminder.priority, 
         };
@@ -101,25 +101,23 @@ async function triggerReminders() {
 
 // The API route handler
 export async function GET(request: NextRequest) {
-    // const headersList = headers();
-    // const authHeader = headersList.get('authorization');
-
-    // ------------------------------------------------------------------
-    // WARNING: TEMPORARY WORKAROUND
-    // Authentication is disabled because the Vercel CRON_SECRET is not being provided.
-    // This makes the endpoint public.
-    // TODO: Re-enable this check once Vercel resolves the environment variable issue.
-    // ------------------------------------------------------------------
-    // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    //     return new NextResponse('Unauthorized', { status: 401 });
-    // }
-
+    // WARNING: Authentication is currently disabled as a temporary workaround.
+    
     try {
         const result = await triggerReminders();
+        
+        // Explicitly log the result before returning the response
+        console.log('--- CRON JOB RESULT ---', JSON.stringify(result, null, 2));
+        
         return NextResponse.json(result);
+
     } catch (error) {
         console.error('[ERROR] in /api/reminders/trigger:', error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        
+        // Explicitly log the error details
+        console.log('--- CRON JOB ERROR ---', JSON.stringify({ success: false, message: 'Failed to trigger reminders', error: errorMessage }, null, 2));
+        
         return NextResponse.json({ success: false, message: 'Failed to trigger reminders', error: errorMessage }, { status: 500 });
     }
 }
