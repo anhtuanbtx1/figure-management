@@ -2,7 +2,8 @@
   "crons": [
     {
       "path": "/api/reminders/trigger",
-      "schedule": "0 9 * * *"
+      "schedule": "0 9 * * *",
+      "timeZone": "Asia/Ho_Chi_Minh"
     }
   ]
 }
