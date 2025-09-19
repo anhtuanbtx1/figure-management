@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
-import { sendTelegramMessage } from '@/lib/telegram';
+import { sendTelegramMessage, escapeMarkdownV2 } from '@/lib/telegram';
 import { format } from 'date-fns';
 import sql from 'mssql';
 
@@ -59,16 +59,18 @@ async function triggerReminders() {
     for (const reminder of dueReminders) {
         console.log(`[LOG] Processing reminder ID: ${reminder.id}`);
         
-        let message = template;
+        // Escape dynamic values for MarkdownV2
         const replacements = {
-            title: reminder.title,
-            description: reminder.description || 'Không có mô tả',
-            reminderDate: format(new Date(reminder.reminderDate), 'dd/MM/yyyy'),
-            reminderTime: format(new Date(reminder.reminderTime), 'HH:mm'),
-            reminderType: reminder.reminderType, 
-            priority: reminder.priority, 
+            title: escapeMarkdownV2(reminder.title),
+            description: escapeMarkdownV2(reminder.description || 'Không có mô tả'),
+            reminderDate: escapeMarkdownV2(format(new Date(reminder.reminderDate), 'dd/MM/yyyy')),
+            reminderTime: escapeMarkdownV2(format(new Date(reminder.reminderTime), 'HH:mm')),
+            reminderType: escapeMarkdownV2(reminder.reminderType), 
+            priority: escapeMarkdownV2(reminder.priority), 
         };
 
+        // Replace placeholders in the template
+        let message = template;
         for (const [key, value] of Object.entries(replacements)) {
             message = message.replace(new RegExp(`{{${key}}}`, 'g'), value);
         }
