@@ -9,6 +9,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 import { IconCheck, IconMenu2, IconEdit, IconPalette, IconNote } from '@tabler/icons-react';
+import Paper from '@mui/material/Paper';
 
 import { UpdateNote } from '@/store/apps/notes/NotesSlice';
 import AddNotes from './AddNotes';
@@ -21,17 +22,22 @@ interface colorsType {
 }
 
 interface Props {
-  toggleNoteSidebar: (event: React.MouseEvent<HTMLElement>) => void,
+  toggleNoteSidebar: (event: React.MouseEvent<HTMLElement>) => void;
 }
 
 const NoteContent = ({ toggleNoteSidebar }: Props) => {
   const notelength: any = useSelector(
-    (state) => state.notesReducer.notes.length-1,
+    (state) => state.notesReducer.notes.length - 1
   );
   const noteDetails: NotesType = useSelector(
-    (state) => state.notesReducer.notes[state.notesReducer.notesContent>notelength ?  0 : state.notesReducer.notesContent],
+    (state) =>
+      state.notesReducer.notes[
+        state.notesReducer.notesContent > notelength
+          ? 0
+          : state.notesReducer.notesContent
+      ]
   );
-  
+
   const theme = useTheme();
 
   const dispatch = useDispatch();
@@ -65,10 +71,12 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
   ];
 
   return (
-    <Box sx={{
-      height: { lg: 'calc(100vh - 250px)', sm: '100vh' },
-      maxHeight: '700px',
-    }}>
+    <Box
+      sx={{
+        height: { lg: 'calc(100vh - 250px)', sm: '100vh' },
+        maxHeight: '700px',
+      }}
+    >
       {/* ------------------------------------------- */}
       {/* Header Part */}
       {/* ------------------------------------------- */}
@@ -88,7 +96,7 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
             onClick={toggleNoteSidebar}
             sx={{
               color: 'white',
-              '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' }
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' },
             }}
           >
             <IconMenu2 stroke={1.5} />
@@ -108,19 +116,20 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
       {/* ------------------------------------------- */}
       {noteDetails ? (
         <Box p={4}>
-          <Box
+          <Paper
             sx={{
-              backgroundColor: 'transparent',
               borderRadius: 3,
               p: 3,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-              border: '1px solid rgba(0,0,0,0.05)',
             }}
           >
             <FormLabel htmlFor="outlined-multiline-static">
               <Box display="flex" alignItems="center" gap={1} mb={2}>
                 <IconNote size={20} />
-                <Typography variant="h6" fontWeight={600} color="text.primary">
+                <Typography
+                  variant="h6"
+                  fontWeight={600}
+                  color="text.primary"
+                >
                   Nội dung ghi chú
                 </Typography>
               </Box>
@@ -134,7 +143,9 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
               rows={8}
               variant="outlined"
               value={noteDetails.title}
-              onChange={(e) => dispatch(UpdateNote(noteDetails.id, 'title', e.target.value))}
+              onChange={(e) =>
+                dispatch(UpdateNote(noteDetails.id, 'title', e.target.value))
+              }
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
@@ -143,7 +154,7 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
                     backgroundColor: 'rgba(0,0,0,0.04)',
                   },
                   '&.Mui-focused': {
-                    backgroundColor: 'white',
+                    backgroundColor: theme.palette.background.default,
                   },
                 },
                 '& .MuiInputBase-input': {
@@ -164,12 +175,19 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
               {colorvariation.map((color1) => (
                 <Fab
                   sx={{
-                    boxShadow: noteDetails.color === color1.disp
-                      ? `0 4px 12px ${color1.lineColor}40`
-                      : '0 2px 8px rgba(0,0,0,0.1)',
+                    boxShadow:
+                      noteDetails.color === color1.disp
+                        ? `0 4px 12px ${color1.lineColor}40`
+                        : '0 2px 8px rgba(0,0,0,0.1)',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    transform: noteDetails.color === color1.disp ? 'scale(1.1)' : 'scale(1)',
-                    border: noteDetails.color === color1.disp ? `2px solid ${color1.lineColor}` : '2px solid transparent',
+                    transform:
+                      noteDetails.color === color1.disp
+                        ? 'scale(1.1)'
+                        : 'scale(1)',
+                    border:
+                      noteDetails.color === color1.disp
+                        ? `2px solid ${color1.lineColor}`
+                        : '2px solid transparent',
                     '&:hover': {
                       transform: 'scale(1.1)',
                       boxShadow: `0 6px 16px ${color1.lineColor}40`,
@@ -178,13 +196,19 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
                   size="medium"
                   key={color1.id}
                   color={color1?.disp}
-                  onClick={() => dispatch(UpdateNote(noteDetails.id, 'color', color1.disp))}
+                  onClick={() =>
+                    dispatch(UpdateNote(noteDetails.id, 'color', color1.disp))
+                  }
                 >
-                  {noteDetails.color === color1.disp ? <IconCheck width="20" /> : ''}
+                  {noteDetails.color === color1.disp ? (
+                    <IconCheck width="20" />
+                  ) : (
+                    ''
+                  )}
                 </Fab>
               ))}
             </Box>
-          </Box>
+          </Paper>
         </Box>
       ) : (
         <Box
@@ -210,6 +234,5 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
     </Box>
   );
 };
-
 
 export default NoteContent;

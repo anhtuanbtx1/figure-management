@@ -153,7 +153,7 @@ const CalendarPage = () => {
           <Grid container spacing={3}>
             {/* Calendar */}
             <Grid item xs={12} md={8}>
-              <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50" }}>
+              <Paper elevation={0} sx={{ p: 2 }}>
                 {/* Month Navigation */}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
                   <IconButton onClick={handlePrevMonth}>
@@ -256,7 +256,7 @@ const CalendarPage = () => {
 
             {/* Selected Date Details */}
             <Grid item xs={12} md={4}>
-              <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50", height: "100%" }}>
+              <Paper elevation={0} sx={{ p: 2, height: "100%" }}>
                 <Typography variant="h6" gutterBottom>
                   {selectedDate
                     ? format(selectedDate, "dd MMMM yyyy", { locale: vi })

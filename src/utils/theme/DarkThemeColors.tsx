@@ -36,6 +36,11 @@ const DarkThemeColors = [
         dark: '#39C7AD',
         contrastText: '#ffffff',
       },
+      background: {
+        default: '#2A3447',
+        dark: '#2A3547',
+        paper: '#2A3447',
+      },
     },
   },
   {
@@ -52,6 +57,11 @@ const DarkThemeColors = [
         light: '#09454B',
         dark: '#8BC8CE',
         contrastText: '#ffffff',
+      },
+      background: {
+        default: '#2A3447',
+        dark: '#2A3547',
+        paper: '#2A3447',
       },
     },
   },
@@ -70,6 +80,11 @@ const DarkThemeColors = [
         dark: '#C3D046',
         contrastText: '#ffffff',
       },
+      background: {
+        default: '#2A3447',
+        dark: '#2A3547',
+        paper: '#2A3447',
+      },
     },
   },
   {
@@ -87,6 +102,11 @@ const DarkThemeColors = [
         dark: '#F48B6C',
         contrastText: '#ffffff',
       },
+      background: {
+        default: '#2A3447',
+        dark: '#2A3547',
+        paper: '#2A3447',
+      },
     },
   },
   {
@@ -103,6 +123,11 @@ const DarkThemeColors = [
         light: '#082E45',
         dark: '#006FB1',
         contrastText: '#ffffff',
+      },
+      background: {
+        default: '#2A3447',
+        dark: '#2A3547',
+        paper: '#2A3447',
       },
     },
   },

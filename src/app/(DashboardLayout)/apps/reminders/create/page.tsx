@@ -181,7 +181,7 @@ const CreateReminder = () => {
           <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50" }}>
+                <Paper elevation={0} sx={{ p: 2 }}>
                   <Typography variant="h6" gutterBottom>
                     Thông tin cơ bản
                   </Typography>
@@ -262,7 +262,7 @@ const CreateReminder = () => {
               </Grid>
 
               <Grid item xs={12}>
-                <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50" }}>
+                <Paper elevation={0} sx={{ p: 2 }}>
                   <Typography variant="h6" gutterBottom>
                     Thời gian nhắc nhở
                   </Typography>
@@ -317,7 +317,7 @@ const CreateReminder = () => {
               </Grid>
 
               <Grid item xs={12}>
-                <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50" }}>
+                <Paper elevation={0} sx={{ p: 2 }}>
                   <Typography variant="h6" gutterBottom>
                     Cài đặt
                   </Typography>
