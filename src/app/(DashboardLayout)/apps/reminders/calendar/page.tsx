@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState, useEffect } from "react";
 import PageContainer from "@/app/components/container/PageContainer";
@@ -41,8 +42,6 @@ interface Reminder {
   isActive: boolean;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
 const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -56,7 +55,7 @@ const CalendarPage = () => {
   const fetchReminders = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/reminders`);
+      const response = await fetch("/api/reminders");
       const data = await response.json();
       if (data.success) {
         setReminders(data.data);
