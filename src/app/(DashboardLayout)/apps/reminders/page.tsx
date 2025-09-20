@@ -115,15 +115,17 @@ export default function RemindersPage() {
     setOpenForm(true);
   };
 
-  const handleDeleteReminder = async (id: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa nhắc nhở này?')) return;
+  // CORRECTED: Name, signature, and logic to handle an array of IDs
+  const handleDeleteReminders = async (ids: number[]) => {
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${ids.length} nhắc nhở đã chọn?`)) return;
 
     try {
-      await reminderApi.deleteReminder(id);
-      showSnackbar('Xóa nhắc nhở thành công', 'success');
+      await reminderApi.deleteReminders(ids);
+      showSnackbar(`Đã xóa ${ids.length} nhắc nhở thành công`, 'success');
       loadReminders();
     } catch (error) {
-      showSnackbar('Lỗi khi xóa nhắc nhở', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Lỗi khi xóa nhắc nhở';
+      showSnackbar(errorMessage, 'error');
     }
   };
 
@@ -170,7 +172,8 @@ export default function RemindersPage() {
       loadReminders();
       handleFormClose();
     } catch (error) {
-      showSnackbar('Lỗi khi lưu nhắc nhở', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Lỗi khi lưu nhắc nhở';
+      showSnackbar(errorMessage, 'error');
     }
   };
 
@@ -246,7 +249,7 @@ export default function RemindersPage() {
                   reminders={reminders}
                   categories={categories}
                   onEdit={handleEditReminder}
-                  onDelete={handleDeleteReminder}
+                  onDelete={handleDeleteReminders} // CORRECTED: Pass the correct handler
                   onTrigger={handleTriggerReminder}
                   onTogglePause={handleTogglePause}
                 />

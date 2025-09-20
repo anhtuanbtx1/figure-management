@@ -26,7 +26,8 @@ const config: sql.config = {
 
 let pool: sql.ConnectionPool | null = null;
 
-async function getConnection(): Promise<sql.ConnectionPool> {
+// Renamed from getConnection and exported
+export async function getDbPool(): Promise<sql.ConnectionPool> {
   if (pool && pool.connected) {
     return pool;
   }
@@ -40,6 +41,7 @@ async function getConnection(): Promise<sql.ConnectionPool> {
   }
 }
 
+// Exported
 export async function closeConnection(): Promise<void> {
   try {
     if (pool) {
@@ -52,14 +54,12 @@ export async function closeConnection(): Promise<void> {
   }
 }
 
-// -- THE REAL FIX --
-// This function was fundamentally broken. It was passing the entire parameter object as the value.
-// It has been rewritten to correctly unpack the {type, value} and pass them to request.input().
+// Exported, and internal call updated to getDbPool
 export async function executeQuery<T = any>(
   query: string,
   params?: Record<string, { type: any; value: any }>
 ): Promise<T[]> {
-  const connection = await getConnection();
+  const connection = await getDbPool(); // Updated internal call
   const request = connection.request();
 
   if (params) {
@@ -79,11 +79,12 @@ export async function executeQuery<T = any>(
   return result.recordset;
 }
 
+// Exported, and internal call updated to getDbPool
 export async function executeStoredProcedure<T = any>(
   procedureName: string,
   params?: Record<string, { type: any; value: any }>
 ): Promise<T[]> {
-  const connection = await getConnection();
+  const connection = await getDbPool(); // Updated internal call
   const request = connection.request();
 
   if (params) {
@@ -103,6 +104,7 @@ export async function executeStoredProcedure<T = any>(
   return result.recordset;
 }
 
+
 process.on('SIGINT', async () => {
   await closeConnection();
   process.exit(0);
@@ -112,5 +114,3 @@ process.on('SIGTERM', async () => {
   await closeConnection();
   process.exit(0);
 });
-
-export default { getConnection, closeConnection, executeQuery, executeStoredProcedure };

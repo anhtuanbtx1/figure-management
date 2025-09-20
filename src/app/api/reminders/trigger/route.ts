@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
-import { sendTelegramMessage, escapeMarkdownV2 } from '@/lib/telegram';
+import { sendTelegramMessage } from '@/lib/telegram';
 import { format } from 'date-fns';
 import sql from 'mssql';
 
@@ -58,21 +58,21 @@ async function triggerReminders() {
     // 4. Process each due reminder
     for (const reminder of dueReminders) {
         console.log(`[LOG] Processing reminder ID: ${reminder.id}`);
-        
-        // Escape dynamic values for MarkdownV2
+
+        // Prepare reminder values with keys matching the template
         const replacements = {
-            title: escapeMarkdownV2(reminder.title),
-            description: escapeMarkdownV2(reminder.description || 'Không có mô tả'),
-            reminderDate: escapeMarkdownV2(format(new Date(reminder.reminderDate), 'dd/MM/yyyy')),
-            reminderTime: escapeMarkdownV2(format(new Date(reminder.reminderTime), 'HH:mm')),
-            reminderType: escapeMarkdownV2(reminder.reminderType), 
-            priority: escapeMarkdownV2(reminder.priority), 
+            escaped_title: reminder.title,
+            escaped_description: reminder.description || 'Không có mô tả',
+            escaped_reminderDate: format(new Date(reminder.reminderDate), 'dd/MM/yyyy'),
+            escaped_reminderTime: format(new Date(reminder.reminderTime), 'HH:mm'),
+            escaped_reminderType: reminder.reminderType,
+            escaped_priority: reminder.priority,
         };
 
         // Replace placeholders in the template
         let message = template;
         for (const [key, value] of Object.entries(replacements)) {
-            message = message.replace(new RegExp(`{{${key}}}`, 'g'), value);
+            message = message.replace(new RegExp(`{{${key}}}`, 'g'), value || '');
         }
 
         console.log(`[LOG] Step 4.1: Sending message for reminder ID: ${reminder.id}`);

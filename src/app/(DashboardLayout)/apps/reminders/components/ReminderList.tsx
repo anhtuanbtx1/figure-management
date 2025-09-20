@@ -31,7 +31,7 @@ interface ReminderListProps {
   reminders: Reminder[];
   categories: ReminderCategory[];
   onEdit: (reminder: Reminder) => void;
-  onDelete: (id: number) => void;
+  onDelete: (ids: number[]) => void; // CORRECTED: Expect an array of numbers
   onTrigger: (id: number) => void;
   onTogglePause: (reminder: Reminder) => void;
 }
@@ -222,7 +222,7 @@ const ReminderList: React.FC<ReminderListProps> = ({
                     <Tooltip title="Xóa">
                       <IconButton
                         size="small"
-                        onClick={() => onDelete(reminder.id!)}
+                        onClick={() => onDelete([reminder.id!])} // CORRECTED: Pass an array with the id
                         color="error"
                       >
                         <DeleteIcon />

@@ -2,25 +2,37 @@ export interface Reminder {
   id: number;
   title: string;
   description?: string;
-  startDate: string | Date;
-  reminderDate: string | Date;
-  reminderTime: string | Date;
-  reminderType: 'once' | 'daily' | 'weekly' | 'monthly' | 'yearly';
-  priority: 'low' | 'medium' | 'high';
-  isActive: boolean;
-  isPaused: boolean;
-  nextTriggerDate?: string | Date;
-  createdDate: string | Date;
-  lastTriggeredDate?: string | Date | null;
-  // Added from ReminderForm
   categoryId?: number;
-  telegramChatIds?: string;
+  categoryName?: string;
+  reminderType: 'once' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+  reminderDate?: string;
+  reminderTime?: string;
+  startDate?: string;
+  endDate?: string;
+  nextTriggerDate?: string;
+  lastTriggeredDate?: string;
   repeatDaysOfWeek?: string;
   repeatDayOfMonth?: number;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  isActive: boolean;
+  isPaused: boolean;
+  createdBy?: string;
+  createdDate: string;
+  updatedDate: string;
+  telegramChatIds?: string;
+  telegramTemplate?: string;
 }
 
 export interface ReminderCategory {
   id: number;
   name: string;
-  icon: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface NotificationTemplate {
+  id: number;
+  name: string;
+  content: string;
 }

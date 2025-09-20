@@ -1,23 +1,11 @@
 import axios from 'axios';
 
 /**
- * Escapes characters for Telegram's MarkdownV2 format.
- * @param text The text to escape.
- * @returns The escaped text.
- */
-export function escapeMarkdownV2(text: string): string {
-    if (!text) return '';
-    // Characters to escape for MarkdownV2
-    const charsToEscape = /[_*[\]()~`>#+\-=|{}.!]/g;
-    return text.replace(charsToEscape, '\\$&');
-}
-
-/**
  * Sends a message to a specific Telegram chat.
  * 
  * @param botToken The token of the Telegram bot.
  * @param chatId The ID of the chat to send the message to.
- * @param text The message content, assumed to be formatted for MarkdownV2.
+ * @param text The message content, formatted for Markdown.
  * @returns The response from the Telegram API.
  */
 export async function sendTelegramMessage(botToken: string, chatId: string, text: string) {
@@ -25,7 +13,7 @@ export async function sendTelegramMessage(botToken: string, chatId: string, text
     const body = {
         chat_id: chatId,
         text: text,
-        parse_mode: 'MarkdownV2', // Use MarkdownV2 for formatting
+        parse_mode: 'Markdown', // Use original Markdown for formatting
     };
 
     try {

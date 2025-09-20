@@ -1,23 +1,24 @@
-import { Reminder } from '../types'; // Assuming you have a types file
+import { Reminder } from '../types';
 
 const API_BASE_URL = '/api/reminders';
 
 const handleResponse = async (response: Response) => {
+  const text = await response.text();
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
-    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    try {
+      const errorData = JSON.parse(text);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    } catch (e) {
+      throw new Error(text || `HTTP error! status: ${response.status}`);
+    }
   }
-  return response.json();
+  // Handle empty responses, which are valid in DELETE/PUT scenarios
+  return text ? JSON.parse(text) : { success: true, message: 'Operation successful' }; 
 };
 
 export const getAllReminders = async (): Promise<{ success: boolean; data: Reminder[] }> => {
   const response = await fetch(API_BASE_URL);
   return handleResponse(response);
-};
-
-export const getReminderById = async (id: number): Promise<{ success: boolean; data: Reminder }> => {
-    const response = await fetch(`${API_BASE_URL}/${id}`);
-    return handleResponse(response);
 };
 
 export const createReminder = async (reminderData: Partial<Reminder>): Promise<{ success: boolean; data: Reminder }> => {
@@ -30,8 +31,7 @@ export const createReminder = async (reminderData: Partial<Reminder>): Promise<{
 };
 
 export const updateReminder = async (id: number, reminderData: Partial<Reminder>): Promise<{ success: boolean; data: Reminder }> => {
-  const response = await fetch(`${API_BASE_URL}/${id}`,
-   {
+  const response = await fetch(`${API_BASE_URL}?id=${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(reminderData),
@@ -39,25 +39,25 @@ export const updateReminder = async (id: number, reminderData: Partial<Reminder>
   return handleResponse(response);
 };
 
-export const deleteReminder = async (id: number): Promise<{ success: boolean; message: string }> => {
-  const response = await fetch(`${API_BASE_URL}/${id}`, {
-    method: 'DELETE',
+// CONFIRMED: This function now uses POST to the correct endpoint.
+export const deleteReminders = async (ids: number[]): Promise<{ success: boolean; message: string }> => {
+  const response = await fetch(`${API_BASE_URL}/bulk-delete`, { 
+    method: 'POST', // Use POST as per your request
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids }),
   });
   return handleResponse(response);
 };
 
 export const triggerReminder = async (id: number): Promise<{ success: boolean; message: string }> => {
   const response = await fetch(`${API_BASE_URL}/trigger/${id}`, {
-    method: 'POST', // Assuming POST to trigger a specific reminder
+    method: 'POST',
   });
   return handleResponse(response);
 };
 
-// You might not have these API endpoints yet, but they were in the original page file.
-// I'll create them based on the usage in page.tsx
-
 export const getSchedulerStatus = async (): Promise<{ success: boolean; data: { running: boolean } }> => {
-    const response = await fetch('/api/scheduler/status'); // Assuming this endpoint
+    const response = await fetch('/api/scheduler/status');
     return handleResponse(response);
 }
 

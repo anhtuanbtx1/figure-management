@@ -28,7 +28,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/vi';
 import * as reminderApi from '../utils/reminderApi';
-import { Reminder, ReminderCategory } from '../types';
+import { Reminder, ReminderCategory, NotificationTemplate } from '../types'; // Add NotificationTemplate
+import axios from 'axios'; // Import axios
 
 interface ReminderFormProps {
   open: boolean;
@@ -49,11 +50,28 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
     isActive: true,
     isPaused: false,
     telegramChatIds: '',
+    telegramTemplate: '', // New field
   });
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [selectedTime, setSelectedTime] = useState<Dayjs | null>(dayjs('09:00', 'HH:mm'));
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [dayOfMonth, setDayOfMonth] = useState<number>(1);
+  const [notificationTemplates, setNotificationTemplates] = useState<NotificationTemplate[]>([]); // New state for templates
+
+  // Fetch notification templates
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const response = await axios.get('/api/notification-templates');
+        if (response.data.success) {
+          setNotificationTemplates(response.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch notification templates:", error);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   useEffect(() => {
     if (reminder) {
@@ -82,6 +100,7 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
         isActive: true,
         isPaused: false,
         telegramChatIds: '',
+        telegramTemplate: '',
       });
       setSelectedDate(null);
       setSelectedTime(dayjs('09:00', 'HH:mm'));
@@ -95,6 +114,7 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Ensure this function does not autofill the description
   const handleSelectChange = (name: string, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -122,13 +142,10 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
       data.repeatDayOfMonth = dayOfMonth;
     }
 
-    // Convert telegramChatIds to JSON array if it's a string
     if (typeof data.telegramChatIds === 'string' && data.telegramChatIds) {
       try {
-        // Check if it's already JSON
         JSON.parse(data.telegramChatIds);
       } catch {
-        // Convert single chat ID to JSON array
         data.telegramChatIds = JSON.stringify([data.telegramChatIds.trim()]);
       }
     }
@@ -161,6 +178,28 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
                 onChange={handleInputChange}
                 required
               />
+            </Grid>
+            
+            {/* Notification Template Dropdown */}
+            <Grid item xs={12}>
+                <FormControl fullWidth>
+                    <InputLabel>Mẫu thông báo (Telegram)</InputLabel>
+                    <Select
+                        value={formData.telegramTemplate || ''}
+                        onChange={(e) => handleSelectChange('telegramTemplate', e.target.value)}
+                        label="Mẫu thông báo (Telegram)"
+                        name="telegramTemplate"
+                    >
+                        <MenuItem value="">
+                            <em>Không sử dụng mẫu</em>
+                        </MenuItem>
+                        {notificationTemplates.map((template) => (
+                            <MenuItem key={template.id} value={template.name}>
+                                {template.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
             </Grid>
 
             <Grid item xs={12}>

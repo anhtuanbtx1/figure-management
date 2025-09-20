@@ -1,28 +1,58 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { executeQuery } from '@/lib/database';
-import sql from 'mssql';
 
+import { NextRequest, NextResponse } from 'next/server';
+import sql from 'mssql';
+import { executeQuery, getDbPool } from '@/lib/database';
+import dayjs from 'dayjs'; 
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.extend(customParseFormat);
+
+const formatReminderTime = (time: any): Date | null => {
+    if (!time) return null;
+    
+    const d = dayjs(time, ['HH:mm:ss', 'HH:mm', dayjs.ISO_8601]);
+    
+    if (d.isValid()) {
+        return d.toDate(); 
+    }
+    return null;
+};
+
+const calculateNextTriggerDate = (
+    baseDate: string | Date | null | undefined,
+    time: string | null | undefined
+): Date | null => {
+    if (!baseDate || !time) return null;
+
+    const datePart = dayjs(baseDate);
+    const timeString = typeof time === 'string' ? time : dayjs(time).format('HH:mm:ss');
+    const timePart = dayjs(timeString, 'HH:mm:ss');
+
+    if (datePart.isValid() && timePart.isValid()) {
+        return datePart
+            .hour(timePart.hour())
+            .minute(timePart.minute())
+            .second(timePart.second())
+            .millisecond(0)
+            .toDate();
+    }
+
+    return null;
+};
+
+// GET all reminders
 export async function GET(request: NextRequest) {
   try {
     const query = `
       SELECT 
-        r.id, 
-        r.title, 
-        r.description, 
-        r.reminderDate,
-        CONVERT(VARCHAR(5), r.reminderTime, 108) as reminderTime,
-        r.reminderType,
-        r.priority,
-        c.name as categoryName,
-        r.isActive,
-        r.isPaused,
-        r.createdDate,
-        r.updatedDate
+        r.*,
+        c.name as categoryName
       FROM dbo.Reminders r
       LEFT JOIN dbo.ReminderCategories c ON r.categoryId = c.id
+      ORDER BY r.createdDate DESC
     `;
-    const data = await executeQuery(query);
-    return NextResponse.json({ success: true, data });
+    const reminders = await executeQuery(query);
+    return NextResponse.json({ success: true, data: reminders });
   } catch (error) {
     console.error('Error fetching reminders:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -30,95 +60,180 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST a new reminder
 export async function POST(request: NextRequest) {
-    try {
-        const body = await request.json();
-        const {
-            title,
-            description,
-            reminderDate, // e.g., "2025-09-20"
-            reminderTime, // e.g., "10:30:00"
-            reminderType,
-            priority,
-            categoryId,
-            isActive,
-        } = body;
+  try {
+    const body = await request.json();
+    console.log('Received body for new reminder:', body);
 
-        if (!title || !reminderTime || !reminderDate) {
-            return NextResponse.json({ success: false, message: "Validation failed: title, reminderTime, and reminderDate are required." }, { status: 400 });
-        }
+    const { 
+      title, description, categoryId, reminderType, reminderTime, 
+      priority, isActive, telegramChatIds, startDate, reminderDate,
+      repeatDaysOfWeek, repeatDayOfMonth, telegramTemplate
+    } = body;
 
-        // Combine date and time for nextTriggerDate
-        const nextTriggerDate = new Date(`${reminderDate}T${reminderTime}`);
-        if (isNaN(nextTriggerDate.getTime())) {
-             return NextResponse.json({ success: false, message: "Invalid date/time format. Use YYYY-MM-DD for date and HH:mm:ss for time." }, { status: 400 });
-        }
-
-        // Add nextTriggerDate to the query
-        const query = `
-            INSERT INTO dbo.Reminders (
-                title, description, categoryId, reminderType, 
-                reminderDate, reminderTime, startDate, nextTriggerDate, 
-                priority, isActive, isPaused, createdDate, updatedDate, createdBy
-            )
-            VALUES (
-                @title, @description, @categoryId, @reminderType, 
-                @reminderDate, @reminderTime, @startDate, @nextTriggerDate,
-                @priority, @isActive, 0, GETDATE(), GETDATE(), 'API'
-            )
-        `;
-
-        const parameters = {
-            title: { type: sql.NVarChar, value: title },
-            description: { type: sql.NVarChar, value: description },
-            categoryId: { type: sql.Int, value: categoryId ? parseInt(String(categoryId), 10) : null },
-            reminderType: { type: sql.VarChar, value: reminderType || 'once' },
-            reminderDate: { type: sql.Date, value: reminderDate },
-            reminderTime: { type: sql.NVarChar, value: reminderTime },
-            startDate: { type: sql.Date, value: reminderDate },
-            // Add nextTriggerDate parameter
-            nextTriggerDate: { type: sql.DateTime, value: nextTriggerDate },
-            priority: { type: sql.VarChar, value: priority || 'medium' },
-            isActive: { type: sql.Bit, value: isActive === undefined ? true : isActive },
-        };
-
-        await executeQuery(query, parameters);
-
-        return NextResponse.json({ success: true, message: 'Reminder created successfully.' }, { status: 201 });
-
-    } catch (error) {
-        console.error('--- ERROR CREATING REMINDER ---', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        return NextResponse.json({ success: false, message: 'Failed to create reminder.', error: errorMessage }, { status: 500 });
+    if (!title) {
+      return NextResponse.json({ success: false, message: 'Title is required' }, { status: 400 });
     }
+
+    const formattedTimeAsDate = formatReminderTime(reminderTime);
+    if (reminderTime && !formattedTimeAsDate) {
+        return NextResponse.json({ success: false, message: `Invalid time format for reminderTime: ${reminderTime}` }, { status: 400 });
+    }
+
+    const baseDateForTrigger = reminderType === 'once' ? reminderDate : startDate;
+    const nextTriggerDate = calculateNextTriggerDate(baseDateForTrigger, reminderTime);
+
+    const pool = await getDbPool();
+    const req = pool.request();
+
+    req.input('title', sql.NVarChar, title);
+    req.input('description', sql.NVarChar, description);
+    req.input('categoryId', sql.Int, categoryId);
+    req.input('reminderType', sql.NVarChar, reminderType);
+    req.input('reminderTime', sql.Time, formattedTimeAsDate); 
+    req.input('priority', sql.NVarChar, priority);
+    req.input('isActive', sql.Bit, isActive);
+    req.input('telegramChatIds', sql.NVarChar, telegramChatIds);
+    req.input('startDate', sql.Date, startDate ? dayjs(startDate).toDate() : null);
+    req.input('reminderDate', sql.Date, reminderDate ? dayjs(reminderDate).toDate() : null);
+    req.input('repeatDaysOfWeek', sql.NVarChar, repeatDaysOfWeek);
+    req.input('repeatDayOfMonth', sql.Int, repeatDayOfMonth);
+    req.input('telegramTemplate', sql.NVarChar, telegramTemplate);
+    req.input('nextTriggerDate', sql.DateTime2, nextTriggerDate);
+
+    const query = `
+        INSERT INTO dbo.Reminders (
+            title, description, categoryId, reminderType, reminderTime, priority, isActive, 
+            telegramChatIds, startDate, reminderDate, repeatDaysOfWeek, repeatDayOfMonth, 
+            telegramTemplate, isPaused, createdDate, updatedDate, nextTriggerDate
+        )
+        VALUES (
+            @title, @description, @categoryId, @reminderType, @reminderTime, @priority, @isActive, 
+            @telegramChatIds, @startDate, @reminderDate, @repeatDaysOfWeek, @repeatDayOfMonth,
+            @telegramTemplate, 0, GETDATE(), GETDATE(), @nextTriggerDate
+        );
+        SELECT SCOPE_IDENTITY() AS id;
+    `;
+
+    const result = await req.query(query);
+    const newReminderId = result.recordset[0].id;
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Reminder created successfully', 
+      data: { id: newReminderId, ...body } 
+    }, { status: 201 });
+
+  } catch (error) {
+    console.error('Error creating reminder:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ success: false, message: 'Failed to create reminder', error: errorMessage }, { status: 500 });
+  }
 }
 
-export async function OPTIONS(request: NextRequest) {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
-}
 
-export async function DELETE(request: NextRequest) {
-    try {
-        const { id } = await request.json();
-        if (!id) {
-          return NextResponse.json({ success: false, message: 'Reminder ID is required' }, { status: 400 });
-        }
+// PUT (update) a reminder
+export async function PUT(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
 
-        const query = `DELETE FROM dbo.Reminders WHERE id = @id`;
-        await executeQuery(query, { id: { type: sql.Int, value: id } });
-
-        return NextResponse.json({ success: true, message: 'Reminder deleted successfully' });
-
-    } catch (error) {
-        console.error('Error deleting reminder:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        return NextResponse.json({ success: false, message: 'Failed to delete reminder', error: errorMessage }, { status: 500 });
+    if (!id) {
+        return NextResponse.json({ success: false, message: 'Reminder ID is required' }, { status: 400 });
     }
+
+    const body = await request.json();
+    console.log(`Received body for updating reminder ${id}:`, body);
+
+    const pool = await getDbPool();
+
+    // Fetch the existing reminder to get all fields for recalculation
+    const originalReminderResult = await pool.request()
+        .input('id', sql.Int, id)
+        .query('SELECT * FROM dbo.Reminders WHERE id = @id');
+    
+    if (originalReminderResult.recordset.length === 0) {
+        return NextResponse.json({ success: false, message: 'Reminder not found' }, { status: 404 });
+    }
+    const originalReminder = originalReminderResult.recordset[0];
+
+    // Merge original reminder with the update body
+    const mergedData = { ...originalReminder, ...body };
+
+    // --- Recalculate nextTriggerDate ---
+    const baseDateForTrigger = mergedData.reminderType === 'once' ? mergedData.reminderDate : mergedData.startDate;
+    const timeValue = body.reminderTime || originalReminder.reminderTime;
+    const nextTriggerDate = calculateNextTriggerDate(baseDateForTrigger, timeValue);
+    body.nextTriggerDate = nextTriggerDate; // Add it to the body to be updated
+    
+    // --- Handle time/date conversions for incoming data ---
+    if (body.hasOwnProperty('reminderTime')) {
+        const formattedTimeAsDate = formatReminderTime(body.reminderTime);
+        if (body.reminderTime && !formattedTimeAsDate) {
+            return NextResponse.json({ success: false, message: `Invalid time format for reminderTime: ${body.reminderTime}` }, { status: 400 });
+        }
+        body.reminderTime = formattedTimeAsDate;
+    }
+     if (body.hasOwnProperty('startDate') && body.startDate) {
+        body.startDate = dayjs(body.startDate).toDate();
+    }
+    if (body.hasOwnProperty('reminderDate') && body.reminderDate) {
+        body.reminderDate = dayjs(body.reminderDate).toDate();
+    }
+
+    const req = pool.request();
+    const setClauses: string[] = [];
+    const addInput = (name: string, type: any, value: any) => {
+        if (Object.prototype.hasOwnProperty.call(body, name)) {
+            setClauses.push(`${name} = @${name}`);
+            req.input(name, type, value);
+        }
+    };
+    
+    const typeMap: Record<string, any> = {
+        title: sql.NVarChar,
+        description: sql.NVarChar,
+        reminderType: sql.NVarChar,
+        priority: sql.NVarChar,
+        telegramChatIds: sql.NVarChar,
+        repeatDaysOfWeek: sql.NVarChar,
+        telegramTemplate: sql.NVarChar,
+        categoryId: sql.Int,
+        repeatDayOfMonth: sql.Int,
+        reminderTime: sql.Time,
+        startDate: sql.Date,
+        reminderDate: sql.Date,
+        isActive: sql.Bit,
+        isPaused: sql.Bit,
+        nextTriggerDate: sql.DateTime2
+    };
+
+    for (const key in body) {
+        if (Object.prototype.hasOwnProperty.call(typeMap, key)) {
+            addInput(key, typeMap[key], body[key]);
+        }
+    }
+
+    if (setClauses.length > 0) {
+      setClauses.push('updatedDate = GETDATE()');
+      const query = `
+          UPDATE dbo.Reminders
+          SET ${setClauses.join(', ')}
+          WHERE id = @id;
+      `;
+      req.input('id', sql.Int, id);
+      await req.query(query);
+    } 
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Reminder updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Error updating reminder:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ success: false, message: 'Failed to update reminder', error: errorMessage }, { status: 500 });
+  }
 }
