@@ -27,21 +27,8 @@ async function triggerReminders() {
         throw new Error('Telegram botToken or chatId is missing from settings.');
     }
 
-    // 2. Fetch the default notification template
-    console.log('[LOG] Step 2.1: Fetching notification template.');
-    const templateQuery = "SELECT content FROM dbo.NotificationTemplates WHERE name = @templateName";
-    const templateParams = { templateName: { type: sql.NVarChar, value: 'telegram_default_reminder' } };
-    const templateResult = await executeQuery(templateQuery, templateParams);
-
-    if (templateResult.length === 0) {
-        console.error('[ERROR] Default Telegram notification template not found.');
-        throw new Error('Default Telegram notification template not found.');
-    }
-    const template = templateResult[0].content;
-    console.log('[LOG] Step 2.2: Notification template fetched successfully.');
-
-    // 3. Find due reminders
-    console.log('[LOG] Step 3.1: Fetching due reminders.');
+    // 2. Find due reminders
+    console.log('[LOG] Step 2.1: Fetching due reminders.');
     const dueRemindersQuery = `
         SELECT * FROM dbo.Reminders 
         WHERE isActive = 1 AND isPaused = 0 AND nextTriggerDate <= GETDATE()
@@ -49,38 +36,47 @@ async function triggerReminders() {
     const dueReminders = await executeQuery(dueRemindersQuery);
     
     if (dueReminders.length === 0) {
-        console.log('[LOG] Step 3.2: No due reminders found. Exiting.');
+        console.log('[LOG] Step 2.2: No due reminders found. Exiting.');
         return { success: true, message: 'No due reminders.', sent: 0 };
     }
-    console.log(`[LOG] Step 3.3: Found ${dueReminders.length} due reminder(s). Starting loop.`);
+    console.log(`[LOG] Step 2.3: Found ${dueReminders.length} due reminder(s). Starting loop.`);
 
     let sentCount = 0;
-    // 4. Process each due reminder
+    // 3. Process each due reminder
     for (const reminder of dueReminders) {
         console.log(`[LOG] Processing reminder ID: ${reminder.id}`);
 
-        // Prepare reminder values with keys matching the template
+        // Use the specific template from the reminder, or a fallback if it's empty
+        let messageTemplate = reminder.telegramTemplate;
+
+        if (!messageTemplate) {
+            console.log(`[LOG] Reminder ID ${reminder.id} has no telegramTemplate. Using default fallback message.`);
+            // A simple, hardcoded template as a fallback
+            messageTemplate = `*Nhắc nhở: {{escaped_title}}*\n\n{{escaped_description}}`;
+        }
+
+        // Prepare reminder values for replacement
         const replacements = {
             escaped_title: reminder.title,
             escaped_description: reminder.description || 'Không có mô tả',
-            escaped_reminderDate: format(new Date(reminder.reminderDate), 'dd/MM/yyyy'),
-            escaped_reminderTime: format(new Date(reminder.reminderTime), 'HH:mm'),
+            escaped_reminderDate: reminder.reminderDate ? format(new Date(reminder.reminderDate), 'dd/MM/yyyy') : 'N/A',
+            escaped_reminderTime: reminder.reminderTime ? format(new Date(reminder.reminderTime), 'HH:mm') : 'N/A',
             escaped_reminderType: reminder.reminderType,
             escaped_priority: reminder.priority,
         };
 
-        // Replace placeholders in the template
-        let message = template;
+        // Replace placeholders in the chosen template
+        let message = messageTemplate;
         for (const [key, value] of Object.entries(replacements)) {
             message = message.replace(new RegExp(`{{${key}}}`, 'g'), value || '');
         }
 
-        console.log(`[LOG] Step 4.1: Sending message for reminder ID: ${reminder.id}`);
+        console.log(`[LOG] Step 3.1: Sending message for reminder ID: ${reminder.id}`);
         await sendTelegramMessage(botToken, chatId, message);
         sentCount++;
-        console.log(`[LOG] Step 4.2: Message sent for reminder ID: ${reminder.id}. Sent count: ${sentCount}`);
+        console.log(`[LOG] Step 3.2: Message sent for reminder ID: ${reminder.id}. Sent count: ${sentCount}`);
 
-        // 5. Update the nextTriggerDate
+        // 4. Update the nextTriggerDate
         let nextTriggerDate = new Date();
         let shouldDeactivate = false;
 
@@ -108,12 +104,12 @@ async function triggerReminders() {
             id: { type: sql.Int, value: reminder.id },
         };
         
-        console.log(`[LOG] Step 5.1: Updating reminder ID: ${reminder.id}. Next trigger: ${shouldDeactivate ? 'deactivated' : nextTriggerDate.toISOString()}`);
+        console.log(`[LOG] Step 4.1: Updating reminder ID: ${reminder.id}. Next trigger: ${shouldDeactivate ? 'deactivated' : nextTriggerDate.toISOString()}`);
         await executeQuery(updateQuery, updateParams);
-        console.log(`[LOG] Step 5.2: Reminder ID: ${reminder.id} updated successfully.`);
+        console.log(`[LOG] Step 4.2: Reminder ID: ${reminder.id} updated successfully.`);
     }
     
-    console.log('[LOG] Step 6: Finished processing all reminders.');
+    console.log('[LOG] Step 5: Finished processing all reminders.');
     return { success: true, message: `Sent ${sentCount} reminders.`, sent: sentCount };
 }
 
