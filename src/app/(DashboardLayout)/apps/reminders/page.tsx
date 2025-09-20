@@ -59,6 +59,7 @@ export default function RemindersPage() {
   }, []);
 
   const loadInitialData = async () => {
+    console.log("loadInitialData called");
     try {
       setLoading(true);
       const [remindersResponse, categoriesResponse] = await Promise.all([
@@ -80,6 +81,7 @@ export default function RemindersPage() {
   };
 
   const loadReminders = async () => {
+    console.log("loadReminders called");
     try {
       setLoading(true);
       const response = await reminderApi.getAllReminders();
@@ -95,6 +97,7 @@ export default function RemindersPage() {
   };
 
   const checkSchedulerStatus = async () => {
+    console.log("checkSchedulerStatus called");
     try {
       const response = await reminderApi.getSchedulerStatus();
       if (response.success) {
@@ -106,17 +109,19 @@ export default function RemindersPage() {
   };
 
   const handleCreateReminder = () => {
+    console.log("handleCreateReminder called");
     setSelectedReminder(null);
     setOpenForm(true);
   };
 
   const handleEditReminder = (reminder: Reminder) => {
+    console.log("handleEditReminder called with:", reminder);
     setSelectedReminder(reminder);
     setOpenForm(true);
   };
 
-  // CORRECTED: Name, signature, and logic to handle an array of IDs
   const handleDeleteReminders = async (ids: number[]) => {
+    console.log("handleDeleteReminders called with:", ids);
     if (!confirm(`Bạn có chắc chắn muốn xóa ${ids.length} nhắc nhở đã chọn?`)) return;
 
     try {
@@ -130,6 +135,7 @@ export default function RemindersPage() {
   };
 
   const handleTriggerReminder = async (id: number) => {
+    console.log("handleTriggerReminder called with:", id);
     try {
       await reminderApi.triggerReminder(id);
       showSnackbar('Đã gửi thông báo nhắc nhở', 'success');
@@ -139,6 +145,7 @@ export default function RemindersPage() {
   };
 
   const handleTogglePause = async (reminder: Reminder) => {
+    console.log("handleTogglePause called with:", reminder);
     try {
       await reminderApi.updateReminder(reminder.id!, {
         isPaused: !reminder.isPaused,
@@ -154,18 +161,22 @@ export default function RemindersPage() {
   };
 
   const handleFormClose = () => {
+    console.log("handleFormClose called");
     setOpenForm(false);
     setSelectedReminder(null);
   };
 
   const handleFormSave = async (reminderData: Partial<Reminder>) => {
+    console.log("handleFormSave called with:", reminderData);
     try {
       if (selectedReminder?.id) {
         // Update existing
+        console.log("Updating existing reminder");
         await reminderApi.updateReminder(selectedReminder.id, reminderData);
         showSnackbar('Cập nhật nhắc nhở thành công', 'success');
       } else {
         // Create new
+        console.log("Creating new reminder");
         await reminderApi.createReminder(reminderData);
         showSnackbar('Tạo nhắc nhở mới thành công', 'success');
       }
@@ -178,6 +189,7 @@ export default function RemindersPage() {
   };
 
   const handleToggleScheduler = async () => {
+    console.log("handleToggleScheduler called");
     try {
       if (schedulerStatus) {
         await reminderApi.stopScheduler();
@@ -199,6 +211,8 @@ export default function RemindersPage() {
   ) => {
     setSnackbar({ open: true, message, severity });
   };
+
+  console.log("RemindersPage rendered");
 
   return (
     <PageContainer title="Quản lý nhắc nhở" description="Quản lý nhắc nhở và thông báo tự động">
@@ -273,6 +287,7 @@ export default function RemindersPage() {
           open={openForm}
           onClose={handleFormClose}
           onSave={handleFormSave}
+          onDelete={handleDeleteReminders} // Add this line
           reminder={selectedReminder}
           categories={categories}
         />

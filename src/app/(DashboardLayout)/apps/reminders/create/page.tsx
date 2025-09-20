@@ -36,7 +36,7 @@ interface Category {
 interface Template {
   id: number;
   name: string;
-  content: string; // Add content field
+  content: string;
 }
 
 const CreateReminder = () => {
@@ -50,6 +50,7 @@ const CreateReminder = () => {
     priority: "medium",
     categoryId: "",
     templateId: "",
+    templateTelegram: "", // State for the new textbox
     isActive: true,
   });
 
@@ -97,8 +98,8 @@ const CreateReminder = () => {
     setFormData(prevData => ({
       ...prevData,
       templateId: templateId,
-      // Update description with template content
-      description: selectedTemplate ? selectedTemplate.content : prevData.description,
+      // Update the new templateTelegram field with the template content
+      templateTelegram: selectedTemplate ? selectedTemplate.content : "",
     }));
   };
 
@@ -108,7 +109,7 @@ const CreateReminder = () => {
 
     try {
       const submitData = {
-        ...formData,
+        ...formData, // formData now includes templateTelegram
         reminderDate: format(formData.reminderDate, "yyyy-MM-dd"),
         reminderTime: format(formData.reminderTime, "HH:mm:ss"),
         categoryId: formData.categoryId || null,
@@ -232,7 +233,20 @@ const CreateReminder = () => {
                         </Select>
                       </FormControl>
                     </Grid>
-                    <Grid item xs={12}>
+                    {/* Two-column layout for content textboxes */}
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Nội dung mẫu Telegram"
+                        value={formData.templateTelegram}
+                        multiline
+                        rows={4}
+                        InputProps={{
+                          readOnly: true,
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
                         label="Nội dung nhắc nhở"

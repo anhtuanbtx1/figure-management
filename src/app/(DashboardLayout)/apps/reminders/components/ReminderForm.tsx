@@ -14,12 +14,12 @@ import {
   Select,
   MenuItem,
   Box,
-  Chip,
   Typography,
   FormControlLabel,
   Checkbox,
   ToggleButton,
   ToggleButtonGroup,
+  IconButton,
 } from '@mui/material';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -27,19 +27,21 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/vi';
-import * as reminderApi from '../utils/reminderApi';
-import { Reminder, ReminderCategory, NotificationTemplate } from '../types'; // Add NotificationTemplate
-import axios from 'axios'; // Import axios
+import { Reminder, ReminderCategory, NotificationTemplate } from '../types';
+import axios from 'axios';
+import { Delete as DeleteIcon } from '@mui/icons-material';
 
 interface ReminderFormProps {
   open: boolean;
   onClose: () => void;
   onSave: (reminder: Partial<Reminder>) => void;
+  onDelete: (ids: number[]) => void;
   reminder: Reminder | null;
   categories: ReminderCategory[];
 }
 
-const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, reminder, categories }) => {
+const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, onDelete, reminder, categories }) => {
+  console.log("ReminderForm rendered with reminder:", reminder);
   const [formData, setFormData] = useState<Partial<Reminder>>({
     title: '',
     description: '',
@@ -50,17 +52,18 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
     isActive: true,
     isPaused: false,
     telegramChatIds: '',
-    telegramTemplate: '', // New field
+    telegramTemplate: '',
   });
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [selectedTime, setSelectedTime] = useState<Dayjs | null>(dayjs('09:00', 'HH:mm'));
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [dayOfMonth, setDayOfMonth] = useState<number>(1);
-  const [notificationTemplates, setNotificationTemplates] = useState<NotificationTemplate[]>([]); // New state for templates
+  const [notificationTemplates, setNotificationTemplates] = useState<NotificationTemplate[]>([]);
+  const [formErrors, setFormErrors] = useState<{ title?: string }>({});
 
-  // Fetch notification templates
   useEffect(() => {
     const fetchTemplates = async () => {
+      console.log("Fetching notification templates");
       try {
         const response = await axios.get('/api/notification-templates');
         if (response.data.success) {
@@ -74,6 +77,7 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
   }, []);
 
   useEffect(() => {
+    console.log("useEffect for reminder update triggered:", reminder);
     if (reminder) {
       setFormData(reminder);
       if (reminder.reminderDate) {
@@ -89,7 +93,6 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
         setDayOfMonth(reminder.repeatDayOfMonth);
       }
     } else {
-      // Reset form for new reminder
       setFormData({
         title: '',
         description: '',
@@ -107,23 +110,41 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
       setSelectedDays([]);
       setDayOfMonth(1);
     }
+    setFormErrors({}); // Clear errors when reminder changes
   }, [reminder]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    console.log(`handleInputChange for ${name}:`, value);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Ensure this function does not autofill the description
   const handleSelectChange = (name: string, value: any) => {
+    console.log(`handleSelectChange for ${name}:`, value);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleDayToggle = (event: React.MouseEvent<HTMLElement>, newDays: string[]) => {
+    console.log("handleDayToggle called with:", newDays);
     setSelectedDays(newDays);
   };
 
+  const validate = (): boolean => {
+    console.log("validate called");
+    let errors: { title?: string } = {};
+    if (!formData.title || formData.title.trim() === '') {
+      errors.title = 'Tiêu đề là bắt buộc';
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = () => {
+    console.log("handleSubmit called");
+    if (!validate()) {
+      console.log("Validation failed");
+      return;
+    }
     const data: Partial<Reminder> = {
       ...formData,
       reminderTime: selectedTime?.format('HH:mm:ss') || '09:00:00',
@@ -149,8 +170,17 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
         data.telegramChatIds = JSON.stringify([data.telegramChatIds.trim()]);
       }
     }
-
+    console.log("Calling onSave with data:", data);
     onSave(data);
+  };
+
+  const handleDelete = () => {
+    console.log("handleDelete called");
+    if (reminder && reminder.id) {
+        console.log("Calling onDelete with id:", reminder.id);
+        onDelete([reminder.id]);
+        onClose();
+    }
   };
 
   const daysOfWeek = [
@@ -177,10 +207,11 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
                 value={formData.title}
                 onChange={handleInputChange}
                 required
+                error={!!formErrors.title}
+                helperText={formErrors.title}
               />
             </Grid>
             
-            {/* Notification Template Dropdown */}
             <Grid item xs={12}>
                 <FormControl fullWidth>
                     <InputLabel>Mẫu thông báo (Telegram)</InputLabel>
@@ -346,11 +377,20 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, remi
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Hủy</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {reminder ? 'Cập nhật' : 'Tạo mới'}
-          </Button>
+        <DialogActions sx={{ justifyContent: 'space-between', paddingX: 3, paddingBottom: 2 }}>
+            <Box>
+                {reminder && (
+                    <IconButton onClick={handleDelete} color="error">
+                        <DeleteIcon />
+                    </IconButton>
+                )}
+            </Box>
+            <Box>
+                <Button onClick={onClose}>Hủy</Button>
+                <Button onClick={handleSubmit} variant="contained">
+                    {reminder ? 'Cập nhật' : 'Tạo mới'}
+                </Button>
+            </Box>
         </DialogActions>
       </Dialog>
     </LocalizationProvider>

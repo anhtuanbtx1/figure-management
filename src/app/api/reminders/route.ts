@@ -10,7 +10,7 @@ dayjs.extend(customParseFormat);
 const formatReminderTime = (time: any): Date | null => {
     if (!time) return null;
     
-    const d = dayjs(time, ['HH:mm:ss', 'HH:mm', dayjs.ISO_8601]);
+    const d = dayjs(time, ['HH:mm:ss', 'HH:mm']);
     
     if (d.isValid()) {
         return d.toDate(); 
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const { 
       title, description, categoryId, reminderType, reminderTime, 
       priority, isActive, telegramChatIds, startDate, reminderDate,
-      repeatDaysOfWeek, repeatDayOfMonth, telegramTemplate
+      repeatDaysOfWeek, repeatDayOfMonth, templateTelegram
     } = body;
 
     if (!title) {
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     req.input('reminderDate', sql.Date, reminderDate ? dayjs(reminderDate).toDate() : null);
     req.input('repeatDaysOfWeek', sql.NVarChar, repeatDaysOfWeek);
     req.input('repeatDayOfMonth', sql.Int, repeatDayOfMonth);
-    req.input('telegramTemplate', sql.NVarChar, telegramTemplate);
+    req.input('telegramTemplate', sql.NVarChar, templateTelegram);
     req.input('nextTriggerDate', sql.DateTime2, nextTriggerDate);
 
     const query = `
@@ -145,6 +145,11 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     console.log(`Received body for updating reminder ${id}:`, body);
+
+    // Map frontend field to backend DB field for update consistency
+    if (body.hasOwnProperty('templateTelegram')) {
+      body.telegramTemplate = body.templateTelegram;
+    }
 
     const pool = await getDbPool();
 

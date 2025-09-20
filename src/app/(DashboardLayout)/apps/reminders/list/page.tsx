@@ -105,7 +105,7 @@ const ReminderList = () => {
     if (!selectedReminder) return;
     try {
       const response = await fetch(`/api/reminders`, {
-        method: 'DELETE',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
