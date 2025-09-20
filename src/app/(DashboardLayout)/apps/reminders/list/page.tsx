@@ -216,7 +216,7 @@ const ReminderList = () => {
                         {reminder.reminderTime && (
                           <Chip
                             icon={<IconClock size={16} />}
-                            label={reminder.reminderTime}
+                            label={format(new Date(`1970-01-01T${reminder.reminderTime}Z`), "HH:mm")}
                             size="small"
                             variant="outlined"
                           />
