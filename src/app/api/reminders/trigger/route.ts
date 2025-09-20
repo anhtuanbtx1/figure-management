@@ -4,6 +4,9 @@ import { sendTelegramMessage } from '@/lib/telegram';
 import { format } from 'date-fns';
 import sql from 'mssql';
 
+// CRITICAL: Ensure this route is always executed dynamically and not cached.
+export const dynamic = 'force-dynamic';
+
 // The main function to process and send reminders
 async function triggerReminders() {
     console.log('[LOG] Step 1: triggerReminders function started.');
