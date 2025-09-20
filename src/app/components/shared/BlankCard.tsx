@@ -1,29 +1,28 @@
-'use client'
-import { Card } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import { AppState } from '@/store/store';
-import {useSelector} from '@/store/hooks';
+import { Card, CardContent, SxProps, Theme } from "@mui/material";
+import React from "react";
 
 type Props = {
+  children: React.ReactNode;
   className?: string;
-  children: JSX.Element | JSX.Element[];
-  sx?: any;
+  sx?: SxProps<Theme>;
 };
 
 const BlankCard = ({ children, className, sx }: Props) => {
-  const customizer = useSelector((state: AppState) => state.customizer);
-
-  const theme = useTheme();
-  const borderColor = theme.palette.divider;
-
   return (
     <Card
-      sx={{ p: 0, border: !customizer.isCardShadow ? `1px solid ${borderColor}` : 'none' , position: 'relative', sx }}
+      sx={{
+        p: 0,
+        position: "relative",
+        // Ensure the card's background color is inherited from the theme
+        backgroundColor: "transparent", 
+        boxShadow: "none",
+        ...sx,
+      }}
       className={className}
-      elevation={customizer.isCardShadow ? 9 : 0}
-      variant={!customizer.isCardShadow ? 'outlined' : undefined}
+      elevation={0}
+      variant={"outlined"}
     >
-      {children}
+      <CardContent>{children}</CardContent>
     </Card>
   );
 };
