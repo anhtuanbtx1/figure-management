@@ -35,20 +35,8 @@ import {
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import Link from "next/link";
-import { deleteReminder, getAllReminders } from "../utils/reminderApi"; // IMPORT functions
-
-interface Reminder {
-  id: number;
-  title: string;
-  description: string;
-  reminderDate: string | null;
-  reminderTime: string | null;
-  reminderType: string;
-  priority: string;
-  categoryName?: string;
-  isActive: boolean;
-  isPaused?: boolean;
-}
+import { deleteReminder, getAllReminders } from "../utils/reminderApi"; 
+import { Reminder } from "../types"; 
 
 const ReminderList = () => {
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -63,15 +51,17 @@ const ReminderList = () => {
     severity: "success" as "success" | "error",
   });
 
+  // FIXED: Correct error handling logic
   const fetchReminders = async () => {
     setLoading(true);
     try {
-      const responseData = await getAllReminders(); // REFACTORED to use API function
+      const responseData = await getAllReminders();
       if (responseData.success) {
         setReminders(responseData.data);
         setFilteredReminders(responseData.data);
       } else {
-        throw new Error(responseData.message || "Lỗi khi tải danh sách nhắc nhở");
+        // This case should ideally not be hit if the API throws an error on failure, but as a fallback:
+        throw new Error("Lỗi khi tải danh sách nhắc nhở: API trả về trạng thái không thành công.");
       }
     } catch (error: any) {
       console.error("Error fetching reminders:", error);
@@ -96,7 +86,6 @@ const ReminderList = () => {
     setFilteredReminders(filtered);
   }, [searchTerm, reminders]);
 
-  // FIXED handleDelete to use the correct API call
   const handleDelete = async () => {
     if (!selectedReminder) return;
     try {
@@ -107,7 +96,7 @@ const ReminderList = () => {
           message: result.message || "Đã xóa nhắc nhở thành công",
           severity: "success",
         });
-        fetchReminders(); // Refresh the list
+        fetchReminders(); 
       } else {
         throw new Error(result.message || "Lỗi khi xóa nhắc nhở");
       }
