@@ -179,7 +179,7 @@ const ReminderList = () => {
           <Grid container spacing={3}>
             {filteredReminders.map((reminder) => (
               <Grid item xs={12} sm={6} md={4} key={reminder.id}>
-                <Card sx={{ height: "100%" }}>
+                <Card sx={{ height: "100%", border: 1, borderColor: 'divider' }}>
                   <CardContent>
                     <Stack spacing={2}>
                       <Box>
