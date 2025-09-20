@@ -68,7 +68,6 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
     <Box sx={{
       height: { lg: 'calc(100vh - 250px)', sm: '100vh' },
       maxHeight: '700px',
-      background: 'linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)',
     }}>
       {/* ------------------------------------------- */}
       {/* Header Part */}
@@ -111,7 +110,7 @@ const NoteContent = ({ toggleNoteSidebar }: Props) => {
         <Box p={4}>
           <Box
             sx={{
-              backgroundColor: 'white',
+              backgroundColor: 'transparent',
               borderRadius: 3,
               p: 3,
               boxShadow: '0 4px 20px rgba(0,0,0,0.08)',

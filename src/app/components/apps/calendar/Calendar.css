@@ -1,3 +1,4 @@
+
 .rbc-event.event-azure {
   background-color: #1a97f5;
 }
@@ -89,4 +90,40 @@
 
 .rbc-calendar {
   min-height: 600px;
+}
+
+/* Dark Mode Overrides for react-big-calendar */
+.darkbg .rbc-calendar {
+  background-color: #1a2233; /* Dark background for the calendar */
+  color: #e5eaef; /* Light text color */
+}
+
+.darkbg .rbc-header {
+  color: #e5eaef; /* Light text for headers */
+  border-bottom: 1px solid #343e54;
+}
+
+.darkbg .rbc-toolbar-label {
+  color: #e5eaef;
+}
+
+.darkbg .rbc-off-range-bg {
+  background: #2a3447; /* Darker background for out-of-range dates */
+}
+
+.darkbg .rbc-date-cell {
+  color: #e5eaef;
+}
+
+.darkbg .rbc-day-bg {
+  border-left: 1px solid #343e54;
+}
+
+.darkbg .rbc-month-view,
+.darkbg .rbc-time-view {
+  background-color: transparent; /* Ensure calendar views are transparent */
+}
+
+.darkbg .rbc-time-header-content, .darkbg .rbc-time-gutter.rbc-time-column {
+    border-color: #343e54;
 }
