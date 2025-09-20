@@ -20,6 +20,7 @@ import {
   DialogActions,
   Alert,
   Snackbar,
+  useTheme,
 } from "@mui/material";
 import {
   IconBell,
@@ -50,6 +51,8 @@ const ReminderList = () => {
     message: "",
     severity: "success" as "success" | "error",
   });
+
+  const theme = useTheme();
 
   // FIXED: Correct error handling logic
   const fetchReminders = async () => {
@@ -179,7 +182,10 @@ const ReminderList = () => {
           <Grid container spacing={3}>
             {filteredReminders.map((reminder) => (
               <Grid item xs={12} sm={6} md={4} key={reminder.id}>
-                <Card sx={{ height: "100%", border: 1, borderColor: 'divider' }}>
+                <Card sx={{ 
+                  height: "100%", 
+                  border: `2px solid ${theme.palette.mode === 'light' ? 'black' : theme.palette.divider}`
+                }}>
                   <CardContent>
                     <Stack spacing={2}>
                       <Box>
