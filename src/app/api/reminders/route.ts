@@ -242,3 +242,31 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'Failed to update reminder', error: errorMessage }, { status: 500 });
   }
 }
+
+// DELETE a reminder
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ success: false, message: 'Reminder ID is required' }, { status: 400 });
+    }
+
+    const pool = await getDbPool();
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .query('DELETE FROM dbo.Reminders WHERE id = @id');
+
+    if (result.rowsAffected[0] === 0) {
+      return NextResponse.json({ success: false, message: 'Reminder not found or already deleted' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Reminder deleted successfully' });
+
+  } catch (error) {
+    console.error('Error deleting reminder:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ success: false, message: 'Failed to delete reminder', error: errorMessage }, { status: 500 });
+  }
+}

@@ -39,6 +39,13 @@ export const updateReminder = async (id: number, reminderData: Partial<Reminder>
   return handleResponse(response);
 };
 
+export const deleteReminder = async (id: number): Promise<{ success: boolean; message: string }> => {
+  const response = await fetch(`${API_BASE_URL}?id=${id}`, {
+    method: 'DELETE',
+  });
+  return handleResponse(response);
+};
+
 // CONFIRMED: This function now uses POST to the correct endpoint.
 export const deleteReminders = async (ids: number[]): Promise<{ success: boolean; message: string }> => {
   const response = await fetch(`${API_BASE_URL}/bulk-delete`, { 

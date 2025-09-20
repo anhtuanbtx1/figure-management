@@ -35,6 +35,7 @@ import {
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import Link from "next/link";
+import { deleteReminder, getAllReminders } from "../utils/reminderApi"; // IMPORT functions
 
 interface Reminder {
   id: number;
@@ -65,24 +66,18 @@ const ReminderList = () => {
   const fetchReminders = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/reminders`);
-      const responseData = await response.json();
+      const responseData = await getAllReminders(); // REFACTORED to use API function
       if (responseData.success) {
         setReminders(responseData.data);
         setFilteredReminders(responseData.data);
       } else {
-        console.error("Error fetching reminders:", responseData.message);
-        setSnackbar({
-            open: true,
-            message: responseData.message || "Lỗi khi tải danh sách nhắc nhở",
-            severity: "error",
-        });
+        throw new Error(responseData.message || "Lỗi khi tải danh sách nhắc nhở");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching reminders:", error);
       setSnackbar({
         open: true,
-        message: "Lỗi khi tải danh sách nhắc nhở",
+        message: error.message || "Lỗi khi tải danh sách nhắc nhở",
         severity: "error",
       });
     }
@@ -101,37 +96,26 @@ const ReminderList = () => {
     setFilteredReminders(filtered);
   }, [searchTerm, reminders]);
 
+  // FIXED handleDelete to use the correct API call
   const handleDelete = async () => {
     if (!selectedReminder) return;
     try {
-      const response = await fetch(`/api/reminders`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: selectedReminder.id }),
-      });
-
-      if (response.ok) {
+      const result = await deleteReminder(selectedReminder.id);
+      if (result.success) {
         setSnackbar({
           open: true,
-          message: "Đã xóa nhắc nhở thành công",
+          message: result.message || "Đã xóa nhắc nhở thành công",
           severity: "success",
         });
         fetchReminders(); // Refresh the list
       } else {
-        const errorData = await response.json();
-        setSnackbar({
-          open: true,
-          message: errorData.message || "Lỗi khi xóa nhắc nhở",
-          severity: "error",
-        });
+        throw new Error(result.message || "Lỗi khi xóa nhắc nhở");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting reminder:", error);
       setSnackbar({
         open: true,
-        message: "Lỗi khi xóa nhắc nhở",
+        message: error.message || "Lỗi khi xóa nhắc nhở",
         severity: "error",
       });
     }
