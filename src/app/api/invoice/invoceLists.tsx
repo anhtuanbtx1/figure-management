@@ -5,6 +5,7 @@ import mock from '../mock';
 export const invoceLists: InvoiceList[] = [
     {
         id: 101,
+        invoiceNumber: 'INV-101',
         billFrom: 'PineappleInc.',
         billFromEmail: 'first@xabz.com',
         billFromAddress: 'Ganesh glory,Godrej garden city,Ahmedabad.',
@@ -33,6 +34,7 @@ export const invoceLists: InvoiceList[] = [
     },
     {
         id: 102,
+        invoiceNumber: 'INV-102',
         billFrom: 'Pineapple.',
         billFromEmail: 'first@xabz.com',
         billFromAddress: 'Ganesh glory,Godrej garden city,Ahmedabad.',
@@ -61,6 +63,7 @@ export const invoceLists: InvoiceList[] = [
     },
     {
         id: 103,
+        invoiceNumber: 'INV-103',
         billFrom: 'Incorporation.',
         billFromEmail: 'first@xabz.com',
         billFromAddress: 'Ahmedabad.',
@@ -89,6 +92,7 @@ export const invoceLists: InvoiceList[] = [
     },
     {
         id: 104,
+        invoiceNumber: 'INV-104',
         billFrom: 'PineappleTimes.',
         billFromEmail: 'first@xabz.com',
         billFromAddress: 'Ganesh glory,Godrej garden city,Ahmedabad.',
@@ -117,6 +121,7 @@ export const invoceLists: InvoiceList[] = [
     },
     {
         id: 105,
+        invoiceNumber: 'INV-105',
         billFrom: 'FortuneCreation',
         billFromEmail: 'first@xabz.com',
         billFromAddress: 'Ganesh glory,Godrej garden city,Ahmedabad.',
@@ -145,6 +150,7 @@ export const invoceLists: InvoiceList[] = [
     },
     {
         id: 106,
+        invoiceNumber: 'INV-106',
         billFrom: 'PineappleTimes.',
         billFromEmail: 'first@xabz.com',
         billFromAddress: 'Ganesh glory,Godrej garden city,Ahmedabad.',
@@ -173,6 +179,7 @@ export const invoceLists: InvoiceList[] = [
     },
     {
         id: 107,
+        invoiceNumber: 'INV-107',
         billFrom: 'FortuneCreation',
         billFromEmail: 'first@xabz.com',
         billFromAddress: 'Ganesh glory,Godrej garden city,Ahmedabad.',
@@ -224,6 +231,7 @@ const getNextId = () => {
 mock.onPost('/api/data/invoicedata/addinvoice').reply((config) => {
     const newInvoice = JSON.parse(config.data);
     newInvoice.id = getNextId();
+    newInvoice.invoiceNumber = `INV-${newInvoice.id}`;
     invoceLists.push(newInvoice);
     return [201, newInvoice];
 });
@@ -234,7 +242,7 @@ mock.onPut('/api/data/invoicedata/updateinvoice').reply((config) => {
     const invoiceIndex = invoceLists.findIndex((invoice) => invoice.id === updatedInvoice.id);
 
     if (invoiceIndex !== -1) {
-        invoceLists[invoiceIndex] = { ...updatedInvoice };
+        invoceLists[invoiceIndex] = { ...invoceLists[invoiceIndex], ...updatedInvoice };
         return [200, invoceLists[invoiceIndex]];
     } else {
         return [404, { message: 'Invoice not found' }];

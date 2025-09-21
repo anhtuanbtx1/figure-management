@@ -38,6 +38,7 @@ const CreateInvoice = () => {
   const router = useRouter();
   const [formData, setFormData] = useState({
     id: 0,
+    invoiceNumber: "",
     billFrom: "",
     billTo: "",
     totalCost: 0,
@@ -53,7 +54,7 @@ const CreateInvoice = () => {
 
   useEffect(() => {
     if (invoices.length > 0) {
-      const lastId = invoices[invoices.length - 1].id;
+      const lastId = invoices[0].id; // Get id from the first invoice (newest)
       setFormData((prevData: any) => ({
         ...prevData,
         id: lastId + 1,
@@ -145,6 +146,7 @@ const CreateInvoice = () => {
       await addInvoice(formData);
       setFormData({
         id: 0,
+        invoiceNumber: "",
         billFrom: "",
         billTo: "",
         totalCost: 0,
