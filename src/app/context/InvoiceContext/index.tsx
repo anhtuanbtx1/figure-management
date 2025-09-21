@@ -8,7 +8,7 @@ interface InvoiceContextType {
     invoices: InvoiceList[];
     loading: boolean;
     error: Error | null;
-    deleteEmail: () => {},
+    deleteEmail: () => { },
     addInvoice: (newInvoice: InvoiceList) => void;
     updateInvoice: (updatedInvoice: InvoiceList) => void;
 }
@@ -27,6 +27,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 // Map backend data to InvoiceList type minimally used by UI
                 const mapped: InvoiceList[] = (res.data || []).map((inv: any) => ({
                     id: inv.Id || inv.id,
+                    invoiceNumber: inv.InvoiceNumber || '', // <-- Ensure invoiceNumber is mapped
                     billFrom: inv.BillFrom || '',
                     billFromEmail: inv.BillFromEmail || '',
                     billFromAddress: inv.BillFromAddress || '',
@@ -60,12 +61,10 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Function to delete an invoice
     const deleteInvoice = async (id: number) => {
         try {
-            // Our DB id is NVARCHAR string; UI uses number in mock. Cast to string.
             await InvoiceService.deleteInvoice(String(id));
             setInvoices((prevInvoices) => prevInvoices.filter((invoice) => invoice.id !== id));
         } catch (error) {
             console.error('Error deleting invoice:', error);
-
         }
     };
 
@@ -73,8 +72,8 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         try {
             // Build payload for header create
             const header = {
-                // Generate a unique, non-colliding invoice number
-                invoiceNumber: `INV-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                // The API now generates the invoice number, so we can remove it from here.
+                // invoiceNumber: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                 billFrom: newInvoice.billFrom,
                 billFromEmail: newInvoice.billFromEmail,
                 billFromAddress: newInvoice.billFromAddress,
@@ -103,6 +102,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             const inv: any = res.data?.data || res.data;
             const mapped: InvoiceList = {
                 id: inv.Id,
+                invoiceNumber: inv.InvoiceNumber, // <-- Add invoiceNumber from the API response
                 billFrom: inv.BillFrom,
                 billFromEmail: inv.BillFromEmail || '',
                 billFromAddress: inv.BillFromAddress || '',
@@ -122,7 +122,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 completed: inv.Status === 'Delivered',
                 isSelected: false,
             };
-            setInvoices((prevInvoices) => [...prevInvoices, mapped]);
+            setInvoices((prevInvoices) => [mapped, ...prevInvoices]); // Add to the top of the list
         } catch (error) {
             console.error('Error adding invoice:', error);
         }
@@ -132,7 +132,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const updateInvoice = async (updatedInvoice: InvoiceList) => {
         try {
             const payload = {
-                invoiceNumber: String(updatedInvoice.id),
+                invoiceNumber: updatedInvoice.invoiceNumber, // Pass the correct invoice number
                 billFrom: updatedInvoice.billFrom,
                 billFromEmail: updatedInvoice.billFromEmail,
                 billFromAddress: updatedInvoice.billFromAddress,
@@ -150,27 +150,29 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 status: updatedInvoice.status,
                 notes: '',
             };
+            // Use the numeric ID for the API endpoint
             const res = await InvoiceService.updateInvoice(String(updatedInvoice.id), payload);
-            const updated: any = res.data;
+            const updated: any = res.data?.data || res.data;
             const mapped: InvoiceList = {
-                id: (updated as any).Id ?? (updated as any).id,
-                billFrom: (updated as any).BillFrom ?? (updated as any).billFrom,
-                billFromEmail: (updated as any).BillFromEmail ?? (updated as any).billFromEmail ?? '',
-                billFromAddress: (updated as any).BillFromAddress ?? (updated as any).billFromAddress ?? '',
-                billFromPhone: Number((updated as any).BillFromPhone ?? (updated as any).billFromPhone ?? 0),
-                billFromFax: Number((updated as any).BillFromFax ?? (updated as any).billFromFax ?? 0),
-                billTo: (updated as any).BillTo ?? (updated as any).billTo,
-                billToEmail: (updated as any).BillToEmail ?? (updated as any).billToEmail ?? '',
-                billToAddress: (updated as any).BillToAddress ?? (updated as any).billToAddress ?? '',
-                billToPhone: Number((updated as any).BillToPhone ?? (updated as any).billToPhone ?? 0),
-                billToFax: Number((updated as any).BillToFax ?? (updated as any).billToFax ?? 0),
+                id: updated.Id ?? updated.id,
+                invoiceNumber: updated.InvoiceNumber ?? updated.invoiceNumber, // <-- Ensure invoiceNumber is mapped
+                billFrom: updated.BillFrom ?? updated.billFrom,
+                billFromEmail: updated.BillFromEmail ?? updated.billFromEmail ?? '',
+                billFromAddress: updated.BillFromAddress ?? updated.billFromAddress ?? '',
+                billFromPhone: Number(updated.BillFromPhone ?? updated.billFromPhone ?? 0),
+                billFromFax: Number(updated.BillFromFax ?? updated.billFromFax ?? 0),
+                billTo: updated.BillTo ?? updated.billTo,
+                billToEmail: updated.BillToEmail ?? updated.billToEmail ?? '',
+                billToAddress: updated.BillToAddress ?? updated.billToAddress ?? '',
+                billToPhone: Number(updated.BillToPhone ?? updated.billToPhone ?? 0),
+                billToFax: Number(updated.BillToFax ?? updated.billToFax ?? 0),
                 orders: [],
-                orderDate: (updated as any).OrderDate ? new Date((updated as any).OrderDate) : new Date(),
-                totalCost: (updated as any).GrandTotal ?? (updated as any).grandTotal ?? 0,
-                vat: (updated as any).VAT ?? (updated as any).vat ?? 0,
-                grandTotal: (updated as any).GrandTotal ?? (updated as any).grandTotal ?? 0,
-                status: (updated as any).Status ?? (updated as any).status ?? 'Pending',
-                completed: ((updated as any).Status ?? (updated as any).status) === 'Delivered',
+                orderDate: updated.OrderDate ? new Date(updated.OrderDate) : new Date(),
+                totalCost: updated.GrandTotal ?? updated.grandTotal ?? 0,
+                vat: updated.VAT ?? updated.vat ?? 0,
+                grandTotal: updated.GrandTotal ?? updated.grandTotal ?? 0,
+                status: updated.Status ?? updated.status ?? 'Pending',
+                completed: (updated.Status ?? updated.status) === 'Delivered',
                 isSelected: false,
             };
             setInvoices((prevInvoices) =>
