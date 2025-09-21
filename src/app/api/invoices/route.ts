@@ -4,8 +4,10 @@ import sql from 'mssql';
 
 // GET /api/invoices - list invoices with filters/pagination/sorting
 export async function GET(request: NextRequest) {
+  console.log('✅ Handling GET /api/invoices - Fetching list of invoices...');
   try {
-    const { searchParams } = new URL(request.url);
+    // Use request.nextUrl for parsing search parameters, which is the idiomatic Next.js way.
+    const { searchParams } = request.nextUrl;
 
     const search = searchParams.get('search') || null;
     const status = searchParams.get('status') || null;
@@ -43,7 +45,7 @@ export async function GET(request: NextRequest) {
       filters: { search, status, dateFrom, dateTo },
     });
   } catch (error: any) {
-    console.error('❌ Failed to fetch invoices:', error);
+    console.error('❌ Failed to fetch invoices from /api/invoices:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch invoices', message: error?.message || 'Unknown error' },
       { status: 500 }
