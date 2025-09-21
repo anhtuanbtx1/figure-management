@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useContext, useEffect, useState } from "react";
 import { InvoiceContext } from "@/app/context/InvoiceContext/index";
@@ -30,64 +31,32 @@ import axios from "@/utils/axios";
 const InvoiceDetail = () => {
   const { invoices } = useContext(InvoiceContext);
   const [selectedInvoice, setSelectedInvoice]: any = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Load first invoice header + items by default
-    const load = async (id: string) => {
-      try {
-        const headerRes = await axios.get(`/api/invoices/${id}`);
-        const header = headerRes.data?.data;
-        const itemsRes = await axios.get(`/api/invoices/${id}/items`);
-        const items = itemsRes.data?.data || [];
-        setSelectedInvoice({
-          id: header?.Id,
-          billFrom: header?.BillFrom || '',
-          billFromEmail: header?.BillFromEmail || '',
-          billFromAddress: header?.BillFromAddress || '',
-          billFromPhone: header?.BillFromPhone || 0,
-          billFromFax: header?.BillFromFax || 0,
-          billTo: header?.BillTo || '',
-          billToEmail: header?.BillToEmail || '',
-          billToAddress: header?.BillToAddress || '',
-          billToPhone: header?.BillToPhone || 0,
-          billToFax: header?.BillToFax || 0,
-          orders: items.map((it: any) => ({
-            itemName: it.ItemName,
-            unitPrice: it.UnitPrice,
-            units: it.Units,
-            unitTotalPrice: it.UnitTotalPrice,
-          })),
-          orderDate: header?.OrderDate,
-          totalCost: header?.SubTotal ?? 0,
-          vat: header?.VAT ?? 0,
-          grandTotal: header?.GrandTotal ?? 0,
-          status: header?.Status || 'Pending',
-        });
-      } catch (e) {
-        console.error('Failed to load initial invoice detail', e);
-      }
-    };
-
-    if (invoices.length > 0) {
-      const first = invoices[0];
-      if (first?.id) load(String(first.id));
-    }
-  }, [invoices]);
-
-  // Get the last part of the URL path as the billFrom parameter
+  // Get the invoiceNumber from the URL slug
   const pathName = usePathname();
-  const getTitle = pathName.split("/").pop();
+  const invoiceSlug = pathName.split("/").pop();
 
-  // Load invoice by slug (billFrom) if present
   useEffect(() => {
-    const loadBySlug = async (invoice: any) => {
+    const loadInvoiceDetails = async (invoiceId: number) => {
+      setLoading(true);
+      setError(null);
       try {
-        const headerRes = await axios.get(`/api/invoices/${invoice.id}`);
+        // Use the numeric ID to fetch both header and items
+        const headerRes = await axios.get(`/api/invoices/${invoiceId}`);
         const header = headerRes.data?.data;
-        const itemsRes = await axios.get(`/api/invoices/${invoice.id}/items`);
+
+        if (!header) {
+          throw new Error(`Invoice with ID ${invoiceId} not found.`);
+        }
+
+        const itemsRes = await axios.get(`/api/invoices/${invoiceId}/items`);
         const items = itemsRes.data?.data || [];
+
         setSelectedInvoice({
           id: header?.Id,
+          invoiceNumber: header?.InvoiceNumber, // Make sure to get this
           billFrom: header?.BillFrom || '',
           billFromEmail: header?.BillFromEmail || '',
           billFromAddress: header?.BillFromAddress || '',
@@ -110,19 +79,42 @@ const InvoiceDetail = () => {
           grandTotal: header?.GrandTotal ?? 0,
           status: header?.Status || 'Pending',
         });
-      } catch (e) {
-        console.error('Failed to load invoice by slug', e);
+      } catch (e: any) {
+        console.error('Failed to load invoice details by slug', e);
+        setError(e.message || 'An unknown error occurred while loading the invoice.');
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (getTitle) {
-      const invoice = invoices.find((p: any) => p.billFrom === getTitle);
-      if (invoice) loadBySlug(invoice);
+    if (invoiceSlug && invoices.length > 0) {
+      // Find the invoice in the context by `invoiceNumber` (which is the slug)
+      const invoice = invoices.find((p: any) => p.invoiceNumber === invoiceSlug);
+
+      if (invoice && typeof invoice.id === 'number') {
+        // We found the invoice and its ID is a number, so we can load the details
+        loadInvoiceDetails(invoice.id);
+      } else if (!invoice) {
+        setLoading(false);
+        setError(`Invoice with number "${invoiceSlug}" not found in the initial list.`);
+      }
+    } else if (!invoiceSlug) {
+      setLoading(false);
+      setError("No invoice number found in the URL.");
     }
-  }, [getTitle, invoices]);
+
+  }, [invoiceSlug, invoices]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div style={{ color: 'red' }}>Error: {error}</div>;
+  }
 
   if (!selectedInvoice) {
-    return <div>Loading...</div>;
+    return <div>No invoice selected or found.</div>;
   }
 
   const orderDate = selectedInvoice.orderDate
@@ -145,7 +137,8 @@ const InvoiceDetail = () => {
             sm: "left"
           }
         }}>
-          <Typography variant="h5"># {selectedInvoice.id}</Typography>
+          {/* Display InvoiceNumber, which is more user-friendly */}
+          <Typography variant="h5"># {selectedInvoice.invoiceNumber}</Typography>
           <Box mt={1}>
             <Chip
               size="small"
@@ -309,11 +302,12 @@ const InvoiceDetail = () => {
         mt={3}
         justifyContent="end"
       >
+        {/* The edit link should also use the invoiceNumber slug */}
         <Button
           variant="contained"
           color="secondary"
           component={Link}
-          href={`/apps/invoice/edit/${selectedInvoice.billFrom}`}
+          href={`/apps/invoice/edit/${selectedInvoice.invoiceNumber}`}
         >
           Chỉnh sửa hóa đơn
         </Button>

@@ -63,7 +63,8 @@ function InvoiceList() {
     const matchesSearch = searchTerm === "" ||
       invoice.billFrom.toLowerCase().includes(searchTerm.toLowerCase()) ||
       invoice.billTo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.id.toString().includes(searchTerm);
+      String(invoice.id).includes(searchTerm) || // Search by numeric ID
+      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()); // Search by invoice number
 
     const matchesStatus = activeTab === "All" || invoice.status === activeTab;
 
@@ -72,10 +73,10 @@ function InvoiceList() {
 
   // Get filtered invoices based on current tab
   const getFilteredInvoices = () => {
-    if (activeTab === "All") {
-      return invoices;
-    }
-    return invoices.filter((invoice: any) => invoice.status === activeTab);
+    return invoices.filter((invoice: any) => {
+      const matchesStatus = activeTab === "All" || invoice.status === activeTab;
+      return matchesStatus;
+    });
   };
 
   const filteredInvoices = getFilteredInvoices();
@@ -113,12 +114,7 @@ function InvoiceList() {
     data: filteredInvoices,
     defaultItemsPerPage: 10,
     searchTerm,
-    filterFn: (invoice, search) => {
-      return search === "" ||
-        invoice.billFrom.toLowerCase().includes(search.toLowerCase()) ||
-        invoice.billTo.toLowerCase().includes(search.toLowerCase()) ||
-        invoice.id.toString().includes(search);
-    }
+    filterFn: filterInvoices // Use the centralized filter function
   });
 
 
@@ -126,14 +122,13 @@ function InvoiceList() {
   const handleClick = (status: string) => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % tabItem.length);
     setActiveTab(status);
+    setCurrentPage(1); // Reset to first page on tab change
   };
 
   // Handle dense padding toggle
   const handleChangeDense = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDense(event.target.checked);
   };
-
-
 
   // Use paginated data from the hook
   const displayedInvoices = paginatedData;
@@ -146,7 +141,6 @@ function InvoiceList() {
   useEffect(() => {
     setSelectAll(isCurrentPageFullySelected);
   }, [isCurrentPageFullySelected]);
-
 
 
   // Calculate the counts for different statuses
@@ -387,14 +381,14 @@ function InvoiceList() {
           }}
         />
         <Box display="flex" gap={1}>
-          {selectAll && (
+          {selectedProducts.length > 0 && (
             <Button
               variant="outlined"
               color="error"
               onClick={handleDelete}
               startIcon={<IconTrash width={18} />}
             >
-              Xóa tất cả
+              Xóa {selectedProducts.length} đã chọn
             </Button>
           )}
           <Button
@@ -423,7 +417,7 @@ function InvoiceList() {
               </TableCell>
               <TableCell>
                 <Typography variant="h6" fontSize="14px">
-                  Id
+                  Số hóa đơn
                 </Typography>
               </TableCell>
               <TableCell>
@@ -456,7 +450,8 @@ function InvoiceList() {
           <TableBody>
             {displayedInvoices.map(
               (invoice: {
-                id: any;
+                id: number; // The numeric, unique ID
+                invoiceNumber: string; // The user-facing invoice string
                 billFrom: any;
                 billTo: any;
                 totalCost: any;
@@ -471,7 +466,7 @@ function InvoiceList() {
                   </TableCell>
                   <TableCell>
                     <Typography variant="h6" fontSize="14px">
-                      {invoice.id}
+                      {invoice.invoiceNumber}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -519,7 +514,7 @@ function InvoiceList() {
                       <IconButton
                         color="success"
                         component={Link}
-                        href={`/apps/invoice/edit/${invoice.id}`}
+                        href={`/apps/invoice/edit/${invoice.invoiceNumber}`}
                       >
                         <IconEdit width={22} />
                       </IconButton>
@@ -528,7 +523,7 @@ function InvoiceList() {
                       <IconButton
                         color="primary"
                         component={Link}
-                        href={`/apps/invoice/detail/${invoice.id}`}
+                        href={`/apps/invoice/detail/${invoice.invoiceNumber}`}
                       >
                         <IconEye width={22} />
                       </IconButton>
