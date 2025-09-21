@@ -4,12 +4,35 @@ import sql from 'mssql';
 
 // GET /api/invoices/[id] - get invoice header by id
 export async function GET(request: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
+  console.log(`⚠️ Handling GET /api/invoices/[id] with id: "${id}"`);
+
+  // Validate that the ID is a number. This is crucial because this dynamic route might
+  // incorrectly catch other sub-paths like '/api/invoices/create'.
+  if (!/^\d+$/.test(id)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Invalid Route or Invoice ID',
+        message: `The path segment "${id}" is not a valid numerical invoice ID. This endpoint should be called with a number, e.g., /api/invoices/123. Please check if you are trying to access a different endpoint.`,
+      },
+      { status: 400 }
+    );
+  }
+
   try {
-    const { id } = context.params;
     const rows = await executeStoredProcedure('sp_GetInvoiceByIdForFrontend', { Id: { type: sql.Int, value: id } });
-    return NextResponse.json({ success: true, data: rows?.[0] || null }, { status: 200 });
+
+    if (!rows || rows.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Invoice Not Found', message: `No invoice found with ID ${id}.` },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true, data: rows[0] }, { status: 200 });
   } catch (error: any) {
-    console.error('❌ Failed to get invoice:', error);
+    console.error(`❌ Failed to get invoice with ID ${id}:`, error);
     return NextResponse.json(
       { success: false, error: 'Failed to get invoice', message: error?.message || 'Unknown error' },
       { status: 500 }
@@ -19,8 +42,13 @@ export async function GET(request: NextRequest, context: { params: { id: string 
 
 // PUT /api/invoices/[id] - update invoice
 export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
+
+  if (!/^\d+$/.test(id)) {
+    return NextResponse.json({ success: false, error: 'Invalid Invoice ID' }, { status: 400 });
+  }
+
   try {
-    const { id } = context.params;
     const body = await request.json();
     const {
       invoiceNumber,
@@ -72,7 +100,7 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
 
     return NextResponse.json({ success: true, data: rows?.[0] || null }, { status: 200 });
   } catch (error: any) {
-    console.error('❌ Failed to update invoice:', error);
+    console.error(`❌ Failed to update invoice ${id}:`, error);
     return NextResponse.json(
       { success: false, error: 'Failed to update invoice', message: error?.message || 'Unknown error' },
       { status: 500 }
@@ -82,14 +110,18 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
 
 // DELETE /api/invoices/[id] - soft delete invoice
 export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
-  try {
-    const { id } = context.params;
+  const { id } = context.params;
 
+  if (!/^\d+$/.test(id)) {
+    return NextResponse.json({ success: false, error: 'Invalid Invoice ID' }, { status: 400 });
+  }
+
+  try {
     const rows = await executeStoredProcedure('sp_DeleteInvoiceFromFrontend', { Id: { type: sql.Int, value: id } });
 
     return NextResponse.json({ success: true, data: rows?.[0] || { deletedId: id } }, { status: 200 });
   } catch (error: any) {
-    console.error('❌ Failed to delete invoice:', error);
+    console.error(`❌ Failed to delete invoice ${id}:`, error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete invoice', message: error?.message || 'Unknown error' },
       { status: 500 }
