@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import sql from 'mssql';
 
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic';
@@ -17,9 +18,9 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get('dateTo') || new Date().toISOString();
 
     // Additional filter parameters
-    const categoryId = searchParams.get('categoryId') || '';
-    const transactionType = searchParams.get('type') || '';
-    const status = searchParams.get('status') || '';
+    const categoryId = searchParams.get('categoryId');
+    const transactionType = searchParams.get('type');
+    const status = searchParams.get('status');
     const dateRangeType = searchParams.get('dateRangeType') || 'custom'; // custom, week, month, year
     const yearMonth = searchParams.get('yearMonth') || '';
     const year = searchParams.get('year') || '';
@@ -37,28 +38,30 @@ export async function GET(request: NextRequest) {
 
     // Build dynamic WHERE clause for filtering
     let whereConditions = [`t.IsActive = 1`];
-    let queryParams: any = {};
+    let queryParams: Record<string, { type: any; value: any }> = {};
 
     // Date range filtering
-    whereConditions.push(`t.TransactionDate >= '${dateFrom}'`);
-    whereConditions.push(`t.TransactionDate <= '${dateTo}'`);
+    whereConditions.push(`t.TransactionDate >= @dateFrom`);
+    queryParams.dateFrom = { type: sql.DateTime, value: new Date(dateFrom) };
+    whereConditions.push(`t.TransactionDate <= @dateTo`);
+    queryParams.dateTo = { type: sql.DateTime, value: new Date(dateTo) };
 
     // Category filtering
     if (categoryId) {
       whereConditions.push(`t.CategoryId = @categoryId`);
-      queryParams.categoryId = categoryId;
+      queryParams.categoryId = { type: sql.Int, value: parseInt(categoryId, 10) };
     }
 
     // Transaction type filtering
     if (transactionType) {
       whereConditions.push(`t.Type = @transactionType`);
-      queryParams.transactionType = transactionType;
+      queryParams.transactionType = { type: sql.NVarChar, value: transactionType };
     }
 
     // Status filtering
     if (status) {
       whereConditions.push(`t.Status = @status`);
-      queryParams.status = status;
+      queryParams.status = { type: sql.NVarChar, value: status };
     }
 
     const whereClause = whereConditions.join(' AND ');
