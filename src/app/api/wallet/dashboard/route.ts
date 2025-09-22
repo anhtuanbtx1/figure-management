@@ -36,30 +36,28 @@ export async function GET(request: NextRequest) {
     });
 
     // Build dynamic WHERE clause for filtering
-    let whereConditions = ['t.IsActive = 1'];
+    let whereConditions = [`t.IsActive = 1`];
     let queryParams: any = {};
 
     // Date range filtering
-    whereConditions.push('t.TransactionDate >= @dateFrom');
-    whereConditions.push('t.TransactionDate <= @dateTo');
-    queryParams.dateFrom = dateFrom;
-    queryParams.dateTo = dateTo;
+    whereConditions.push(`t.TransactionDate >= '${dateFrom}'`);
+    whereConditions.push(`t.TransactionDate <= '${dateTo}'`);
 
     // Category filtering
     if (categoryId) {
-      whereConditions.push('t.CategoryId = @categoryId');
+      whereConditions.push(`t.CategoryId = @categoryId`);
       queryParams.categoryId = categoryId;
     }
 
     // Transaction type filtering
     if (transactionType) {
-      whereConditions.push('t.Type = @transactionType');
+      whereConditions.push(`t.Type = @transactionType`);
       queryParams.transactionType = transactionType;
     }
 
     // Status filtering
     if (status) {
-      whereConditions.push('t.Status = @status');
+      whereConditions.push(`t.Status = @status`);
       queryParams.status = status;
     }
 
@@ -69,23 +67,23 @@ export async function GET(request: NextRequest) {
     const balanceQuery = `
       SELECT
         -- Total Income (only completed transactions) - using LIKE for better Unicode matching
-        SUM(CASE WHEN t.Type LIKE N'%Thu nh%p%' AND t.Status LIKE N'%Ho%n th%nh%' THEN t.Amount ELSE 0 END) as totalIncome,
+        SUM(CASE WHEN t.Type LIKE N'%Thu nhập%' AND t.Status LIKE N'%Hoàn thành%' THEN t.Amount ELSE 0 END) as totalIncome,
 
         -- Total Expenses (only completed transactions, includes both Chi tiêu and Chuyển khoản, use ABS for positive display)
-        SUM(CASE WHEN (t.Type LIKE N'%Chi ti%u%' OR t.Type LIKE N'%Chuy%n kho%n%') AND t.Status LIKE N'%Ho%n th%nh%' THEN ABS(t.Amount) ELSE 0 END) as totalExpense,
+        SUM(CASE WHEN (t.Type LIKE N'%Chi tiêu%' OR t.Type LIKE N'%Chuyển khoản%') AND t.Status LIKE N'%Hoàn thành%' THEN ABS(t.Amount) ELSE 0 END) as totalExpense,
 
         -- Net Balance (Income - (Expenses + Transfers), only completed)
-        SUM(CASE WHEN t.Type LIKE N'%Thu nh%p%' AND t.Status LIKE N'%Ho%n th%nh%' THEN t.Amount ELSE 0 END) -
-        SUM(CASE WHEN (t.Type LIKE N'%Chi ti%u%' OR t.Type LIKE N'%Chuy%n kho%n%') AND t.Status LIKE N'%Ho%n th%nh%' THEN ABS(t.Amount) ELSE 0 END) as netBalance,
+        SUM(CASE WHEN t.Type LIKE N'%Thu nhập%' AND t.Status LIKE N'%Hoàn thành%' THEN t.Amount ELSE 0 END) -
+        SUM(CASE WHEN (t.Type LIKE N'%Chi tiêu%' OR t.Type LIKE N'%Chuyển khoản%') AND t.Status LIKE N'%Hoàn thành%' THEN ABS(t.Amount) ELSE 0 END) as netBalance,
 
         -- Total Transactions (all statuses)
         COUNT(*) as totalTransactions,
 
         -- Pending transactions - using LIKE for better Unicode matching
-        COUNT(CASE WHEN t.Status LIKE N'%ang ch%' THEN 1 END) as pendingTransactions,
+        COUNT(CASE WHEN t.Status LIKE N'%ang chờ%' THEN 1 END) as pendingTransactions,
 
         -- Completed transactions - using LIKE for better Unicode matching
-        COUNT(CASE WHEN t.Status LIKE N'%Ho%n th%nh%' THEN 1 END) as completedTransactions
+        COUNT(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN 1 END) as completedTransactions
 
       FROM zen50558_ManagementStore.dbo.WalletTransactions t
       LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
@@ -102,9 +100,9 @@ export async function GET(request: NextRequest) {
         COUNT(*) as count,
         SUM(ABS(t.Amount)) as totalAmount,
         AVG(ABS(t.Amount)) as avgAmount,
-        COUNT(CASE WHEN t.Status LIKE N'%Ho%n th%nh%' THEN 1 END) as completedCount,
-        COUNT(CASE WHEN t.Status LIKE N'%ang ch%' THEN 1 END) as pendingCount,
-        SUM(CASE WHEN t.Status LIKE N'%Ho%n th%nh%' THEN ABS(t.Amount) ELSE 0 END) as completedAmount
+        COUNT(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN 1 END) as completedCount,
+        COUNT(CASE WHEN t.Status LIKE N'%ang chờ%' THEN 1 END) as pendingCount,
+        SUM(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN ABS(t.Amount) ELSE 0 END) as completedAmount
       FROM zen50558_ManagementStore.dbo.WalletTransactions t
       LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       WHERE ${whereClause}
@@ -124,9 +122,9 @@ export async function GET(request: NextRequest) {
         COUNT(t.Id) as transactionCount,
         SUM(ABS(t.Amount)) as totalAmount,
         AVG(ABS(t.Amount)) as avgAmount,
-        COUNT(CASE WHEN t.Status LIKE N'%Ho%n th%nh%' THEN 1 END) as completedCount,
-        COUNT(CASE WHEN t.Status LIKE N'%ang ch%' THEN 1 END) as pendingCount,
-        SUM(CASE WHEN t.Status LIKE N'%Ho%n th%nh%' THEN ABS(t.Amount) ELSE 0 END) as completedAmount
+        COUNT(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN 1 END) as completedCount,
+        COUNT(CASE WHEN t.Status LIKE N'%ang chờ%' THEN 1 END) as pendingCount,
+        SUM(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN ABS(t.Amount) ELSE 0 END) as completedAmount
       FROM zen50558_ManagementStore.dbo.WalletTransactions t
       JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       WHERE ${whereClause.replace('t.IsActive = 1', 't.IsActive = 1 AND c.IsActive = 1')}

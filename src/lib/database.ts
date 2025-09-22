@@ -104,6 +104,32 @@ export async function executeStoredProcedure<T = any>(
   return result.recordset;
 }
 
+// A new utility for transactions, now exported
+export async function executeTransaction<T>(
+  callback: (transaction: sql.Transaction) => Promise<T>
+): Promise<T> {
+  const pool = await getDbPool();
+  const transaction = new sql.Transaction(pool);
+
+  try {
+    await transaction.begin();
+    console.log('✅ Transaction started');
+    const result = await callback(transaction);
+    await transaction.commit();
+    console.log('✅ Transaction committed successfully');
+    return result;
+  } catch (error) {
+    console.error('❌ Transaction failed, rolling back:', error);
+    try {
+      await transaction.rollback();
+      console.log('✅ Transaction rolled back successfully');
+    } catch (rollbackError) {
+      console.error('❌ Failed to roll back transaction:', rollbackError);
+    }
+    // Re-throw the original error to be caught by the calling function
+    throw error;
+  }
+}
 
 process.on('SIGINT', async () => {
   await closeConnection();

@@ -1,7 +1,6 @@
 
 "use client";
-import React, { useContext, useEffect, useState } from "react";
-import { InvoiceContext } from "@/app/context/InvoiceContext/index";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Card,
@@ -29,7 +28,6 @@ import Logo from "@/app/(DashboardLayout)/layout/shared/logo/Logo";
 import axios from "@/utils/axios";
 
 const InvoiceDetail = () => {
-  const { invoices } = useContext(InvoiceContext);
   const [selectedInvoice, setSelectedInvoice]: any = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,71 +37,81 @@ const InvoiceDetail = () => {
   const invoiceSlug = pathName.split("/").pop();
 
   useEffect(() => {
-    const loadInvoiceDetails = async (invoiceId: number) => {
+    const loadInvoiceBySlug = async (slug: string) => {
       setLoading(true);
       setError(null);
       try {
-        // Use the numeric ID to fetch both header and items
-        const headerRes = await axios.get(`/api/invoices/${invoiceId}`);
-        const header = headerRes.data?.data;
+        // Step 1: Fetch from the list endpoint with a search query to find the invoice and its ID.
+        // This is more robust than relying on a potentially incomplete context.
+        const listRes = await axios.get("/api/invoices", {
+          params: { search: slug, pageSize: 1 },
+        });
 
-        if (!header) {
-          throw new Error(`Invoice with ID ${invoiceId} not found.`);
+        const invoiceFromList = listRes.data?.data?.[0];
+
+        if (!invoiceFromList || !invoiceFromList.Id) {
+          throw new Error(`Invoice with number "${slug}" not found.`);
         }
 
-        const itemsRes = await axios.get(`/api/invoices/${invoiceId}/items`);
+        const invoiceId = invoiceFromList.Id;
+
+        // Step 2: Now that we have the ID, fetch the full header and items concurrently.
+        const [headerRes, itemsRes] = await Promise.all([
+          axios.get(`/api/invoices/${invoiceId}`),
+          axios.get(`/api/invoices/${invoiceId}/items`),
+        ]);
+
+        const header = headerRes.data?.data;
+        if (!header) {
+          throw new Error(`Invoice header with ID ${invoiceId} not found.`);
+        }
+
         const items = itemsRes.data?.data || [];
 
+        // Step 3: Assemble the final invoice object for the UI.
         setSelectedInvoice({
-          id: header?.Id,
-          invoiceNumber: header?.InvoiceNumber, // Make sure to get this
-          billFrom: header?.BillFrom || '',
-          billFromEmail: header?.BillFromEmail || '',
-          billFromAddress: header?.BillFromAddress || '',
-          billFromPhone: header?.BillFromPhone || 0,
-          billFromFax: header?.BillFromFax || 0,
-          billTo: header?.BillTo || '',
-          billToEmail: header?.BillToEmail || '',
-          billToAddress: header?.BillToAddress || '',
-          billToPhone: header?.BillToPhone || 0,
-          billToFax: header?.BillToFax || 0,
+          id: header.Id,
+          invoiceNumber: header.InvoiceNumber,
+          billFrom: header.BillFrom || "",
+          billFromEmail: header.BillFromEmail || "",
+          billFromAddress: header.BillFromAddress || "",
+          billFromPhone: header.BillFromPhone || "",
+          billFromFax: header.BillFromFax || "",
+          billTo: header.BillTo || "",
+          billToEmail: header.BillToEmail || "",
+          billToAddress: header.BillToAddress || "",
+          billToPhone: header.BillToPhone || "",
+          billToFax: header.BillToFax || "",
+          orderDate: header.OrderDate,
+          status: header.Status || "Pending",
+          totalCost: header.SubTotal ?? 0,
+          vat: header.VAT ?? 0,
+          grandTotal: header.GrandTotal ?? 0,
           orders: items.map((it: any) => ({
             itemName: it.ItemName,
             unitPrice: it.UnitPrice,
             units: it.Units,
             unitTotalPrice: it.UnitTotalPrice,
           })),
-          orderDate: header?.OrderDate,
-          totalCost: header?.SubTotal ?? 0,
-          vat: header?.VAT ?? 0,
-          grandTotal: header?.GrandTotal ?? 0,
-          status: header?.Status || 'Pending',
         });
       } catch (e: any) {
-        console.error('Failed to load invoice details by slug', e);
-        setError(e.message || 'An unknown error occurred while loading the invoice.');
+        console.error("Failed to load invoice details by slug", e);
+        setError(
+          e.response?.data?.message || e.message || "An unknown error occurred."
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    if (invoiceSlug && invoices.length > 0) {
-      // Find the invoice in the context by `invoiceNumber` (which is the slug)
-      const invoice = invoices.find((p: any) => p.invoiceNumber === invoiceSlug);
-
-      if (invoice && typeof invoice.id === 'number') {
-        // We found the invoice and its ID is a number, so we can load the details
-        loadInvoiceDetails(invoice.id);
-      } else if (!invoice) {
-        setLoading(false);
-        setError(`Invoice with number "${invoiceSlug}" not found in the initial list.`);
-      }
-    } else if (!invoiceSlug) {
-      setLoading(false);
+    if (invoiceSlug) {
+      loadInvoiceBySlug(invoiceSlug);
+    } else {
       setError("No invoice number found in the URL.");
+      setLoading(false);
     }
+  }, [invoiceSlug]);
 
-  }, [invoiceSlug, invoices]);
 
   if (loading) {
     return <div>Loading...</div>;
