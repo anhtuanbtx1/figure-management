@@ -514,7 +514,7 @@ function InvoiceList() {
                       <IconButton
                         color="success"
                         component={Link}
-                        href={`/apps/invoice/edit/${invoice.invoiceNumber}`}
+                        href={`/apps/invoice/edit/${invoice.id}`}
                       >
                         <IconEdit width={22} />
                       </IconButton>
@@ -523,7 +523,7 @@ function InvoiceList() {
                       <IconButton
                         color="primary"
                         component={Link}
-                        href={`/apps/invoice/detail/${invoice.invoiceNumber}`}
+                        href={`/apps/invoice/detail/${invoice.id}`}
                       >
                         <IconEye width={22} />
                       </IconButton>

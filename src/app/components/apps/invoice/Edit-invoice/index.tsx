@@ -31,11 +31,12 @@ import axios from "@/utils/axios";
 import ModernNotification from "@/app/components/shared/ModernNotification";
 
 const EditInvoicePage = () => {
-  const { invoices, updateInvoice } = useContext(InvoiceContext);
+  const { updateInvoice } = useContext(InvoiceContext);
   const [notification, setNotification] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'warning' | 'info' }>({ open: false, message: '', severity: 'success' });
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [editedInvoice, setEditedInvoice]: any = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Helper functions for status translation
   const translateStatusToVietnamese = (status: string) => {
@@ -57,14 +58,25 @@ const EditInvoicePage = () => {
   };
 
   const pathName = usePathname();
-  const getTitle = pathName.split("/").pop();
+  const router = useRouter();
+  const invoiceId = pathName.split("/").pop();
 
   useEffect(() => {
     const fetchInvoice = async (id: string) => {
+      if (!id || !/^\d+$/.test(id)) {
+        setError(`ID hóa đơn không hợp lệ: "${id}"`);
+        return;
+      }
+      
+      setError(null);
       try {
         // Get header
         const headerRes = await axios.get(`/api/invoices/${id}`);
         const header = headerRes.data?.data;
+        if (!header) {
+          throw new Error(`Không tìm thấy hóa đơn với ID ${id}.`);
+        }
+
         // Get items
         const itemsRes = await axios.get(`/api/invoices/${id}/items`);
         const items = itemsRes.data?.data || [];
@@ -79,6 +91,7 @@ const EditInvoicePage = () => {
 
         const mapped = {
           id: header?.Id,
+          invoiceNumber: header?.InvoiceNumber || '',
           billFrom: header?.BillFrom || '',
           billFromEmail: header?.BillFromEmail || '',
           billFromAddress: header?.BillFromAddress || '',
@@ -108,20 +121,19 @@ const EditInvoicePage = () => {
         setSelectedInvoice(mapped);
         setEditedInvoice(mapped);
         setEditing(true);
-      } catch (e) {
+      } catch (e: any) {
         console.error('Failed to load invoice detail', e);
+        setError(e.message || 'Lỗi không xác định khi tải hóa đơn.');
       }
     };
 
-    if (invoices.length > 0) {
-      // Prefer match by id from URL; fallback to first
-      const idFromUrl = getTitle;
-      const id = idFromUrl || invoices[0]?.id;
-      if (id) fetchInvoice(String(id));
+    if (invoiceId) {
+      fetchInvoice(invoiceId);
+    } else {
+      setError("Không tìm thấy ID hóa đơn trong URL.");
     }
-  }, [getTitle, invoices]);
+  }, [invoiceId]);
 
-  const router = useRouter();
 
   const handleSave = async () => {
     try {
@@ -132,7 +144,6 @@ const EditInvoicePage = () => {
       };
 
       // Compute diffs for items (adds/updates/deletes)
-      // Assume selectedInvoice.orders holds original items with optional itemId
       const originalItems = (selectedInvoice.orders || []).map((it: any) => ({
         itemId: it.id || it.ItemId || it.itemId,
         itemName: it.itemName,
@@ -280,8 +291,12 @@ const EditInvoicePage = () => {
     return totalCost + vat;
   };
 
-  if (!selectedInvoice) {
-    return <div>Vui lòng chọn một hóa đơn.</div>;
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
+  }
+
+  if (!selectedInvoice || !editedInvoice) {
+    return <div>Đang tải dữ liệu hóa đơn...</div>;
   }
 
   const orderDate = selectedInvoice.orderDate;
@@ -303,7 +318,7 @@ const EditInvoicePage = () => {
           <Button variant="text" startIcon={<IconArrowLeft />} onClick={() => router.push('/apps/invoice/list')}>
             Quay lại
           </Button>
-          <Typography variant="h5"># {editedInvoice.id}</Typography>
+          <Typography variant="h5"># {editedInvoice.invoiceNumber}</Typography>
         </Box>
         <Box display="flex" gap={1}>
           {editing ? (

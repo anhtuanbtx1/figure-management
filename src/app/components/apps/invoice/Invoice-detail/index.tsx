@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -32,43 +31,37 @@ const InvoiceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get the invoiceNumber from the URL slug
+  // Get the invoice ID from the URL slug
   const pathName = usePathname();
-  const invoiceSlug = pathName.split("/").pop();
+  const invoiceId = pathName.split("/").pop(); // This will be the numeric ID
 
   useEffect(() => {
-    const loadInvoiceBySlug = async (slug: string) => {
+    const loadInvoiceById = async (id: string) => {
+      // Validate if the ID is a valid number string
+      if (!id || !/^\d+$/.test(id)) {
+        setError(`Invalid invoice ID format: \"${id}\".`);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
+
       try {
-        // Step 1: Fetch from the list endpoint with a search query to find the invoice and its ID.
-        // This is more robust than relying on a potentially incomplete context.
-        const listRes = await axios.get("/api/invoices", {
-          params: { search: slug, pageSize: 1 },
-        });
-
-        const invoiceFromList = listRes.data?.data?.[0];
-
-        if (!invoiceFromList || !invoiceFromList.Id) {
-          throw new Error(`Invoice with number "${slug}" not found.`);
-        }
-
-        const invoiceId = invoiceFromList.Id;
-
-        // Step 2: Now that we have the ID, fetch the full header and items concurrently.
+        // Fetch the full header and items concurrently using the numeric ID.
         const [headerRes, itemsRes] = await Promise.all([
-          axios.get(`/api/invoices/${invoiceId}`),
-          axios.get(`/api/invoices/${invoiceId}/items`),
+          axios.get(`/api/invoices/${id}`),
+          axios.get(`/api/invoices/${id}/items`),
         ]);
 
         const header = headerRes.data?.data;
         if (!header) {
-          throw new Error(`Invoice header with ID ${invoiceId} not found.`);
+          throw new Error(`Invoice header with ID ${id} not found.`);
         }
 
         const items = itemsRes.data?.data || [];
 
-        // Step 3: Assemble the final invoice object for the UI.
+        // Assemble the final invoice object for the UI.
         setSelectedInvoice({
           id: header.Id,
           invoiceNumber: header.InvoiceNumber,
@@ -95,7 +88,7 @@ const InvoiceDetail = () => {
           })),
         });
       } catch (e: any) {
-        console.error("Failed to load invoice details by slug", e);
+        console.error(`Failed to load invoice details for ID ${id}`, e);
         setError(
           e.response?.data?.message || e.message || "An unknown error occurred."
         );
@@ -104,13 +97,13 @@ const InvoiceDetail = () => {
       }
     };
 
-    if (invoiceSlug) {
-      loadInvoiceBySlug(invoiceSlug);
+    if (invoiceId) {
+      loadInvoiceById(invoiceId);
     } else {
-      setError("No invoice number found in the URL.");
+      setError("No invoice ID found in the URL.");
       setLoading(false);
     }
-  }, [invoiceSlug]);
+  }, [invoiceId]);
 
 
   if (loading) {
@@ -310,12 +303,12 @@ const InvoiceDetail = () => {
         mt={3}
         justifyContent="end"
       >
-        {/* The edit link should also use the invoiceNumber slug */}
+        {/* The edit link should now use the numeric ID */}
         <Button
           variant="contained"
           color="secondary"
           component={Link}
-          href={`/apps/invoice/edit/${selectedInvoice.invoiceNumber}`}
+          href={`/apps/invoice/edit/${selectedInvoice.id}`}
         >
           Chỉnh sửa hóa đơn
         </Button>
