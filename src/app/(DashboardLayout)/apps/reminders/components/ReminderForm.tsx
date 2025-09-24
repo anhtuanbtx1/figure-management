@@ -80,9 +80,9 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, onDe
     console.log("useEffect for reminder update triggered:", reminder);
     if (reminder) {
       setFormData(reminder);
-      if (reminder.reminderDate) {
-        setSelectedDate(dayjs(reminder.reminderDate));
-      }
+      const effectiveDate = reminder.reminderType === 'once' ? reminder.reminderDate : reminder.startDate;
+      setSelectedDate(effectiveDate ? dayjs(effectiveDate) : null);
+      
       if (reminder.reminderTime) {
         setSelectedTime(dayjs(reminder.reminderTime as string, 'HH:mm:ss'));
       }
@@ -105,7 +105,7 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, onDe
         telegramChatIds: '',
         telegramTemplate: '',
       });
-      setSelectedDate(null);
+      setSelectedDate(dayjs()); // Default to today
       setSelectedTime(dayjs('09:00', 'HH:mm'));
       setSelectedDays([]);
       setDayOfMonth(1);
@@ -139,23 +139,37 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, onDe
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = () => {
+
+ const handleSubmit = () => {
     console.log("handleSubmit called");
     if (!validate()) {
       console.log("Validation failed");
       return;
     }
+
+    const baseDate = selectedDate || dayjs();
+    const time = selectedTime || dayjs('09:00', 'HH:mm');
+
+    const nextTriggerDate = baseDate
+      .hour(time.hour())
+      .minute(time.minute())
+      .second(time.second())
+      .millisecond(0)
+      .toISOString();
+
     const data: Partial<Reminder> = {
       ...formData,
-      reminderTime: selectedTime?.format('HH:mm:ss') || '09:00:00',
-      startDate: selectedDate?.format('YYYY-MM-DD') || dayjs().format('YYYY-MM-DD'),
+      reminderTime: time.format('HH:mm:ss'),
+      nextTriggerDate: nextTriggerDate, 
     };
 
-    if (formData.reminderType === 'once' && selectedDate) {
-      data.reminderDate = selectedDate.format('YYYY-MM-DD');
+    if (formData.reminderType === 'once') {
+      data.reminderDate = baseDate.format('YYYY-MM-DD');
+    } else {
+      data.startDate = baseDate.format('YYYY-MM-DD');
     }
 
-    if (formData.reminderType === 'weekly' && selectedDays.length > 0) {
+    if (formData.reminderType === 'weekly') {
       data.repeatDaysOfWeek = selectedDays.join(',');
     }
 
@@ -170,6 +184,22 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, onDe
         data.telegramChatIds = JSON.stringify([data.telegramChatIds.trim()]);
       }
     }
+    
+    if (data.reminderType !== 'once') {
+        delete data.reminderDate;
+    }
+    if (data.reminderType === 'once') {
+        delete data.startDate;
+        delete data.repeatDaysOfWeek;
+        delete data.repeatDayOfMonth;
+    }
+    if (data.reminderType !== 'weekly') {
+        delete data.repeatDaysOfWeek;
+    }
+     if (data.reminderType !== 'monthly') {
+        delete data.repeatDayOfMonth;
+    }
+
     console.log("Calling onSave with data:", data);
     onSave(data);
   };
@@ -286,7 +316,9 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, onDe
                 <InputLabel>Loại nhắc nhở</InputLabel>
                 <Select
                   value={formData.reminderType}
-                  onChange={(e) => handleSelectChange('reminderType', e.target.value)}
+                  onChange={(e) => {
+                    handleSelectChange('reminderType', e.target.value);
+                  }}
                   label="Loại nhắc nhở"
                 >
                   <MenuItem value="once">Một lần</MenuItem>
@@ -307,17 +339,14 @@ const ReminderForm: React.FC<ReminderFormProps> = ({ open, onClose, onSave, onDe
               />
             </Grid>
 
-            {formData.reminderType === 'once' && (
-              <Grid item xs={12}>
-                <DatePicker
-                  label="Ngày nhắc nhở"
+            <Grid item xs={12} md={6}>
+                 <DatePicker
+                  label={formData.reminderType === 'once' ? "Ngày nhắc nhở" : "Ngày bắt đầu"}
                   value={selectedDate}
                   onChange={(newValue: Dayjs | null) => setSelectedDate(newValue)}
-                  inputFormat="DD/MM/YYYY"
                   renderInput={(params) => <TextField {...params} fullWidth />}
                 />
-              </Grid>
-            )}
+            </Grid>
 
             {formData.reminderType === 'weekly' && (
               <Grid item xs={12}>

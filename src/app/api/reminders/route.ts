@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import sql from 'mssql';
 import { executeQuery, getDbPool } from '@/lib/database';
-import dayjs from 'dayjs'; 
+import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 dayjs.extend(customParseFormat);
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('Received body for new reminder:', body);
 
-    const { 
+    let { 
       title, description, categoryId, reminderType, reminderTime, 
       priority, isActive, telegramChatIds, startDate, reminderDate,
       repeatDaysOfWeek, repeatDayOfMonth, templateTelegram
@@ -83,6 +83,11 @@ export async function POST(request: NextRequest) {
 
     const baseDateForTrigger = reminderType === 'once' ? reminderDate : startDate;
     const nextTriggerDate = calculateNextTriggerDate(baseDateForTrigger, reminderTime);
+
+    // Ensure reminderDate is aligned with nextTriggerDate for 'once' reminders
+    if (reminderType === 'once' && nextTriggerDate) {
+        reminderDate = dayjs(nextTriggerDate).startOf('day').toDate();
+    }
 
     const pool = await getDbPool();
     const req = pool.request();
@@ -171,6 +176,11 @@ export async function PUT(request: NextRequest) {
     const timeValue = body.reminderTime || originalReminder.reminderTime;
     const nextTriggerDate = calculateNextTriggerDate(baseDateForTrigger, timeValue);
     body.nextTriggerDate = nextTriggerDate; // Add it to the body to be updated
+    
+    // Ensure reminderDate is aligned with nextTriggerDate for 'once' reminders
+    if (mergedData.reminderType === 'once' && nextTriggerDate) {
+        body.reminderDate = dayjs(nextTriggerDate).startOf('day').toDate();
+    }
     
     // --- Handle time/date conversions for incoming data ---
     if (body.hasOwnProperty('reminderTime')) {
