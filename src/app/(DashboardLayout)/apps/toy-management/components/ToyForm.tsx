@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -19,7 +19,7 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { IconX, IconDeviceFloppy, IconCurrencyDong } from '@tabler/icons-react';
+import { IconX, IconDeviceFloppy } from '@tabler/icons-react';
 import { formatNumberToVn, parseVnToNumber } from '@/utils/currency';
 import { Toy, ToyCategory, ToyCreateRequest, ToyUpdateRequest, ToyStatus } from '../../../types/apps/toy';
 
@@ -33,6 +33,13 @@ interface ToyFormProps {
   mode: 'create' | 'edit';
 }
 
+const statusTranslations: Record<ToyStatus, string> = {
+  [ToyStatus.ACTIVE]: 'Đang hoạt động',
+  [ToyStatus.INACTIVE]: 'Không hoạt động',
+  [ToyStatus.OUT_OF_STOCK]: 'Hết hàng',
+  [ToyStatus.DISCONTINUED]: 'Ngừng kinh doanh',
+};
+
 const ToyForm: React.FC<ToyFormProps> = ({
   open,
   onClose,
@@ -42,7 +49,7 @@ const ToyForm: React.FC<ToyFormProps> = ({
   brands,
   mode,
 }) => {
-  const [formData, setFormData] = useState<ToyCreateRequest>({
+  const [formData, setFormData] = useState<ToyCreateRequest | ToyUpdateRequest>({
     name: '',
     description: '',
     image: '',
@@ -61,6 +68,7 @@ const ToyForm: React.FC<ToyFormProps> = ({
     },
     colors: [],
     tags: [],
+    status: ToyStatus.ACTIVE,
   });
 
   const [loading, setLoading] = useState(false);
@@ -77,6 +85,7 @@ const ToyForm: React.FC<ToyFormProps> = ({
     if (open) {
       if (mode === 'edit' && toy) {
         setFormData({
+          id: toy.id,
           name: toy.name,
           description: toy.description,
           image: toy.image,
@@ -90,6 +99,7 @@ const ToyForm: React.FC<ToyFormProps> = ({
           dimensions: toy.dimensions,
           colors: toy.colors,
           tags: toy.tags,
+          status: toy.status,
         });
       } else {
         // Reset form for create mode
@@ -112,6 +122,7 @@ const ToyForm: React.FC<ToyFormProps> = ({
           },
           colors: [],
           tags: [],
+          status: ToyStatus.ACTIVE,
         });
       }
       setError(null);
@@ -147,9 +158,7 @@ const ToyForm: React.FC<ToyFormProps> = ({
     }
   };
 
-
-
-  const handleInputChange = (field: keyof ToyCreateRequest, value: any) => {
+  const handleInputChange = (field: keyof (ToyCreateRequest | ToyUpdateRequest), value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -338,6 +347,25 @@ const ToyForm: React.FC<ToyFormProps> = ({
               </Select>
             </FormControl>
           </Grid>
+
+          {mode === 'edit' && (
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Trạng thái</InputLabel>
+                <Select
+                  value={formData.status}
+                  onChange={(e) => handleInputChange('status', e.target.value)}
+                  label="Trạng thái"
+                >
+                  {Object.values(ToyStatus).map((status) => (
+                    <MenuItem key={status} value={status}>
+                      {statusTranslations[status]}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          )}
 
           {/* Pricing & Stock */}
           <Grid item xs={12}>
