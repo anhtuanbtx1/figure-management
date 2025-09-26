@@ -12,9 +12,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Box,
   Typography,
-  Chip,
   InputAdornment,
   CircularProgress,
   Alert,
@@ -40,6 +38,22 @@ const statusTranslations: Record<ToyStatus, string> = {
   [ToyStatus.DISCONTINUED]: 'Ngừng kinh doanh',
 };
 
+const initialCreateState: ToyCreateRequest = {
+  name: '',
+  description: '',
+  image: '',
+  categoryId: '',
+  price: 0,
+  originalPrice: 0,
+  stock: 0,
+  ageRange: '',
+  brand: '',
+  material: '',
+  dimensions: { length: 0, width: 0, height: 0, weight: 0 },
+  colors: [],
+  tags: [],
+};
+
 const ToyForm: React.FC<ToyFormProps> = ({
   open,
   onClose,
@@ -49,38 +63,12 @@ const ToyForm: React.FC<ToyFormProps> = ({
   brands,
   mode,
 }) => {
-  const [formData, setFormData] = useState<ToyCreateRequest | ToyUpdateRequest>({
-    name: '',
-    description: '',
-    image: '',
-    categoryId: '',
-    price: 0,
-    originalPrice: 0,
-    stock: 0,
-    ageRange: '',
-    brand: '',
-    material: '',
-    dimensions: {
-      length: 0,
-      width: 0,
-      height: 0,
-      weight: 0,
-    },
-    colors: [],
-    tags: [],
-    status: ToyStatus.ACTIVE,
-  });
-
+  const [formData, setFormData] = useState<ToyCreateRequest | ToyUpdateRequest>(initialCreateState);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [colorInput, setColorInput] = useState('');
-  const [tagInput, setTagInput] = useState('');
-
-  // Local display states for currency inputs
   const [priceDisplay, setPriceDisplay] = useState<string>('');
   const [originalPriceDisplay, setOriginalPriceDisplay] = useState<string>('');
 
-  // Reset form when dialog opens/closes or toy changes
   useEffect(() => {
     if (open) {
       if (mode === 'edit' && toy) {
@@ -102,40 +90,21 @@ const ToyForm: React.FC<ToyFormProps> = ({
           status: toy.status,
         });
       } else {
-        // Reset form for create mode
-        setFormData({
-          name: '',
-          description: '',
-          image: '',
-          categoryId: '',
-          price: 0,
-          originalPrice: 0,
-          stock: 0,
-          ageRange: '',
-          brand: '',
-          material: '',
-          dimensions: {
-            length: 0,
-            width: 0,
-            height: 0,
-            weight: 0,
-          },
-          colors: [],
-          tags: [],
-          status: ToyStatus.ACTIVE,
-        });
+        setFormData(initialCreateState);
       }
       setError(null);
+    } else {
+      setFormData(initialCreateState);
     }
   }, [open, mode, toy]);
 
-  // Sync display values when formData changes
   useEffect(() => {
-    setPriceDisplay(formData.price ? formatNumberToVn(formData.price) : '');
-    setOriginalPriceDisplay(formData.originalPrice ? formatNumberToVn(formData.originalPrice) : '');
-  }, [formData.price, formData.originalPrice]);
+    const price = 'price' in formData ? formData.price : 0;
+    const originalPrice = 'originalPrice' in formData ? formData.originalPrice : 0;
+    setPriceDisplay(price ? formatNumberToVn(price) : '');
+    setOriginalPriceDisplay(originalPrice ? formatNumberToVn(originalPrice) : '');
+  }, [formData]);
 
-  // Handlers for formatted currency inputs
   const handlePriceChange = (input: string) => {
     const formatted = formatNumberToVn(input);
     setPriceDisplay(formatted);
@@ -151,289 +120,117 @@ const ToyForm: React.FC<ToyFormProps> = ({
   };
 
   const normalizeCurrencyOnBlur = (kind: 'price' | 'originalPrice') => {
-    if (kind === 'price') {
-      setPriceDisplay(formData.price ? formatNumberToVn(formData.price) : '');
-    } else {
-      setOriginalPriceDisplay(formData.originalPrice ? formatNumberToVn(formData.originalPrice) : '');
-    }
+    const value = formData[kind] || 0;
+    const displaySetter = kind === 'price' ? setPriceDisplay : setOriginalPriceDisplay;
+    displaySetter(value ? formatNumberToVn(value) : '');
   };
 
-  const handleInputChange = (field: keyof (ToyCreateRequest | ToyUpdateRequest), value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleInputChange = (field: keyof ToyCreateRequest, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value } as ToyCreateRequest | ToyUpdateRequest));
   };
 
-  const handleDimensionChange = (field: keyof typeof formData.dimensions, value: number) => {
+  const handleDimensionChange = (field: keyof Toy['dimensions'], value: number) => {
     setFormData(prev => ({
       ...prev,
       dimensions: {
-        ...prev.dimensions,
+        ...(prev.dimensions || initialCreateState.dimensions),
         [field]: value,
       },
-    }));
-  };
-
-  const addColor = () => {
-    if (colorInput.trim() && !formData.colors.includes(colorInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        colors: [...prev.colors, colorInput.trim()],
-      }));
-      setColorInput('');
-    }
-  };
-
-  const removeColor = (color: string) => {
-    setFormData(prev => ({
-      ...prev,
-      colors: prev.colors.filter(c => c !== color),
-    }));
-  };
-
-  const addTag = () => {
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tagInput.trim()],
-      }));
-      setTagInput('');
-    }
-  };
-
-  const removeTag = (tag: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(t => t !== tag),
-    }));
+    } as ToyCreateRequest | ToyUpdateRequest));
   };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      // Validation
-      if (!formData.name.trim()) {
-        throw new Error('Tên đồ chơi là bắt buộc');
-      }
-      if (!formData.categoryId) {
-        throw new Error('Danh mục là bắt buộc');
-      }
-      if (!formData.brand.trim()) {
-        throw new Error('Thương hiệu là bắt buộc');
-      }
-      if (formData.price <= 0) {
-        throw new Error('Giá phải lớn hơn 0');
-      }
-      if (formData.stock < 0) {
-        throw new Error('Số lượng không thể âm');
-      }
-
+      if (!formData.name || !formData.name.trim()) throw new Error('Tên đồ chơi là bắt buộc');
+      if (!formData.categoryId) throw new Error('Danh mục là bắt buộc');
+      if (!formData.brand || !formData.brand.trim()) throw new Error('Thương hiệu là bắt buộc');
+      if (formData.price === undefined || formData.price <= 0) throw new Error('Giá phải lớn hơn 0');
+      if (formData.stock === undefined || formData.stock < 0) throw new Error('Số lượng không thể âm');
+      
       await onSubmit(formData);
       onClose();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Có lỗi xảy ra');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: { borderRadius: 2 }
-      }}
-    >
-      <DialogTitle sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        pb: 1
-      }}>
-        <Typography variant="h6">
-          {mode === 'create' ? '🧸 Thêm đồ chơi mới' : '✏️ Chỉnh sửa đồ chơi'}
-        </Typography>
-        <Button
-          onClick={onClose}
-          size="small"
-          sx={{ minWidth: 'auto', p: 1 }}
-        >
-          <IconX size={20} />
-        </Button>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
+        <Typography variant="h6">{mode === 'create' ? '🧸 Thêm đồ chơi mới' : '✏️ Chỉnh sửa đồ chơi'}</Typography>
+        <Button onClick={onClose} size="small" sx={{ minWidth: 'auto', p: 1 }}><IconX size={20} /></Button>
       </DialogTitle>
 
       <DialogContent dividers>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <Grid container spacing={3}>
-          {/* Basic Information */}
-          <Grid item xs={12}>
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
-              📋 Thông tin cơ bản
-            </Typography>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Tên đồ chơi"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              required
-            />
-          </Grid>
-
+          <Grid item xs={12}><Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>📋 Thông tin cơ bản</Typography></Grid>
+          <Grid item xs={12} md={6}><TextField fullWidth label="Tên đồ chơi" value={formData.name || ''} onChange={e => handleInputChange('name', e.target.value)} required /></Grid>
           <Grid item xs={12} md={6}>
             <FormControl fullWidth required>
               <InputLabel>Danh mục</InputLabel>
-              <Select
-                value={formData.categoryId}
-                onChange={(e) => handleInputChange('categoryId', e.target.value)}
-                label="Danh mục"
-              >
-                {categories.map((category) => (
-                  <MenuItem key={category.id} value={category.id}>
-                    {category.name}
-                  </MenuItem>
-                ))}
+              <Select value={formData.categoryId || ''} onChange={e => handleInputChange('categoryId', e.target.value)} label="Danh mục">
+                {categories.map(cat => <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>)}
               </Select>
             </FormControl>
           </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Mô tả"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              multiline
-              rows={3}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Hình ảnh (URL)"
-              value={formData.image}
-              onChange={(e) => handleInputChange('image', e.target.value)}
-              placeholder="/images/toys/example.jpg"
-            />
-          </Grid>
-
+          <Grid item xs={12}><TextField fullWidth label="Mô tả" value={formData.description || ''} onChange={e => handleInputChange('description', e.target.value)} multiline rows={3} /></Grid>
+          <Grid item xs={12} md={6}><TextField fullWidth label="Hình ảnh (URL)" value={formData.image || ''} onChange={e => handleInputChange('image', e.target.value)} placeholder="/images/toys/example.jpg" /></Grid>
           <Grid item xs={12} md={6}>
             <FormControl fullWidth>
               <InputLabel>Thương hiệu</InputLabel>
-              <Select
-                value={formData.brand}
-                onChange={(e) => handleInputChange('brand', e.target.value)}
-                label="Thương hiệu"
-              >
-                {brands.map((brand) => (
-                  <MenuItem key={brand} value={brand}>
-                    {brand}
-                  </MenuItem>
-                ))}
+              <Select value={formData.brand || ''} onChange={e => handleInputChange('brand', e.target.value)} label="Thương hiệu">
+                {brands.map(b => <MenuItem key={b} value={b}>{b}</MenuItem>)}
               </Select>
             </FormControl>
           </Grid>
-
-          {mode === 'edit' && (
+          {mode === 'edit' && 'status' in formData && (
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>Trạng thái</InputLabel>
-                <Select
+                <Select 
                   value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  label="Trạng thái"
-                >
-                  {Object.values(ToyStatus).map((status) => (
-                    <MenuItem key={status} value={status}>
-                      {statusTranslations[status]}
-                    </MenuItem>
-                  ))}
+                  onChange={e => setFormData(prev => ({ ...(prev as ToyUpdateRequest), status: e.target.value as ToyStatus }))}
+                  label="Trạng thái">
+                  {Object.values(ToyStatus).map(s => <MenuItem key={s} value={s}>{statusTranslations[s]}</MenuItem>)}
                 </Select>
               </FormControl>
             </Grid>
           )}
-
-          {/* Pricing & Stock */}
-          <Grid item xs={12}>
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mt: 2 }}>
-              💰 Giá cả & Kho hàng
-            </Typography>
-          </Grid>
-
+          <Grid item xs={12}><Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600, mt: 2 }}>💰 Giá cả & Kho hàng</Typography></Grid>
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Giá bán"
               placeholder="1.000.000"
-              inputMode="numeric"
               value={priceDisplay}
-              onChange={(e) => handlePriceChange(e.target.value)}
+              onChange={e => handlePriceChange(e.target.value)}
               onBlur={() => normalizeCurrencyOnBlur('price')}
-              InputProps={{
-                startAdornment: <InputAdornment position="start">₫</InputAdornment>,
-                endAdornment: <InputAdornment position="end">VNĐ</InputAdornment>,
-              }}
+              InputProps={{ startAdornment: <InputAdornment position="start">₫</InputAdornment>, endAdornment: <InputAdornment position="end">VNĐ</InputAdornment> }}
               required
             />
           </Grid>
-
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Giá gốc"
               placeholder="1.500.000"
-              inputMode="numeric"
               value={originalPriceDisplay}
-              onChange={(e) => handleOriginalPriceChange(e.target.value)}
+              onChange={e => handleOriginalPriceChange(e.target.value)}
               onBlur={() => normalizeCurrencyOnBlur('originalPrice')}
-              InputProps={{
-                startAdornment: <InputAdornment position="start">₫</InputAdornment>,
-                endAdornment: <InputAdornment position="end">VNĐ</InputAdornment>,
-              }}
+              InputProps={{ startAdornment: <InputAdornment position="start">₫</InputAdornment>, endAdornment: <InputAdornment position="end">VNĐ</InputAdornment> }}
             />
           </Grid>
-
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Số lượng"
-              type="number"
-              value={formData.stock}
-              onChange={(e) => handleInputChange('stock', Number(e.target.value))}
-              required
-            />
-          </Grid>
+          <Grid item xs={12} md={4}><TextField fullWidth label="Số lượng" type="number" value={formData.stock || 0} onChange={e => handleInputChange('stock', Number(e.target.value))} required /></Grid>
         </Grid>
       </DialogContent>
-
       <DialogActions sx={{ p: 3, gap: 1 }}>
-        <Button
-          onClick={onClose}
-          variant="outlined"
-          disabled={loading}
-        >
-          Hủy
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} /> : <IconDeviceFloppy size={20} />}
-        >
+        <Button onClick={onClose} variant="outlined" disabled={loading}>Hủy</Button>
+        <Button onClick={handleSubmit} variant="contained" disabled={loading} startIcon={loading ? <CircularProgress size={20} /> : <IconDeviceFloppy size={20} />}>
           {loading ? 'Đang lưu...' : (mode === 'create' ? 'Thêm mới' : 'Cập nhật')}
         </Button>
       </DialogActions>
