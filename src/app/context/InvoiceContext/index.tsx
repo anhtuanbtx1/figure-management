@@ -39,7 +39,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                     billToFax: inv.BillToFax ? Number(inv.BillToFax) : 0,
                     orders: [],
                     orderDate: new Date(inv.OrderDate),
-                    totalCost: inv.GrandTotal,
+                    totalCost: inv.SubTotal, // Corrected from GrandTotal
                     vat: inv.VAT,
                     grandTotal: inv.GrandTotal,
                     status: inv.Status,
@@ -111,7 +111,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 billToFax: Number(inv.BillToFax) || 0,
                 orders: [],
                 orderDate: new Date(inv.OrderDate),
-                totalCost: inv.GrandTotal,
+                totalCost: inv.SubTotal, // Corrected from GrandTotal
                 vat: inv.VAT,
                 grandTotal: inv.GrandTotal,
                 status: inv.Status,
@@ -164,7 +164,7 @@ export const InvoiceProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 billToFax: Number(updated.BillToFax) || 0,
                 orders: [],
                 orderDate: new Date(updated.OrderDate),
-                totalCost: updated.GrandTotal,
+                totalCost: updated.SubTotal, // Corrected from GrandTotal
                 vat: updated.VAT,
                 grandTotal: updated.GrandTotal,
                 status: updated.Status,

@@ -36,6 +36,7 @@ const EditInvoicePage = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [editedInvoice, setEditedInvoice]: any = useState(null);
+  const [originalOrders, setOriginalOrders] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Helper functions for status translation
@@ -89,6 +90,14 @@ const EditInvoicePage = () => {
         const vatCalc = 0; // default 0%
         const grandTotalCalc = subTotalCalc + vatCalc;
 
+        const mappedOrders = items.map((it: any) => ({
+          itemId: it.Id,
+          itemName: it.ItemName,
+          unitPrice: it.UnitPrice,
+          units: it.Units,
+          unitTotalPrice: it.UnitTotalPrice,
+        }));
+
         const mapped = {
           id: header?.Id,
           invoiceNumber: header?.InvoiceNumber || '',
@@ -102,13 +111,7 @@ const EditInvoicePage = () => {
           billToAddress: header?.BillToAddress || '',
           billToPhone: header?.BillToPhone || 0,
           billToFax: header?.BillToFax || 0,
-          orders: items.map((it: any) => ({
-            itemId: it.Id,
-            itemName: it.ItemName,
-            unitPrice: it.UnitPrice,
-            units: it.Units,
-            unitTotalPrice: it.UnitTotalPrice,
-          })),
+          orders: mappedOrders,
           orderDate: header?.OrderDate ? new Date(header.OrderDate) : new Date(),
           totalCost: subTotalCalc,
           vat: vatCalc,
@@ -120,6 +123,7 @@ const EditInvoicePage = () => {
 
         setSelectedInvoice(mapped);
         setEditedInvoice(mapped);
+        setOriginalOrders(JSON.parse(JSON.stringify(mappedOrders))); // Deep copy for reliable comparison
         setEditing(true);
       } catch (e: any) {
         console.error('Failed to load invoice detail', e);
@@ -144,28 +148,21 @@ const EditInvoicePage = () => {
       };
 
       // Compute diffs for items (adds/updates/deletes)
-      const originalItems = (selectedInvoice.orders || []).map((it: any) => ({
-        itemId: it.id || it.ItemId || it.itemId,
-        itemName: it.itemName,
-        unitPrice: it.unitPrice,
-        units: it.units,
-      }));
-      const currentItems = (editedInvoice.orders || []).map((it: any) => ({
-        itemId: it.id || it.itemId,
-        itemName: it.itemName,
-        unitPrice: it.unitPrice,
-        units: it.units,
-      }));
+      const currentItems = editedInvoice.orders || [];
 
-      const origMap = new Map(originalItems.filter((x:any)=>x.itemId).map((x:any)=>[x.itemId, x]));
-      const currMap = new Map(currentItems.filter((x:any)=>x.itemId).map((x:any)=>[x.itemId, x]));
+      const origMap = new Map(originalOrders.map((it: any) => [it.itemId, it]));
+      const currMap = new Map(currentItems.filter((it: any) => it.itemId).map((it: any) => [it.itemId, it]));
 
       const updates: any[] = [];
       currMap.forEach((curr: any, id: any) => {
-        const orig: any = origMap.get(id) as any;
-        const c: any = curr as any;
-        if (orig && (orig.itemName !== c.itemName || Number(orig.unitPrice) !== Number(c.unitPrice) || Number(orig.units) !== Number(c.units))) {
-          updates.push({ itemId: id, itemName: c.itemName, unitPrice: Number(c.unitPrice)||0, units: Number(c.units)||0 });
+        const orig = origMap.get(id);
+        if (orig && (orig.itemName !== curr.itemName || Number(orig.unitPrice) !== Number(curr.unitPrice) || Number(orig.units) !== Number(curr.units))) {
+          updates.push({ 
+            itemId: id, 
+            itemName: curr.itemName, 
+            unitPrice: Number(curr.unitPrice) || 0, 
+            units: Number(curr.units) || 0 
+          });
         }
       });
 
@@ -175,16 +172,17 @@ const EditInvoicePage = () => {
           deletes.push(id);
         }
       });
-
-      const adds: any[] = [];
-      for (const curr of currentItems) {
-        if (!curr.itemId) {
-          adds.push({ itemName: curr.itemName, unitPrice: Number(curr.unitPrice)||0, units: Number(curr.units)||0 });
-        }
-      }
+      
+      const adds = currentItems.filter((it: any) => !it.itemId).map((it: any) => ({
+        itemName: it.itemName,
+        unitPrice: Number(it.unitPrice) || 0,
+        units: Number(it.units) || 0,
+      }));
 
       // Call batch API for items first
-      await axios.post(`/api/invoices/${editedInvoice.id}/items/batch`, { adds, updates, deletes });
+      if (adds.length > 0 || updates.length > 0 || deletes.length > 0) {
+        await axios.post(`/api/invoices/${editedInvoice.id}/items/batch`, { adds, updates, deletes });
+      }
 
       // Then update header (status, etc.)
       await updateInvoice(invoiceToSave);
@@ -197,6 +195,7 @@ const EditInvoicePage = () => {
       router.push("/apps/invoice/list");
     } catch (error) {
       console.error("Error updating invoice:", error);
+       setNotification({ open: true, message: '❌ Lưu thất bại. Vui lòng thử lại.', severity: 'error' });
     }
 
     setTimeout(() => {
@@ -205,36 +204,36 @@ const EditInvoicePage = () => {
   };
 
   const handleCancel = () => {
+    setEditedInvoice(JSON.parse(JSON.stringify(selectedInvoice))); // Restore original state on cancel
     setEditing(false);
   };
 
   const handleOrderChange = (
-    index: string | number | any,
+    index: number,
     field: string,
     value: string | number
   ) => {
     const updatedOrders = [...editedInvoice.orders];
-    updatedOrders[index][field] = value;
-
-    // Calculate unitTotalPrice for the changed item
+    const orderToUpdate = { ...updatedOrders[index], [field]: value };
+    
+    // Recalculate unitTotalPrice for the changed item
     if (field === "unitPrice" || field === "units") {
-      updatedOrders[index].unitTotalPrice =
-        updatedOrders[index].unitPrice * updatedOrders[index].units;
+      orderToUpdate.unitTotalPrice = (Number(orderToUpdate.unitPrice) || 0) * (Number(orderToUpdate.units) || 0);
     }
+    updatedOrders[index] = orderToUpdate;
 
     // Update editedInvoice with updated orders and recalculate totals
-    const updatedInvoice = {
+    const totalCost = calculateTotalCost(updatedOrders);
+    const vat = calculateVAT(updatedOrders);
+    const grandTotal = calculateGrandTotal(totalCost, vat);
+
+    setEditedInvoice({
       ...editedInvoice,
       orders: updatedOrders,
-      totalCost: calculateTotalCost(updatedOrders),
-      vat: calculateVAT(updatedOrders),
-      grandTotal: calculateGrandTotal(
-        calculateTotalCost(updatedOrders),
-        calculateVAT(updatedOrders)
-      ),
-    };
-
-    setEditedInvoice(updatedInvoice);
+      totalCost,
+      vat,
+      grandTotal,
+    });
   };
 
   const handleAddItem = () => {
@@ -243,22 +242,9 @@ const EditInvoicePage = () => {
       unitPrice: 0,
       units: 0,
       unitTotalPrice: 0,
-      vat: 0,
     };
     const updatedOrders = [...editedInvoice.orders, newItem];
-
-    // Update editedInvoice with updated orders and recalculate totals
-    const updatedInvoice = {
-      ...editedInvoice,
-      orders: updatedOrders,
-      totalCost: calculateTotalCost(updatedOrders),
-      vat: calculateVAT(updatedOrders),
-      grandTotal: calculateGrandTotal(
-        calculateTotalCost(updatedOrders),
-        calculateVAT(updatedOrders)
-      ),
-    };
-    setEditedInvoice(updatedInvoice);
+    setEditedInvoice({ ...editedInvoice, orders: updatedOrders });
   };
 
   const handleDeleteItem = (index: any) => {
@@ -266,21 +252,21 @@ const EditInvoicePage = () => {
       (_: any, i: any) => i !== index
     );
 
-    const updatedInvoice = {
+    const totalCost = calculateTotalCost(updatedOrders);
+    const vat = calculateVAT(updatedOrders);
+    const grandTotal = calculateGrandTotal(totalCost, vat);
+
+    setEditedInvoice({
       ...editedInvoice,
       orders: updatedOrders,
-      totalCost: calculateTotalCost(updatedOrders),
-      vat: calculateVAT(updatedOrders),
-      grandTotal: calculateGrandTotal(
-        calculateTotalCost(updatedOrders),
-        calculateVAT(updatedOrders)
-      ),
-    };
-    setEditedInvoice(updatedInvoice);
+      totalCost,
+      vat,
+      grandTotal,
+    });
   };
 
   const calculateTotalCost = (orders: any[]) => {
-    return orders.reduce((total, order) => total + order.unitTotalPrice, 0);
+    return orders.reduce((total, order) => total + (Number(order.unitTotalPrice) || 0), 0);
   };
 
   const calculateVAT = (_orders: any[]) => {
@@ -478,7 +464,7 @@ const EditInvoicePage = () => {
             </TableHead>
             <TableBody>
               {editedInvoice.orders.map((order: any, index: number) => (
-                <TableRow key={index}>
+                <TableRow key={order.itemId || `new-${index}`}>
                   <TableCell>
                     <CustomTextField
                       type="text"
@@ -491,13 +477,13 @@ const EditInvoicePage = () => {
                   </TableCell>
                   <TableCell>
                     <CustomTextField
-                      type="number"
-                      value={order.unitPrice}
+                      type="text"
+                      value={formatNumberToVn(order.unitPrice)}
                       onChange={(e: any) =>
                         handleOrderChange(
                           index,
                           "unitPrice",
-                          parseFloat(e.target.value)
+                          parseVnToNumber(e.target.value)
                         )
                       }
                       fullWidth
@@ -511,7 +497,7 @@ const EditInvoicePage = () => {
                         handleOrderChange(
                           index,
                           "units",
-                          parseInt(e.target.value)
+                          parseInt(e.target.value, 10) || 0
                         )
                       }
                       fullWidth
@@ -519,15 +505,10 @@ const EditInvoicePage = () => {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body1">
-                      {order.unitTotalPrice.toLocaleString('vi-VN')} VNĐ
+                      {formatNumberToVn(order.unitTotalPrice)} VNĐ
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Tooltip title="Thêm sản phẩm">
-                      <IconButton onClick={handleAddItem} color="primary">
-                        <IconSquareRoundedPlus width={22} />
-                      </IconButton>
-                    </Tooltip>
                     <Tooltip title="Xóa sản phẩm">
                       <IconButton
                         color="error"
@@ -542,6 +523,16 @@ const EditInvoicePage = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <Box p={2} textAlign="right">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddItem}
+            startIcon={<IconSquareRoundedPlus width={18} />}
+          >
+            Thêm sản phẩm
+          </Button>
+        </Box>
       </Paper>
 
       <Box p={3} bgcolor="primary.light" mt={3}>

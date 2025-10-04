@@ -48,7 +48,6 @@ BEGIN
     SET ItemName = @ItemName,
         UnitPrice = @UnitPrice,
         Units = @Units,
-        UnitTotalPrice = @UnitPrice * @Units,
         UpdatedAt = GETDATE()
     WHERE Id = @ItemId;
 
@@ -95,14 +94,12 @@ BEGIN
     SET NOCOUNT ON;
 
     INSERT INTO zen50558_ManagementStore.dbo.InvoiceItems (
-        Id, InvoiceId, ItemName, UnitPrice, Units, UnitTotalPrice, IsActive, CreatedAt, UpdatedAt
+        InvoiceId, ItemName, UnitPrice, Units, IsActive, CreatedAt, UpdatedAt
     ) VALUES (
-        'item-' + REPLACE(CAST(NEWID() AS NVARCHAR(36)), '-', ''),
         @InvoiceId,
         @ItemName,
         @UnitPrice,
         @Units,
-        @UnitPrice * @Units,
         1,
         GETDATE(),
         GETDATE()
@@ -111,4 +108,3 @@ BEGIN
     EXEC sp_RecalculateInvoiceTotalsFromItems @InvoiceId;
 END
 GO
-
