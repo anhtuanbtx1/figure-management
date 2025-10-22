@@ -144,6 +144,32 @@ const Menuitems = [
       },
       {
         id: uniqueId(),
+        title: "Laundry Orders",
+        icon: IconPoint,
+        href: "/apps/laundry-orders",
+        children: [
+          {
+            id: uniqueId(),
+            title: "Order List",
+            icon: IconPoint,
+            href: "/apps/laundry-orders/list",
+          },
+          {
+            id: uniqueId(),
+            title: "Customers",
+            icon: IconPoint,
+            href: "/apps/laundry-orders/customers",
+          },
+          {
+            id: uniqueId(),
+            title: "Reports",
+            icon: IconPoint,
+            href: "/apps/laundry-orders/reports",
+          },
+        ],
+      },
+      {
+        id: uniqueId(),
         title: "User Profile",
         icon: IconPoint,
         href: "/user-profile",

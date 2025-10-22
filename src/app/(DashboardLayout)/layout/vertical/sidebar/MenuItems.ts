@@ -137,6 +137,32 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
+    title: "Quản lý giặt ủi",
+    icon: IconShoppingCart,
+    href: "/apps/laundry-orders",
+    children: [
+      {
+        id: uniqueId(),
+        title: "Danh sách đơn hàng",
+        icon: IconPoint,
+        href: "/apps/laundry-orders/list",
+      },
+      {
+        id: uniqueId(),
+        title: "Quản lý khách hàng",
+        icon: IconPoint,
+        href: "/apps/laundry-orders/customers",
+      },
+      {
+        id: uniqueId(),
+        title: "Báo cáo thống kê",
+        icon: IconPoint,
+        href: "/apps/laundry-orders/reports",
+      },
+    ],
+  },
+  {
+    id: uniqueId(),
     title: "Nhắc nhở",
     icon: IconBell,
     href: "/apps/reminders",
