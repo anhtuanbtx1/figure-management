@@ -18,6 +18,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Chip,
+  useTheme,
 } from "@mui/material";
 import {
   IconCalendar,
@@ -50,6 +51,7 @@ interface RevenueStats {
 }
 
 const LaundryRevenueReports = () => {
+  const theme = useTheme();
   const [stats, setStats] = useState<RevenueStats[]>([]);
   const [loading, setLoading] = useState(false);
   const [groupBy, setGroupBy] = useState<"day" | "week" | "month">("day");
@@ -139,27 +141,43 @@ const LaundryRevenueReports = () => {
       type: "line",
       toolbar: { show: true },
       fontFamily: "'Plus Jakarta Sans', sans-serif",
+      foreColor: theme.palette.text.secondary,
     },
     colors: ["#5D87FF", "#49BEFF"],
     dataLabels: { enabled: false },
     stroke: { curve: "smooth", width: 3 },
     xaxis: {
       categories: chartCategories,
-      labels: { rotate: -45 },
+      labels: { 
+        rotate: -45,
+        style: {
+          colors: theme.palette.text.secondary,
+        }
+      },
     },
     yaxis: {
       labels: {
         formatter: (value: number) => formatVndText(value),
+        style: {
+          colors: theme.palette.text.secondary,
+        }
       },
     },
     tooltip: {
+      theme: theme.palette.mode,
       y: {
         formatter: (value: number) => formatVndText(value),
       },
     },
-    legend: { show: true, position: "top" },
+    legend: { 
+      show: true, 
+      position: "top",
+      labels: {
+        colors: theme.palette.text.primary,
+      }
+    },
     grid: {
-      borderColor: "#e7e7e7",
+      borderColor: theme.palette.mode === 'dark' ? '#333' : '#e7e7e7',
       strokeDashArray: 5,
     },
   };
@@ -180,6 +198,7 @@ const LaundryRevenueReports = () => {
       type: "bar",
       toolbar: { show: true },
       fontFamily: "'Plus Jakarta Sans', sans-serif",
+      foreColor: theme.palette.text.secondary,
     },
     colors: ["#13DEB9", "#FA896B"],
     plotOptions: {
@@ -193,20 +212,42 @@ const LaundryRevenueReports = () => {
     stroke: { show: true, width: 2, colors: ["transparent"] },
     xaxis: {
       categories: chartCategories,
-      labels: { rotate: -45 },
+      labels: { 
+        rotate: -45,
+        style: {
+          colors: theme.palette.text.secondary,
+        }
+      },
     },
     yaxis: {
-      title: { text: "Số đơn hàng" },
+      title: { 
+        text: "Số đơn hàng",
+        style: {
+          color: theme.palette.text.secondary,
+        }
+      },
+      labels: {
+        style: {
+          colors: theme.palette.text.secondary,
+        }
+      },
     },
     fill: { opacity: 1 },
     tooltip: {
+      theme: theme.palette.mode,
       y: {
         formatter: (value: number) => `${value} đơn`,
       },
     },
-    legend: { show: true, position: "top" },
+    legend: { 
+      show: true, 
+      position: "top",
+      labels: {
+        colors: theme.palette.text.primary,
+      }
+    },
     grid: {
-      borderColor: "#e7e7e7",
+      borderColor: theme.palette.mode === 'dark' ? '#333' : '#e7e7e7',
       strokeDashArray: 5,
     },
   };

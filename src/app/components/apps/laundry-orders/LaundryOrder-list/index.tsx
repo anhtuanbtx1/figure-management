@@ -31,6 +31,8 @@ import {
 } from "@tabler/icons-react";
 import { formatVndText } from "@/utils/currency";
 import AddLaundryOrderModal from "@/app/(DashboardLayout)/apps/laundry-orders/components/AddLaundryOrderModal";
+import ModernNotification from '@/app/components/shared/ModernNotification';
+import { createLaundryNotification, type NotificationConfig } from '@/app/(DashboardLayout)/apps/laundry-orders/utils/notifications';
 
 interface LaundryOrder {
   id: number;
@@ -59,6 +61,11 @@ function LaundryOrderList() {
   const [phoneFilter, setPhoneFilter] = useState("");
   const [dateFrom, setDateFrom] = useState(getTodayDate());
   const [dateTo, setDateTo] = useState(getTodayDate());
+  const [notification, setNotification] = useState<NotificationConfig>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
 
   const tabItem = ["All", "Pending", "Processing", "Completed"];
 
@@ -147,11 +154,11 @@ function LaundryOrderList() {
         handleStatusMenuClose();
       } else {
         console.error('❌ Lỗi cập nhật trạng thái:', result.message);
-        alert('Không thể cập nhật trạng thái: ' + result.message);
+        setNotification(createLaundryNotification.error.statusUpdateFailed(result.message));
       }
     } catch (error) {
       console.error('❌ Lỗi kết nối API:', error);
-      alert('Có lỗi xảy ra khi cập nhật trạng thái');
+      setNotification(createLaundryNotification.error.statusUpdateFailed());
     }
   };
 
@@ -164,7 +171,7 @@ function LaundryOrderList() {
     const newCost = parseFloat(editingTotalCost.replace(/[^0-9]/g, ''));
     
     if (isNaN(newCost) || newCost < 0) {
-      alert('Vui lòng nhập số tiền hợp lệ');
+      setNotification(createLaundryNotification.warning.invalidAmount());
       return;
     }
 
@@ -187,11 +194,11 @@ function LaundryOrderList() {
         setEditingTotalCost("");
       } else {
         console.error('❌ Lỗi cập nhật tổng chi phí:', result.message);
-        alert('Không thể cập nhật tổng chi phí: ' + result.message);
+        setNotification(createLaundryNotification.error.updateFailed(result.message));
       }
     } catch (error) {
       console.error('❌ Lỗi kết nối API:', error);
-      alert('Có lỗi xảy ra khi cập nhật tổng chi phí');
+      setNotification(createLaundryNotification.error.updateFailed());
     }
   };
 
@@ -672,6 +679,12 @@ function LaundryOrderList() {
           Đã hủy
         </MenuItem>
       </Menu>
+
+      {/* Notification */}
+      <ModernNotification
+        notification={notification}
+        onClose={() => setNotification({ open: false, message: '', severity: 'info' })}
+      />
     </Box>
   );
 }

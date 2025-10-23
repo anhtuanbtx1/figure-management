@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
     };
     if (search) params.Search = { type: sql.NVarChar, value: search };
     if (status) params.Status = { type: sql.NVarChar, value: status };
-    if (dateFrom) params.DateFrom = { type: sql.Date, value: dateFrom };
-    if (dateTo) params.DateTo = { type: sql.Date, value: dateTo };
+    if (dateFrom) params.DateFrom = { type: sql.NVarChar, value: dateFrom };
+    if (dateTo) params.DateTo = { type: sql.NVarChar, value: dateTo };
 
     const rows = await executeStoredProcedure('sp_GetInvoicesForFrontend', params);
 

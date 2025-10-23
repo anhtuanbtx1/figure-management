@@ -64,12 +64,12 @@ export async function GET(request: NextRequest) {
     // Add date range filter
     if (dateFrom) {
       whereConditions.push('CAST(ReceivedDate AS DATE) >= @dateFrom');
-      queryParams.dateFrom = { type: sql.Date, value: dateFrom };
+      queryParams.dateFrom = { type: sql.NVarChar, value: dateFrom };
     }
 
     if (dateTo) {
       whereConditions.push('CAST(ReceivedDate AS DATE) <= @dateTo');
-      queryParams.dateTo = { type: sql.Date, value: dateTo };
+      queryParams.dateTo = { type: sql.NVarChar, value: dateTo };
     }
 
     // Count query

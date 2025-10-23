@@ -23,6 +23,8 @@ import {
   IconNotes,
   IconCheck,
 } from '@tabler/icons-react';
+import ModernNotification from '@/app/components/shared/ModernNotification';
+import { createLaundryNotification, type NotificationConfig } from '../utils/notifications';
 
 interface LaundryCustomer {
   id: number;
@@ -37,12 +39,16 @@ interface AddLaundryOrderModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  notification?: NotificationConfig;
+  onNotificationClose?: () => void;
 }
 
 const AddLaundryOrderModal: React.FC<AddLaundryOrderModalProps> = ({
   open,
   onClose,
   onSuccess,
+  notification: externalNotification,
+  onNotificationClose: externalOnNotificationClose,
 }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [fullName, setFullName] = useState('');
@@ -52,6 +58,11 @@ const AddLaundryOrderModal: React.FC<AddLaundryOrderModalProps> = ({
   const [customer, setCustomer] = useState<LaundryCustomer | null>(null);
   const [customerFound, setCustomerFound] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState<NotificationConfig>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
 
   // Reset form when modal closes
   useEffect(() => {
@@ -178,14 +189,21 @@ const AddLaundryOrderModal: React.FC<AddLaundryOrderModalProps> = ({
       console.log('✅ Đã tạo đơn hàng:', orderResult.data.orderNumber);
       
       // Success notification
-      alert(`Đã tạo đơn hàng ${orderResult.data.orderNumber} thành công!`);
+      setNotification(createLaundryNotification.success.orderCreated(orderResult.data.orderNumber));
       
-      onSuccess();
-      onClose();
+      // Close modal after a short delay to show notification
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+      }, 500);
 
     } catch (error) {
       console.error('❌ Lỗi tạo đơn hàng:', error);
-      alert(error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo đơn hàng');
+      setNotification(
+        createLaundryNotification.error.createFailed(
+          error instanceof Error ? error.message : undefined
+        )
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -385,6 +403,17 @@ const AddLaundryOrderModal: React.FC<AddLaundryOrderModalProps> = ({
           )}
         </Button>
       </DialogActions>
+
+      {/* Notification */}
+      <ModernNotification
+        notification={externalNotification || notification}
+        onClose={() => {
+          if (externalOnNotificationClose) {
+            externalOnNotificationClose();
+          }
+          setNotification({ open: false, message: '', severity: 'info' });
+        }}
+      />
     </Dialog>
   );
 };

@@ -80,12 +80,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (dateFrom) {
-      // Use NVarChar instead of Date to avoid validation issues
-      params.dateFrom = { type: sql.NVarChar, value: dateFrom };
+      // executeQuery will automatically detect string type and use sql.NVarChar
+      params.dateFrom = dateFrom;
     }
     if (dateTo) {
-      // Use NVarChar instead of Date to avoid validation issues
-      params.dateTo = { type: sql.NVarChar, value: dateTo };
+      // executeQuery will automatically detect string type and use sql.NVarChar
+      params.dateTo = dateTo;
     }
 
     console.log('📝 Executing query with params:', params);
