@@ -48,8 +48,13 @@ export async function GET(request: NextRequest) {
 
     // Category filtering
     if (categoryId) {
-      whereConditions.push(`t.CategoryId = @categoryId`);
-      queryParams.categoryId = { type: sql.Int, value: parseInt(categoryId, 10) };
+      const parsedCategoryId = parseInt(categoryId, 10);
+      if (!isNaN(parsedCategoryId)) {
+        whereConditions.push(`t.CategoryId = @categoryId`);
+        queryParams.categoryId = { type: sql.Int, value: parsedCategoryId };
+      } else {
+        console.warn(`⚠️ Invalid categoryId: ${categoryId}. Skipping category filter.`);
+      }
     }
 
     // Transaction type filtering
