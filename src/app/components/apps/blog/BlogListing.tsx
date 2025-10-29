@@ -1,5 +1,5 @@
 'use client'
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Grid from '@mui/material/Grid';
 import Pagination from '@mui/material/Pagination';
 import BlogCard from './BlogCard';
@@ -9,8 +9,11 @@ import { fetchBlogPosts } from '@/store/apps/blog/BlogSlice';
 import BlogFeaturedCard from './BlogFeaturedCard';
 import { BlogPostType } from '../../../(DashboardLayout)/types/apps/blog';
 
+const ITEMS_PER_PAGE = 9;
+
 const BlogListing = () => {
   const dispatch = useDispatch();
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     dispatch(fetchBlogPosts());
@@ -49,17 +52,37 @@ const BlogListing = () => {
   );
   const featuredPost = useSelector((state) => filterFeaturedpost(state.blogReducer.blogposts));
 
+  // Combine all posts for pagination
+  const allPosts = [...featuredPost, ...blogPosts];
+  const totalPages = Math.ceil(allPosts.length / ITEMS_PER_PAGE);
+  
+  // Get posts for current page
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentPosts = allPosts.slice(startIndex, endIndex);
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <Grid container spacing={3}>
-      {featuredPost.map((post, index) => {
-        return <BlogFeaturedCard index={index} post={post} key={post.title} />;
+      {currentPosts.map((post, index) => {
+        return <BlogCard post={post} key={post.id || `post-${index}`} />;
       })}
-      {blogPosts.map((post) => {
-        return <BlogCard post={post} key={post.id} />;
-      })}
-      <Grid item lg={12} sm={12} mt={3}>
-        <Pagination count={10} color="primary" sx={{ display: 'flex', justifyContent: 'center' }} />
-      </Grid>
+      
+      {totalPages > 1 && (
+        <Grid item xs={12} mt={3}>
+          <Pagination 
+            count={totalPages} 
+            page={currentPage}
+            onChange={handlePageChange}
+            color="primary" 
+            sx={{ display: 'flex', justifyContent: 'center' }} 
+          />
+        </Grid>
+      )}
     </Grid>
   );
 };

@@ -11,8 +11,10 @@ import Typography from '@mui/material/Typography';
 import { alpha } from '@mui/material/styles';
 // import alpha from '@mui/material/styles';
 import { styled } from '@mui/material/styles';
-import { IconEye, IconMessage2, IconPoint } from '@tabler/icons-react';
+import { IconEye, IconMessage2, IconPoint, IconSword, IconShield, IconHeartbeat, IconShieldCheck } from '@tabler/icons-react';
 import { format } from 'date-fns';
+import Rating from '@mui/material/Rating';
+import Divider from '@mui/material/Divider';
 import { fetchBlogPost } from '@/store/apps/blog/BlogSlice';
 import BlankCard from '../../shared/BlankCard';
 import { BlogPostType } from '../../../(DashboardLayout)/types/apps/blog';
@@ -41,19 +43,52 @@ interface Btype {
 
 const BlogFeaturedCard = ({ post, index }: Btype) => {
   const dispatch = useDispatch();
-  const { coverImg, title, view, comments, category, author, createdAt }: any = post;
+  const { coverImg, title, category, element, game, strength = 3, attack = 3, defense = 3, hp = 3, armor = 3 }: any = post;
   const linkTo = title
     .toLowerCase()
     .replace(/ /g, '-')
     .replace(/[^\w-]+/g, '');
   const mainPost = index === 0;
 
+  const StatRowOverlay = ({ icon: Icon, label, value }: { icon: any; label: string; value: number }) => (
+    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+      <Icon size={16} />
+      <Typography variant="caption" sx={{ minWidth: '70px', fontWeight: 500 }}>
+        {label}:
+      </Typography>
+      <Rating 
+        value={value} 
+        precision={0.5}
+        max={5} 
+        readOnly 
+        size="small"
+        sx={{ 
+          '& .MuiRating-iconFilled': {
+            color: '#FFD700'
+          },
+          '& .MuiRating-iconEmpty': {
+            color: 'rgba(255, 215, 0, 0.3)'
+          }
+        }}
+      />
+      <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem', minWidth: '25px' }}>
+        {value.toFixed(1)}
+      </Typography>
+    </Stack>
+  );
+
   const CoverImgBg = styled(BlankCard)({
     p: 0,
     height: '400px',
     position: 'relative',
     background: `url(${coverImg}) no-repeat center`,
-    backgroundSize: 'cover',
+    backgroundSize: 'contain',
+    backgroundPosition: 'center center',
+    backgroundColor: '#f5f5f5',
+    transition: 'transform 0.3s ease-in-out',
+    '&:hover': {
+      transform: 'scale(1.02)',
+    },
   });
 
   return (
@@ -87,25 +122,12 @@ const BlogFeaturedCard = ({ post, index }: Btype) => {
                   flexDirection="column"
                 >
                   <Box>
-                    <Stack direction="row">
-                      <Tooltip title={author?.name} placement="top">
-                        <Avatar aria-label="recipe" src={author?.avatar}></Avatar>
-                      </Tooltip>
-                      <Chip
-                        sx={{ marginLeft: 'auto' }}
-                        label={category}
-                        size="small"
-                        color="primary"
-                      ></Chip>
-                    </Stack>
-                  </Box>
-                  <Box>
-                    <Box my={3}>
+                    <Box mb={2}>
                       <Typography
                         gutterBottom
                         variant="h3"
                         color="inherit"
-                        sx={{ textDecoration: 'none' }}
+                        sx={{ textDecoration: 'none', mb: 2 }}
                         component={Link}
                         href={`/apps/blog/detail/${linkTo}`}
                         onClick={() => dispatch(fetchBlogPost(linkTo))}
@@ -113,19 +135,28 @@ const BlogFeaturedCard = ({ post, index }: Btype) => {
                         {title}
                       </Typography>
                     </Box>
-                    <Stack direction="row" gap={3} alignItems="center">
-                      <Stack direction="row" gap={1} alignItems="center">
-                        <IconEye size="18" /> {view}
-                      </Stack>
-                      <Stack direction="row" gap={1} alignItems="center">
-                        <IconMessage2 size="18" /> {comments?.length}
+                    <Box sx={{ 
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+                      borderRadius: 2, 
+                      p: 2,
+                      backdropFilter: 'blur(10px)'
+                    }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
+                        Thông số nhân vật
+                      </Typography>
+                      
+                      <Stack direction="row" spacing={1} flexWrap="wrap" gap={0.5} sx={{ mb: 1.5 }}>
+                        {category && <Chip label={category} size="small" color="primary" sx={{ backgroundColor: 'rgba(63, 81, 181, 0.8)' }} />}
+                        {game && <Chip label={`Game: ${game}`} size="small" color="secondary" variant="outlined" sx={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />}
+                        {element && <Chip label={`Hệ: ${element}`} size="small" color="success" sx={{ backgroundColor: 'rgba(76, 175, 80, 0.8)' }} />}
                       </Stack>
 
-                      <Stack direction="row" ml="auto" alignItems="center">
-                        <IconPoint size="16" />
-                        <small>{format(new Date(createdAt), 'E, MMM d')}</small>
-                      </Stack>
-                    </Stack>
+                      <StatRowOverlay icon={IconSword} label="Sức mạnh" value={strength} />
+                      <StatRowOverlay icon={IconSword} label="Tấn công" value={attack} />
+                      <StatRowOverlay icon={IconShield} label="Phòng thủ" value={defense} />
+                      <StatRowOverlay icon={IconHeartbeat} label="Máu" value={hp} />
+                      <StatRowOverlay icon={IconShieldCheck} label="Giáp" value={armor} />
+                    </Box>
                   </Box>
                 </Box>
               </CoverImgStyle>

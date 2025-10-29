@@ -25,4 +25,13 @@ export interface BlogPostType {
   featured?: boolean;
   author?: Profile;
   comments?: any[];
+  // Game character info
+  element?: string;
+  game?: string;
+  // Game character stats (1-5 stars)
+  strength?: number;
+  attack?: number;
+  defense?: number;
+  hp?: number;
+  armor?: number;
 }

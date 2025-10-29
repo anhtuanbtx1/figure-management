@@ -107,6 +107,12 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
+    title: "Quản lý nhân vật",
+    icon: IconWallet,
+    href: "/apps/blog",
+  },
+  {
+    id: uniqueId(),
     title: "Quản lý ví",
     icon: IconWallet,
     href: "/apps/wallet",

@@ -35,9 +35,15 @@ export const { getPosts, getPost } = BlogSlice.actions;
 
 export const fetchBlogPosts = () => async (dispatch: AppDispatch) => {
   try {
-    const response = await axios.get("/api/data/blog/BlogPosts");
-    dispatch(getPosts(response.data));
+    // Sử dụng API database thay vì mock data
+    const response = await axios.get("/api/characters");
+    
+    // API trả về {success, data, count}, lấy data
+    const characters = response.data.success ? response.data.data : response.data;
+    
+    dispatch(getPosts(characters));
   } catch (err) {
+    console.error('Error fetching characters:', err);
     throw new Error();
   }
 };
