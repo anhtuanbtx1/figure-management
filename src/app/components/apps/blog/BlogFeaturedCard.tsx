@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import { alpha } from '@mui/material/styles';
 // import alpha from '@mui/material/styles';
 import { styled } from '@mui/material/styles';
-import { IconEye, IconMessage2, IconPoint, IconSword, IconShield, IconHeartbeat, IconShieldCheck } from '@tabler/icons-react';
+import { IconEye, IconMessage2, IconHandGrab, IconSword, IconShield, IconHeartbeat, IconShieldCheck } from '@tabler/icons-react';
 import { format } from 'date-fns';
 import Rating from '@mui/material/Rating';
 import Divider from '@mui/material/Divider';
@@ -151,7 +151,7 @@ const BlogFeaturedCard = ({ post, index }: Btype) => {
                         {element && <Chip label={`Hệ: ${element}`} size="small" color="success" sx={{ backgroundColor: 'rgba(76, 175, 80, 0.8)' }} />}
                       </Stack>
 
-                      <StatRowOverlay icon={IconSword} label="Sức mạnh" value={strength} />
+                      <StatRowOverlay icon={IconHandGrab} label="Sức mạnh" value={strength} />
                       <StatRowOverlay icon={IconSword} label="Tấn công" value={attack} />
                       <StatRowOverlay icon={IconShield} label="Phòng thủ" value={defense} />
                       <StatRowOverlay icon={IconHeartbeat} label="Máu" value={hp} />

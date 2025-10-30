@@ -13,7 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Rating from '@mui/material/Rating';
 import Divider from '@mui/material/Divider';
-import { IconEye, IconMessage2, IconPoint, IconSword, IconShield, IconHeartbeat, IconShieldCheck } from '@tabler/icons-react';
+import { IconEye, IconMessage2, IconHandGrab, IconSword, IconShield, IconHeartbeat, IconShieldCheck } from '@tabler/icons-react';
 import { fetchBlogPost } from '@/store/apps/blog/BlogSlice';
 import BlankCard from '../../shared/BlankCard';
 import { BlogPostType } from '../../../(DashboardLayout)/types/apps/blog';
@@ -78,7 +78,7 @@ const BlogCard = ({ post }: Btype) => {
                 objectFit: 'contain',
                 objectPosition: 'center',
                 width: '100%',
-                backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[100],
+                backgroundColor: "#fff",
                 transition: 'transform 0.3s ease-in-out',
                 '&:hover': {
                   transform: 'scale(1.05)',
@@ -114,7 +114,7 @@ const BlogCard = ({ post }: Btype) => {
                 {element && <Chip label={`Hệ: ${element}`} size="small" color="success" />}
               </Stack>
 
-              <StatRow icon={IconSword} label="Sức mạnh" value={strength} />
+              <StatRow icon={IconHandGrab} label="Sức mạnh" value={strength} />
               <StatRow icon={IconSword} label="Tấn công" value={attack} />
               <StatRow icon={IconShield} label="Phòng thủ" value={defense} />
               <StatRow icon={IconHeartbeat} label="Máu" value={hp} />
