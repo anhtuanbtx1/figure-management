@@ -44,7 +44,7 @@ const EditInvoicePage = () => {
     const statusMap: { [key: string]: string } = {
       'Pending': 'Đang chờ',
       'Delivered': 'Đã giao',
-      'Shipped': 'Đã gửi'
+      'Shipped': 'Đang giao'
     };
     return statusMap[status] || status;
   };
@@ -53,7 +53,7 @@ const EditInvoicePage = () => {
     const statusMap: { [key: string]: string } = {
       'Đang chờ': 'Pending',
       'Đã giao': 'Delivered',
-      'Đã gửi': 'Shipped'
+      'Đang giao': 'Shipped'
     };
     return statusMap[status] || status;
   };
@@ -347,8 +347,8 @@ const EditInvoicePage = () => {
             }
           >
             <MenuItem value="Đang chờ">Đang chờ</MenuItem>
+            <MenuItem value="Đang giao">Đang giao</MenuItem>
             <MenuItem value="Đã giao">Đã giao</MenuItem>
-            <MenuItem value="Đã gửi">Đã gửi</MenuItem>
           </CustomSelect>
         </Box>
         <Box textAlign="right">

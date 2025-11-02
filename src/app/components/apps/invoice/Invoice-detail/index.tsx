@@ -153,7 +153,7 @@ const InvoiceDetail = () => {
         <Logo />
         <Box textAlign="right">
           {selectedInvoice.status === "Shipped" ? (
-            <Chip size="small" color="primary" label="Đã gửi" />
+            <Chip size="small" color="primary" label="Đang giao" />
           ) : selectedInvoice.status === "Delivered" ? (
             <Chip size="small" color="success" label="Đã giao" />
           ) : selectedInvoice.status === "Pending" ? (

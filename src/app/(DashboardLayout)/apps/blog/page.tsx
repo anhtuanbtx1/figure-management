@@ -5,7 +5,6 @@ import BlogListing from '@/app/components/apps/blog/BlogListing';
 const Blog = () => {
   return (
     <PageContainer title="Quản lý nhân vật" description="this is Blog">
-      <Breadcrumb title="Quản lý nhân vật" subtitle="Danh sách bài viết" />
       <BlogListing />
     </PageContainer>
   );

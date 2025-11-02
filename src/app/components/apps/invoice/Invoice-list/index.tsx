@@ -85,7 +85,7 @@ function InvoiceList() {
   const statusToVN = (status: string) => {
     switch (status) {
       case 'Shipped':
-        return 'Đã gửi';
+        return 'Đang giao';
       case 'Delivered':
         return 'Đã giao';
       case 'Pending':
@@ -483,7 +483,7 @@ function InvoiceList() {
                   <TableCell>
                     {invoice.status === "Shipped" ? (
                       <Chip
-                        color="primary"
+                        color="error"
                         label={statusToVN(invoice.status)}
                         size="small"
                       />
@@ -521,7 +521,7 @@ function InvoiceList() {
                     </Tooltip>
                     <Tooltip title="View Invoice">
                       <IconButton
-                        color="primary"
+                        sx={{ color: 'red' }}
                         component={Link}
                         href={`/apps/invoice/detail/${invoice.id}`}
                       >

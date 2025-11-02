@@ -28,10 +28,16 @@ export const BlogSlice = createSlice({
     getPost: (state: StateType, action) => {
       state.selectedPost = action.payload;
     },
+    SearchBlog: (state: StateType, action) => {
+      state.blogSearch = action.payload;
+    },
+    SortBlog: (state: StateType, action) => {
+      state.sortBy = action.payload;
+    },
   },
 });
 
-export const { getPosts, getPost } = BlogSlice.actions;
+export const { getPosts, getPost, SearchBlog, SortBlog } = BlogSlice.actions;
 
 export const fetchBlogPosts = () => async (dispatch: AppDispatch) => {
   try {

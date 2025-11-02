@@ -18,7 +18,6 @@ const BCrumb = [
 const LaundryReportsPage = () => {
   return (
     <PageContainer title="Báo cáo thống kê" description="Báo cáo doanh thu đơn hàng giặt ủi">
-      <Breadcrumb title="Báo cáo thống kê giặt ủi" items={BCrumb} />
       <Box mt={3}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
