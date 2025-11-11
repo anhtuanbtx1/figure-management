@@ -48,6 +48,19 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const formatTime = (timeInput: any): string => {
+    if (!timeInput) return '--:--';
+    if (typeof timeInput === 'string') {
+      // Extract HH:mm from time string (e.g., "09:00:00" or "2024-01-01T09:00:00")
+      if (timeInput.includes('T')) {
+        return timeInput.substring(timeInput.indexOf('T') + 1, timeInput.indexOf('T') + 6);
+      }
+      // Already in HH:mm:ss or HH:mm format
+      return timeInput.substring(0, 5);
+    }
+    return '--:--';
+  };
+
   useEffect(() => {
     fetchReminders();
   }, []);
@@ -283,7 +296,7 @@ const CalendarPage = () => {
                                     {reminder.reminderTime && (
                                       <Chip
                                         icon={<IconClock size={14} />}
-                                        label={format(new Date(reminder.reminderTime), "HH:mm")}
+                                        label={formatTime(reminder.reminderTime)}
                                         size="small"
                                         variant="outlined"
                                       />

@@ -65,6 +65,21 @@ const ReminderList: React.FC<ReminderListProps> = ({
     }
   };
 
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case 'urgent':
+        return 'Khẩn cấp';
+      case 'high':
+        return 'Cao';
+      case 'medium':
+        return 'Trung bình';
+      case 'low':
+        return 'Thấp';
+      default:
+        return priority;
+    }
+  };
+
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'once':
@@ -174,7 +189,7 @@ const ReminderList: React.FC<ReminderListProps> = ({
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={reminder.priority.toUpperCase()}
+                    label={getPriorityLabel(reminder.priority)}
                     size="small"
                     color={getPriorityColor(reminder.priority) as any}
                   />
