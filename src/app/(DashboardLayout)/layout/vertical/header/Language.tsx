@@ -9,6 +9,11 @@ import { AppState } from '@/store/store';
 
 const Languages = [
   {
+    flagname: 'Tiếng Việt (Vietnamese)',
+    icon: "/images/flag/icon-flag-vi.svg",
+    value: 'vi',
+  },
+  {
     flagname: 'English (UK)',
     icon: "/images/flag/icon-flag-en.svg",
     value: 'en',
@@ -37,7 +42,7 @@ const Language = () => {
   const open = Boolean(anchorEl);
   const customizer = useSelector((state: AppState) => state.customizer);
   const currentLang =
-    Languages.find((_lang) => _lang.value === customizer.isLanguage) || Languages[1];
+    Languages.find((_lang) => _lang.value === customizer.isLanguage) || Languages[0];
   const { i18n } = useTranslation();
   const handleClick = (event: any) => {
     setAnchorEl(event.currentTarget);

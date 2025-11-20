@@ -29,7 +29,7 @@ const initialState: StateType = {
   isSidebarHover: false,
   isMobileSidebar: false,
   isHorizontal: false,
-  isLanguage: 'en',
+  isLanguage: 'vi',
   isCardShadow: true,
   borderRadius: 7,
 };
@@ -72,7 +72,7 @@ export const CustomizerSlice = createSlice({
     setBorderRadius: (state: StateType, action) => {
       state.borderRadius = action.payload;
     },
-    
+
   },
 });
 
