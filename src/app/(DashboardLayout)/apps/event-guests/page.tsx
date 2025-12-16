@@ -157,9 +157,9 @@ const EventGuestsPage = () => {
 
       // Calculate statistics from all guests data
       const totalGuests = allGuests.length;
-      const confirmedGuests = allGuests.filter(g => g.status === 'CONFIRMED').length;
-      const pendingGuests = allGuests.filter(g => g.status === 'PENDING').length;
-      const declinedGuests = allGuests.filter(g => g.status === 'DECLINED').length;
+      const confirmedGuests = allGuests.filter(g => g.status === 'Going').length;
+      const pendingGuests = allGuests.filter(g => g.status === 'Pending').length;
+      const declinedGuests = allGuests.filter(g => g.status === 'NotGoing').length;
 
       // Calculate total number of people
       const totalPeople = allGuests.reduce((total, guest) => {
@@ -169,7 +169,7 @@ const EventGuestsPage = () => {
 
       // Calculate confirmed people
       const confirmedPeople = allGuests
-        .filter(g => g.status === 'CONFIRMED')
+        .filter(g => g.status === 'Going')
         .reduce((total, guest) => {
           const people = Number(guest.numberOfPeople) || 0;
           return total + people;
@@ -186,7 +186,7 @@ const EventGuestsPage = () => {
 
       // Calculate confirmed contribution
       const confirmedContribution = allGuests
-        .filter(g => g.status === 'CONFIRMED')
+        .filter(g => g.status === 'Going')
         .reduce((sum, g) => {
           const amount = g.contributionAmount;
           if (amount === null || amount === undefined || isNaN(Number(amount))) {
@@ -386,8 +386,8 @@ const EventGuestsPage = () => {
 
   const handleBulkStatusChange = (status: GuestStatus) => {
     const updatedCount = selectedGuests.length;
-    const statusText = status === 'CONFIRMED' ? 'Đã xác nhận' :
-                      status === 'DECLINED' ? 'Từ chối' : 'Chờ phản hồi';
+    const statusText = status === GuestStatus.CONFIRMED ? 'Đã xác nhận' :
+      status === GuestStatus.DECLINED ? 'Từ chối' : 'Chờ phản hồi';
 
     setGuests(prev => prev.map(guest =>
       selectedGuests.includes(guest.id) ? { ...guest, status, updatedAt: new Date() } : guest

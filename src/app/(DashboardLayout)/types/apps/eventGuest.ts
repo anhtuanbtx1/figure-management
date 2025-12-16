@@ -1,7 +1,7 @@
 export enum GuestStatus {
-  CONFIRMED = 'CONFIRMED',
-  PENDING = 'PENDING',
-  DECLINED = 'DECLINED',
+  CONFIRMED = 'Going',
+  PENDING = 'Pending',
+  DECLINED = 'NotGoing',
 }
 
 export interface EventGuest {

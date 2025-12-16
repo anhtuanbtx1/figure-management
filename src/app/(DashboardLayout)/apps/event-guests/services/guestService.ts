@@ -24,7 +24,7 @@ const API_BASE_URL = '/api/wedding-guests';
 
 // Guest Service Class
 export class GuestService {
-  
+
   // Get wedding guests with pagination and performance optimization
   static async getAllGuests(options: {
     page?: number;
@@ -380,7 +380,7 @@ export class GuestService {
   static exportToExcel(guests: EventGuest[], filename: string = 'danh-sach-khach-moi') {
     try {
       console.log('📊 Exporting guests to Excel...');
-      
+
       // Map guest status to Vietnamese
       const getStatusText = (status: GuestStatus) => {
         switch (status) {
@@ -481,9 +481,9 @@ export const getGuestStats = async (guests: EventGuest[]) => {
   // If guests array is provided, calculate stats from it
   if (guests && guests.length > 0) {
     const totalGuests = guests.length;
-    const confirmedGuests = guests.filter(g => g.status === 'CONFIRMED').length;
-    const pendingGuests = guests.filter(g => g.status === 'PENDING').length;
-    const declinedGuests = guests.filter(g => g.status === 'DECLINED').length;
+    const confirmedGuests = guests.filter(g => g.status === 'Going').length;
+    const pendingGuests = guests.filter(g => g.status === 'Pending').length;
+    const declinedGuests = guests.filter(g => g.status === 'NotGoing').length;
 
     // Safely calculate total contribution with null/undefined handling
     const totalContribution = guests.reduce((sum, g) => {
