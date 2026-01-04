@@ -572,7 +572,7 @@ const EventGuestsPage = () => {
 
         {/* Stats Cards */}
         <Grid container spacing={3} sx={{ mt: 2 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }}>
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant="h3" fontWeight={700}>
@@ -584,7 +584,7 @@ const EventGuestsPage = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{ backgroundColor: 'rgba(76, 175, 80, 0.2)', color: 'white' }}>
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant="h3" fontWeight={700}>
@@ -596,7 +596,19 @@ const EventGuestsPage = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
+            <Card sx={{ backgroundColor: 'rgba(244, 67, 54, 0.2)', color: 'white' }}>
+              <CardContent sx={{ textAlign: 'center', py: 2 }}>
+                <Typography variant="h3" fontWeight={700}>
+                  {stats.declinedGuests || 0}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  Khách vắng
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{ backgroundColor: 'rgba(255, 193, 7, 0.2)', color: 'white' }}>
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant="h3" fontWeight={700}>
@@ -608,7 +620,7 @@ const EventGuestsPage = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2.4}>
             <Card sx={{ backgroundColor: 'rgba(255, 87, 34, 0.2)', color: 'white' }}>
               <CardContent sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant="h3" fontWeight={700}>
