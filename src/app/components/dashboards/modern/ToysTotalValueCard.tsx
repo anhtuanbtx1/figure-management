@@ -1,8 +1,9 @@
 "use client";
-import { Card, CardContent, Typography, Box, Stack, Avatar, Chip, LinearProgress, Tooltip } from '@mui/material';
+import { Typography, Box, Stack, Avatar, Chip, LinearProgress, Tooltip, Grid } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { IconCurrencyDollar, IconTrendingUp, IconShoppingCart } from '@tabler/icons-react';
+import { IconTrendingUp, IconShoppingCart } from '@tabler/icons-react';
 import { useToysTotalValue, formatVND, formatNumber } from '@/hooks/useToysTotalValue';
+import DashboardCard from '../../shared/DashboardCard';
 
 interface ToysTotalValueCardProps {
   isLoading?: boolean;
@@ -34,160 +35,98 @@ const ToysTotalValueCard = ({ isLoading = false }: ToysTotalValueCardProps) => {
   const targetValue = 100000000; // 100 million VND
   const progressPercentage = Math.min((totalValue / targetValue) * 100, 100);
 
+  const primary = theme.palette.primary.main;
+  const primarylight = theme.palette.primary.light;
+  const successlight = theme.palette.success.light;
+
   return (
-    <Card
-      sx={{
-        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: '100px',
-          height: '100px',
-          background: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: '50%',
-          transform: 'translate(30px, -30px)',
-        }
-      }}
-    >
-      <CardContent sx={{ p: 3, position: 'relative', zIndex: 1 }}>
-        <Stack spacing={3}>
-          {/* Header */}
-          <Box display="flex" justifyContent="space-between" alignItems="start">
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 500, mb: 0.5 }}>
-                Tổng giá trị đồ chơi
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                Báo cáo thống kê tổng tiền
-              </Typography>
-            </Box>
-            <Avatar 
-              sx={{ 
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                width: 48,
-                height: 48
-              }}
-            >
-              <IconShoppingCart size={24} />
-            </Avatar>
+    <DashboardCard title="Tổng giá trị đồ chơi">
+      <>
+        {/* Loading State */}
+        {showLoading && (
+          <Box>
+            <LinearProgress sx={{ mb: 2 }} />
+            <Typography variant="h3" fontWeight="700">
+              Đang tải...
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Đang tính toán tổng giá trị
+            </Typography>
           </Box>
-          
-          {/* Loading State */}
-          {showLoading && (
-            <Box>
-              <LinearProgress 
-                sx={{ 
-                  mb: 2,
-                  bgcolor: 'rgba(255, 255, 255, 0.2)',
-                  '& .MuiLinearProgress-bar': {
-                    bgcolor: 'rgba(255, 255, 255, 0.8)'
-                  }
-                }} 
-              />
-              <Typography variant="h3" sx={{ fontWeight: 600, mb: 1 }}>
-                Đang tải...
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Đang tính toán tổng giá trị
-              </Typography>
-            </Box>
-          )}
+        )}
 
-          {/* Error State */}
-          {error && !showLoading && (
-            <Box>
-              <Typography variant="h3" sx={{ fontWeight: 600, mb: 1, color: 'rgba(255, 255, 255, 0.7)' }}>
-                Lỗi tải dữ liệu
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
-                Không thể tải thông tin tổng giá trị
-              </Typography>
-              <Chip 
-                label="Thử lại" 
-                size="small" 
-                onClick={refresh}
-                sx={{ 
-                  bgcolor: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.3)'
-                  }
-                }}
-              />
-            </Box>
-          )}
+        {/* Error State */}
+        {error && !showLoading && (
+          <Box>
+            <Typography variant="h3" fontWeight="700" color="textSecondary">
+              Lỗi tải dữ liệu
+            </Typography>
+            <Typography variant="body2" color="textSecondary" mb={1}>
+              Không thể tải thông tin tổng giá trị
+            </Typography>
+            <Chip
+              label="Thử lại"
+              size="small"
+              color="primary"
+              onClick={refresh}
+            />
+          </Box>
+        )}
 
-          {/* Success State */}
-          {data && !showLoading && !error && (
-            <>
-              {/* Main Amount */}
-              <Box>
-                <Typography variant="h3" sx={{ fontWeight: 600, mb: 1 }}>
-                  {formattedTotalValue}
+        {/* Success State */}
+        {data && !showLoading && !error && (
+          <Grid container spacing={3}>
+            <Grid item xs={7} sm={7}>
+              <Typography variant="h3" fontWeight="700">
+                {formattedTotalValue}
+              </Typography>
+              <Stack direction="row" spacing={1} mt={1} alignItems="center">
+                <Avatar sx={{ bgcolor: successlight, width: 27, height: 27 }}>
+                  <IconTrendingUp width={20} color="#39B69A" />
+                </Avatar>
+                <Typography variant="subtitle2" fontWeight="600">
+                  {formattedTotalCount}
                 </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Tổng giá trị {formattedTotalCount} sản phẩm
+                <Typography variant="subtitle2" color="textSecondary">
+                  sản phẩm
                 </Typography>
-              </Box>
-
-              {/* Statistics */}
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Box flex={1}>
-                  <Typography variant="body2" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
-                    Giá trung bình
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {formattedAveragePrice}
-                  </Typography>
-                </Box>
-                
-                <Tooltip title={`${progressPercentage.toFixed(1)}% của mục tiêu ${formatVND(targetValue)}`}>
-                  <Box display="flex" alignItems="center">
-                    <Avatar sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', width: 32, height: 32, mr: 1 }}>
-                      <IconTrendingUp size={16} />
-                    </Avatar>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {progressPercentage.toFixed(0)}%
-                    </Typography>
-                  </Box>
-                </Tooltip>
               </Stack>
-
-              {/* Progress Bar */}
-              <Box>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                  <Typography variant="body2" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
-                    Tiến độ mục tiêu
+              <Stack spacing={3} mt={3} direction="row">
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Avatar
+                    sx={{ width: 9, height: 9, bgcolor: primary, svg: { display: 'none' } }}
+                  ></Avatar>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    TB: {formattedAveragePrice}
                   </Typography>
-                  <Typography variant="body2" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
-                    {formatVND(targetValue)}
+                </Stack>
+              </Stack>
+            </Grid>
+            <Grid item xs={5} sm={5}>
+              <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
+                <Avatar
+                  sx={{
+                    bgcolor: primarylight,
+                    width: 60,
+                    height: 60,
+                    mb: 1
+                  }}
+                >
+                  <IconShoppingCart size={30} color={primary} />
+                </Avatar>
+                <Tooltip title={`${progressPercentage.toFixed(1)}% của mục tiêu`}>
+                  <Typography variant="h5" fontWeight="600" color="primary">
+                    {progressPercentage.toFixed(0)}%
                   </Typography>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={progressPercentage}
-                  sx={{ 
-                    height: 6,
-                    borderRadius: 3,
-                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                    '& .MuiLinearProgress-bar': {
-                      bgcolor: 'rgba(255, 255, 255, 0.9)',
-                      borderRadius: 3
-                    }
-                  }} 
-                />
+                </Tooltip>
               </Box>
-            </>
-          )}
-        </Stack>
-      </CardContent>
-    </Card>
+            </Grid>
+          </Grid>
+        )}
+      </>
+    </DashboardCard>
   );
 };
 
 export default ToysTotalValueCard;
+

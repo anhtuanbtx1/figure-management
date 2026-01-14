@@ -10,7 +10,7 @@ import SkeletonRevenueUpdatesTwoCard from '../skeleton/RevenueUpdatesTwoCard';
 
 
 interface RevenueupdatestwoCardProps {
-  isLoading ?: boolean;
+  isLoading?: boolean;
 }
 
 const RevenueUpdates = ({ isLoading }: RevenueupdatestwoCardProps) => {
@@ -95,7 +95,7 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatestwoCardProps) => {
   ];
 
   return (
-    <>
+    <Box sx={{ height: '100%' }}>
       {
         isLoading ? (
           <SkeletonRevenueUpdatesTwoCard />
@@ -188,8 +188,7 @@ const RevenueUpdates = ({ isLoading }: RevenueupdatestwoCardProps) => {
           </DashboardCard>
         )}
 
-
-    </>
+    </Box>
   );
 };
 

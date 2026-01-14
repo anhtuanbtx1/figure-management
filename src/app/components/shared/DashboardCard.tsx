@@ -30,11 +30,11 @@ const DashboardCard = ({
   const customizer = useSelector((state: AppState) => state.customizer);
 
   const theme = useTheme();
-  const borderColor = theme.palette.divider;
+  const borderColor = 'rgba(152, 161, 192, .2)';
 
   return (
     <Card
-      sx={{ padding: 0, border: !customizer.isCardShadow ?  `1px solid ${borderColor}` : 'none' }}
+      sx={{ padding: 0, border: `1px solid ${borderColor}`, height: '100%' }}
       elevation={customizer.isCardShadow ? 9 : 0}
       variant={!customizer.isCardShadow ? 'outlined' : undefined}
     >
@@ -46,7 +46,7 @@ const DashboardCard = ({
           </Typography>
         </CardContent>
       ) : (
-        <CardContent sx={{p: "30px"}}>
+        <CardContent sx={{ p: "30px" }}>
           {title ? (
             <Stack
               direction="row"

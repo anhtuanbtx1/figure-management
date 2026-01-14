@@ -47,7 +47,7 @@ const baselightTheme = {
       400: '#7C8FAC',
       500: '#5A6A85',
       600: '#2A3547',
-      
+
     },
     text: {
       primary: '#2A3547',
@@ -123,9 +123,9 @@ const baseDarkTheme = {
     },
     divider: '#333F55',
     background: {
-      default: '#171c23',
-      dark: '#171c23',
-      paper: '#171c23',
+      default: '#0A0E27',
+      dark: '#0A0E27',
+      paper: '#0A0E27',
     },
   },
 };

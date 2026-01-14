@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 import { useTheme } from '@mui/material/styles';
-import { Grid, Stack, Typography, Avatar } from '@mui/material';
+import { Grid, Stack, Typography, Avatar, Box } from '@mui/material';
 import { IconArrowUpLeft } from '@tabler/icons-react';
 
 import DashboardCard from '../../shared/DashboardCard';
@@ -10,7 +10,7 @@ import SkeletonYearlyBreakupCard from "../skeleton/YearlyBreakupCard";
 
 
 interface YearlyBreakupCardProps {
-  isLoading ?: boolean;
+  isLoading?: boolean;
 }
 
 const YearlyBreakup = ({ isLoading }: YearlyBreakupCardProps) => {
@@ -69,7 +69,7 @@ const YearlyBreakup = ({ isLoading }: YearlyBreakupCardProps) => {
   const seriescolumnchart = [38, 40, 25];
 
   return (
-    <>
+    <Box sx={{ height: '100%' }}>
       {
         isLoading ? (
           <SkeletonYearlyBreakupCard />
@@ -124,7 +124,7 @@ const YearlyBreakup = ({ isLoading }: YearlyBreakupCardProps) => {
             </Grid>
           </DashboardCard>
         )}
-    </>
+    </Box>
 
   );
 };

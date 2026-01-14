@@ -11,7 +11,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
 
 interface EmployeeSalaryCardProps {
-  isLoading ?: boolean;
+  isLoading?: boolean;
 }
 
 
@@ -32,12 +32,12 @@ const EmployeeSalary = ({ isLoading: initialLoading }: EmployeeSalaryCardProps) 
   // Prepare chart data from API response
   const monthlyData = salaryData?.monthlyTrend || [];
   const reversedData = [...monthlyData].reverse(); // Reverse to show oldest to newest
-  
+
   // Get current month index for highlighting
   const currentMonthIndex = reversedData.length - 1;
 
   // Generate colors array - highlight current month
-  const chartColors = reversedData.map((_, index) => 
+  const chartColors = reversedData.map((_, index) =>
     index === currentMonthIndex ? primary : primarylight
   );
 
@@ -79,7 +79,7 @@ const EmployeeSalary = ({ isLoading: initialLoading }: EmployeeSalaryCardProps) 
     },
     dataLabels: {
       enabled: true,
-      formatter: function(val: number) {
+      formatter: function (val: number) {
         return val > 0 ? `${(val / 1000000).toFixed(0)}tr` : '';
       },
       offsetY: -20,
@@ -105,11 +105,11 @@ const EmployeeSalary = ({ isLoading: initialLoading }: EmployeeSalaryCardProps) 
       },
       labels: {
         style: {
-          colors: reversedData.map((_, index) => 
+          colors: reversedData.map((_, index) =>
             index === currentMonthIndex ? primary : theme.palette.text.secondary
           ),
           fontSize: '12px',
-          fontWeight: reversedData.map((_, index) => 
+          fontWeight: reversedData.map((_, index) =>
             index === currentMonthIndex ? 600 : 400
           )
         }
@@ -123,14 +123,14 @@ const EmployeeSalary = ({ isLoading: initialLoading }: EmployeeSalaryCardProps) 
     tooltip: {
       theme: theme.palette.mode === 'dark' ? 'dark' : 'light',
       y: {
-        formatter: function(value: number) {
+        formatter: function (value: number) {
           return formatVND(value);
         },
         title: {
           formatter: () => 'Lương:'
         }
       },
-      custom: function({ series, seriesIndex, dataPointIndex, w }: any) {
+      custom: function ({ series, seriesIndex, dataPointIndex, w }: any) {
         const amount = series[seriesIndex][dataPointIndex];
         const month = reversedData[dataPointIndex];
         return '<div class="px-2 py-1">' +
@@ -157,7 +157,7 @@ const EmployeeSalary = ({ isLoading: initialLoading }: EmployeeSalaryCardProps) 
   const salaryChangePercent = salaryData?.comparison?.salaryChangePercent || 0;
 
   return (
-    <>
+    <Box sx={{ height: '100%' }}>
       {
         loading ? (
           <SkeletonEmployeeSalaryCard />
@@ -199,18 +199,18 @@ const EmployeeSalary = ({ isLoading: initialLoading }: EmployeeSalaryCardProps) 
             <>
               <Box height="295px">
                 {reversedData.length > 0 ? (
-                  <Chart 
-                    options={optionscolumnchart} 
-                    series={seriescolumnchart} 
-                    type="bar" 
-                    height={280} 
-                    width={"100%"} 
+                  <Chart
+                    options={optionscolumnchart}
+                    series={seriescolumnchart}
+                    type="bar"
+                    height={280}
+                    width={"100%"}
                   />
                 ) : (
-                  <Box 
-                    height="100%" 
-                    display="flex" 
-                    alignItems="center" 
+                  <Box
+                    height="100%"
+                    display="flex"
+                    alignItems="center"
                     justifyContent="center"
                   >
                     <Typography color="textSecondary">
@@ -222,7 +222,7 @@ const EmployeeSalary = ({ isLoading: initialLoading }: EmployeeSalaryCardProps) 
             </>
           </DashboardWidgetCard>
         )}
-    </>
+    </Box >
   );
 };
 
