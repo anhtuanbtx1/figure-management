@@ -83,6 +83,7 @@ import {
   IconLayout,
   IconBell,
   IconClock,
+  IconFlask,
 } from "@tabler/icons-react";
 
 const Menuitems: MenuitemsType[] = [
@@ -122,6 +123,12 @@ const Menuitems: MenuitemsType[] = [
     title: "Quản lý đồ chơi",
     icon: IconBox,
     href: "/apps/toy-management",
+  },
+  {
+    id: uniqueId(),
+    title: "Phòng lab lai tạo guppy",
+    icon: IconFlask,
+    href: "/guppy-preview",
   },
   {
     id: uniqueId(),
@@ -217,47 +224,9 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
-    title: "Pricing",
-    icon: IconCurrencyDollar,
-    href: "/theme-pages/pricing",
-  },
-  {
-    id: uniqueId(),
     title: "Account Setting",
     icon: IconUserCircle,
     href: "/theme-pages/account-settings",
-  },
-  {
-    id: uniqueId(),
-    title: "FAQ",
-    icon: IconHelp,
-    href: "/theme-pages/faq",
-  },
-  {
-    id: uniqueId(),
-    title: "Widgets",
-    icon: IconLayout,
-    href: "/widgets/cards",
-    children: [
-      {
-        id: uniqueId(),
-        title: "Cards",
-        icon: IconPoint,
-        href: "/widgets/cards",
-      },
-      {
-        id: uniqueId(),
-        title: "Banners",
-        icon: IconPoint,
-        href: "/widgets/banners",
-      },
-      {
-        id: uniqueId(),
-        title: "Charts",
-        icon: IconPoint,
-        href: "/widgets/charts",
-      },
-    ],
   },
   {
     navlabel: true,
@@ -322,32 +291,6 @@ const Menuitems: MenuitemsType[] = [
         href: "/authentication/forgot-password2",
       },
     ],
-  },
-  {
-    id: uniqueId(),
-    title: "Two Steps",
-    icon: IconZoomCode,
-    href: "/authentication/two-steps",
-    children: [
-      {
-        id: uniqueId(),
-        title: "Side Two Steps",
-        icon: IconPoint,
-        href: "/authentication/two-steps",
-      },
-      {
-        id: uniqueId(),
-        title: "Boxed Two Steps",
-        icon: IconPoint,
-        href: "/authentication/two-steps2",
-      },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: "Error",
-    icon: IconAlertCircle,
-    href: "/authentication/error",
   },
   {
     id: uniqueId(),

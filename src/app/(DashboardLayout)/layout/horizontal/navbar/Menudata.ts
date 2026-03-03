@@ -12,6 +12,7 @@ import {
   IconAlertCircle,
   IconSettings,
   IconAppWindow,
+  IconFlask,
 } from "@tabler/icons-react";
 import { uniqueId } from "lodash";
 
@@ -80,12 +81,6 @@ const Menuitems = [
         icon: IconPoint,
         href: "/frontend-pages/portfolio",
       },
-      {
-        id: uniqueId(),
-        title: "Pricing",
-        icon: IconPoint,
-        href: "/frontend-pages/pricing",
-      },
     ],
   },
   {
@@ -99,6 +94,12 @@ const Menuitems = [
         title: "Contacts",
         icon: IconPoint,
         href: "/apps/contacts",
+      },
+      {
+        id: uniqueId(),
+        title: "Phòng lab lai tạo guppy",
+        icon: IconFlask,
+        href: "/guppy-preview",
       },
       {
         id: uniqueId(),
@@ -287,47 +288,9 @@ const Menuitems = [
       },
       {
         id: uniqueId(),
-        title: "Pricing",
-        icon: IconPoint,
-        href: "/theme-pages/pricing",
-      },
-      {
-        id: uniqueId(),
         title: "Account Setting",
         icon: IconPoint,
         href: "/theme-pages/account-settings",
-      },
-      {
-        id: uniqueId(),
-        title: "FAQ",
-        icon: IconPoint,
-        href: "/theme-pages/faq",
-      },
-      {
-        id: uniqueId(),
-        title: "Widgets",
-        icon: IconPoint,
-        href: "/widgets/cards",
-        children: [
-          {
-            id: uniqueId(),
-            title: "Cards",
-            icon: IconPoint,
-            href: "/widgets/cards",
-          },
-          {
-            id: uniqueId(),
-            title: "Banners",
-            icon: IconPoint,
-            href: "/widgets/banners",
-          },
-          {
-            id: uniqueId(),
-            title: "Charts",
-            icon: IconPoint,
-            href: "/widgets/charts",
-          },
-        ],
       },
       {
         id: uniqueId(),
@@ -467,12 +430,6 @@ const Menuitems = [
         children: [
           {
             id: uniqueId(),
-            title: "Error",
-            icon: IconAlertCircle,
-            href: "/400",
-          },
-          {
-            id: uniqueId(),
             title: "Maintenance",
             icon: IconSettings,
             href: "/auth/maintenance",
@@ -534,26 +491,6 @@ const Menuitems = [
                 title: "Boxed Forgot Password",
                 icon: IconPoint,
                 href: "/auth/auth2/forgot-password",
-              },
-            ],
-          },
-          {
-            id: uniqueId(),
-            title: "Two Steps",
-            icon: IconZoomCode,
-            href: "/auth/auth1/two-steps",
-            children: [
-              {
-                id: uniqueId(),
-                title: "Side Two Steps",
-                icon: IconPoint,
-                href: "/auth/auth1/two-steps",
-              },
-              {
-                id: uniqueId(),
-                title: "Boxed Two Steps",
-                icon: IconPoint,
-                href: "/auth/auth2/two-steps",
               },
             ],
           },
