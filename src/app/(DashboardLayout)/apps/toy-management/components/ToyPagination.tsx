@@ -60,7 +60,7 @@ const ToyPagination: React.FC<PaginationProps> = ({
         p: 3,
         borderTop: '1px solid',
         borderColor: 'divider',
-        backgroundColor: 'rgba(0,0,0,0.01)',
+        background: 'linear-gradient(180deg, rgba(255,107,107,0.02) 0%, rgba(255,142,83,0.04) 100%)',
       }}
     >
       {/* Left side - Items info and page size selector */}

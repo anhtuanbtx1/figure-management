@@ -78,9 +78,10 @@ const ToyFilters: React.FC<ToyFiltersProps> = ({
 
   return (
     <Card
+      elevation={0}
       sx={{
         mb: 3,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        borderRadius: 3,
         border: '1px solid',
         borderColor: 'divider',
       }}
@@ -606,9 +607,9 @@ const ToyFilters: React.FC<ToyFiltersProps> = ({
               )}
               {filters.status && (
                 <Chip
-                  label={`Trạng thái: ${filters.status === ToyStatus.ACTIVE ? 'Hoạt động' : 
+                  label={`Trạng thái: ${filters.status === ToyStatus.ACTIVE ? 'Hoạt động' :
                     filters.status === ToyStatus.INACTIVE ? 'Không hoạt động' :
-                    filters.status === ToyStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Ngừng bán'}`}
+                      filters.status === ToyStatus.OUT_OF_STOCK ? 'Hết hàng' : 'Ngừng bán'}`}
                   size="small"
                   onDelete={() => onFiltersChange({ status: '' })}
                   color="primary"

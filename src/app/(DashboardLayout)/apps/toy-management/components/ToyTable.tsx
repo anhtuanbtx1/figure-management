@@ -140,7 +140,7 @@ const ToyTable: React.FC<ToyTableProps> = ({
             <TableRow>
               {Array.from({ length: 9 }).map((_, index) => (
                 <TableCell key={index}>
-                  <Skeleton variant="text" width="100%" />
+                  <Skeleton variant="text" width="80%" height={24} />
                 </TableCell>
               ))}
             </TableRow>
@@ -148,9 +148,11 @@ const ToyTable: React.FC<ToyTableProps> = ({
           <TableBody>
             {Array.from({ length: 5 }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
-                {Array.from({ length: 9 }).map((_, cellIndex) => (
+                <TableCell padding="checkbox"><Skeleton variant="circular" width={24} height={24} /></TableCell>
+                <TableCell><Skeleton variant="rounded" width={50} height={50} sx={{ borderRadius: 2 }} /></TableCell>
+                {Array.from({ length: 7 }).map((_, cellIndex) => (
                   <TableCell key={cellIndex}>
-                    <Skeleton variant="text" width="100%" />
+                    <Skeleton variant="text" width={`${60 + Math.random() * 40}%`} />
                   </TableCell>
                 ))}
               </TableRow>
@@ -174,13 +176,15 @@ const ToyTable: React.FC<ToyTableProps> = ({
           <TableHead>
             <TableRow
               sx={{
-                backgroundColor: 'rgba(0,0,0,0.02)',
+                backgroundColor: 'rgba(255, 107, 107, 0.04)', // subtle tint to match the header orange/red
                 '& .MuiTableCell-head': {
                   fontWeight: 700,
                   fontSize: '0.875rem',
                   color: 'text.primary',
                   borderBottom: '2px solid',
-                  borderColor: 'divider',
+                  borderColor: 'rgba(255, 107, 107, 0.15)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
                 },
               }}
             >
@@ -321,8 +325,9 @@ const ToyTable: React.FC<ToyTableProps> = ({
                 key={toy.id}
                 hover
                 sx={{
+                  transition: 'all 0.2s',
                   '&:hover': {
-                    backgroundColor: 'rgba(0,0,0,0.02)',
+                    backgroundColor: 'rgba(255, 107, 107, 0.03)',
                   },
                   '& .MuiTableCell-root': {
                     borderBottom: '1px solid',
@@ -349,10 +354,17 @@ const ToyTable: React.FC<ToyTableProps> = ({
                     alt={toy.name}
                     variant="rounded"
                     sx={{
-                      width: 50,
-                      height: 50,
+                      width: 54,
+                      height: 54,
+                      borderRadius: 2.5,
                       border: '2px solid',
                       borderColor: 'divider',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'scale(1.12)',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                        borderColor: 'primary.main',
+                      },
                     }}
                   />
                 </TableCell>
@@ -505,12 +517,26 @@ const ToyTable: React.FC<ToyTableProps> = ({
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
+        TransitionComponent={undefined}
         slotProps={{
           paper: {
             sx: {
-              borderRadius: 2,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-              minWidth: 160,
+              borderRadius: 3,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              minWidth: 180,
+              border: '1px solid',
+              borderColor: 'divider',
+              overflow: 'hidden',
+              '& .MuiMenuItem-root': {
+                py: 1.5,
+                px: 2,
+                borderRadius: 1.5,
+                mx: 0.5,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  transform: 'translateX(4px)',
+                },
+              },
             },
           },
         }}

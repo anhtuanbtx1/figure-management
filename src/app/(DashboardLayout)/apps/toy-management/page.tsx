@@ -7,9 +7,12 @@ import {
   Typography,
   Button,
   Grid,
-
+  Fade,
+  Zoom,
+  Chip,
+  Grow,
 } from '@mui/material';
-import { IconPlus, IconBox } from '@tabler/icons-react';
+import { IconPlus, IconBox, IconRefresh, IconPackage, IconShoppingCart, IconTags } from '@tabler/icons-react';
 import PageContainer from '@/app/components/container/PageContainer';
 import Breadcrumb from '@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb';
 import BlankCard from '@/app/components/shared/BlankCard';
@@ -396,109 +399,238 @@ const ToyManagementPage = () => {
       {/* <Breadcrumb title="Quản lý đồ chơi" items={BCrumb} /> */}
 
 
+      {/* Keyframes for floating animation */}
+      <style>{`
+        @keyframes toyFloat1 {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        @keyframes toyFloat2 {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(-5deg); }
+        }
+        @keyframes toyFloat3 {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-8px) scale(1.1); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+          50% { box-shadow: 0 0 20px 8px rgba(255,255,255,0.15); }
+        }
+      `}</style>
+
       {/* Header */}
-      <Box
-        sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          p: 4,
-          borderRadius: 3,
-          mb: 3,
-          boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3)',
-        }}
-      >
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Box display="flex" alignItems="center" gap={2}>
-            <IconBox size={32} />
-            <Box>
-              <Typography variant="h4" fontWeight={700} sx={{ mb: 0.5 }}>
-                Quản lý đồ chơi
-              </Typography>
-              <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                Quản lý danh sách đồ chơi, phân trang và tìm kiếm
-              </Typography>
+      <Fade in timeout={600}>
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E53 30%, #FFA843 60%, #FFCD38 100%)',
+            color: 'white',
+            p: 4,
+            borderRadius: 4,
+            mb: 3,
+            boxShadow: '0 12px 40px rgba(255, 107, 107, 0.4)',
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: -60,
+              right: -60,
+              width: 250,
+              height: 250,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.08)',
+            },
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              bottom: -100,
+              left: -50,
+              width: 300,
+              height: 300,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.05)',
+            },
+          }}
+        >
+          {/* Floating decorations */}
+          <Box sx={{ position: 'absolute', top: 20, right: 80, fontSize: 32, opacity: 0.15, animation: 'toyFloat1 4s ease-in-out infinite', zIndex: 0 }}>🎲</Box>
+          <Box sx={{ position: 'absolute', top: 60, right: 200, fontSize: 24, opacity: 0.1, animation: 'toyFloat2 5s ease-in-out infinite 0.5s', zIndex: 0 }}>🧩</Box>
+          <Box sx={{ position: 'absolute', bottom: 15, right: 120, fontSize: 28, opacity: 0.12, animation: 'toyFloat3 3.5s ease-in-out infinite 1s', zIndex: 0 }}>🎪</Box>
+          <Box sx={{ position: 'absolute', top: 30, right: 350, fontSize: 20, opacity: 0.08, animation: 'toyFloat1 6s ease-in-out infinite 1.5s', zIndex: 0 }}>🎯</Box>
+
+          <Box display="flex" justifyContent="space-between" alignItems="center" position="relative" zIndex={1}>
+            <Box display="flex" alignItems="center" gap={2.5}>
+              <Box sx={{
+                p: 2, borderRadius: 3,
+                background: 'rgba(255,255,255,0.2)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                animation: 'pulseGlow 3s ease-in-out infinite',
+              }}>
+                <IconBox size={36} />
+              </Box>
+              <Box>
+                <Typography variant="h4" fontWeight={800} sx={{ mb: 0.5, letterSpacing: '-0.5px', textShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                  🧸 Quản lý Đồ chơi
+                </Typography>
+                <Typography variant="body1" sx={{ opacity: 0.9, fontWeight: 400 }}>
+                  Kho tàng niềm vui — quản lý danh sách, số lượng và các bộ sưu tập
+                </Typography>
+              </Box>
+            </Box>
+            <Box display="flex" gap={1.5}>
+              <Button
+                variant="contained"
+                startIcon={<IconRefresh size={18} />}
+                onClick={() => loadToys()}
+                sx={{
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(10px)',
+                  color: 'white',
+                  fontWeight: 600,
+                  px: 2.5,
+                  py: 1.5,
+                  borderRadius: 2.5,
+                  textTransform: 'none',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.25)',
+                    transform: 'translateY(-2px) scale(1.02)',
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+                  },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              >
+                Làm mới
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<IconPlus size={20} />}
+                onClick={handleAddToy}
+                sx={{
+                  backgroundColor: 'rgba(255,255,255,0.25)',
+                  backdropFilter: 'blur(10px)',
+                  color: 'white',
+                  fontWeight: 700,
+                  px: 3,
+                  py: 1.5,
+                  borderRadius: 2.5,
+                  textTransform: 'none',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.4)',
+                    transform: 'translateY(-3px) scale(1.03)',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+                  },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              >
+                Thêm đồ chơi mới
+              </Button>
             </Box>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<IconPlus size={20} />}
-            onClick={handleAddToy}
-            sx={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              color: 'white',
-              fontWeight: 600,
-              px: 3,
-              py: 1.5,
-              borderRadius: 2,
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.3)',
-                transform: 'translateY(-2px)',
-                boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
-              },
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
-          >
-            Thêm đồ chơi mới
-          </Button>
+
+          {/* Quick Stats Chips */}
+          <Box display="flex" gap={2} mt={3} position="relative" zIndex={1} flexWrap="wrap">
+            {[
+              { icon: <IconPackage size={16} />, label: `${totalItems} sản phẩm`, delay: 0 },
+              { icon: <IconTags size={16} />, label: `${categories.length} danh mục`, delay: 100 },
+              { icon: <IconShoppingCart size={16} />, label: `${brands.length} thương hiệu`, delay: 200 },
+            ].map((item, i) => (
+              <Zoom in key={i} style={{ transitionDelay: `${item.delay}ms` }}>
+                <Chip
+                  icon={item.icon}
+                  label={item.label}
+                  sx={{
+                    backgroundColor: 'rgba(255,255,255,0.18)',
+                    color: 'white',
+                    fontWeight: 600,
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    '& .MuiChip-icon': { color: 'white' },
+                    transition: 'all 0.25s ease',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.28)',
+                      transform: 'scale(1.05)',
+                    },
+                  }}
+                />
+              </Zoom>
+            ))}
+          </Box>
         </Box>
-      </Box>
+      </Fade>
 
       {/* Main Content */}
-      <BlankCard>
-        <CardContent sx={{ p: 0 }}>
+      <Fade in timeout={800} style={{ transitionDelay: '200ms' }}>
+        <Box>
           {/* Brand Stats */}
           <BrandStatsCards />
+        </Box>
+      </Fade>
 
-          {/* Filters */}
-          <ToyFiltersComponent
-            filters={filters}
-            categories={categories}
-            brands={brands}
-            onFiltersChange={handleFiltersChange}
-            onClearFilters={handleClearFilters}
-          />
-
-          {/* Bulk Actions */}
-          {selectedToys.length > 0 && (
-            <BulkActions
-              selectedCount={selectedToys.length}
-              onBulkDelete={handleBulkDelete}
-              onBulkStatusChange={handleBulkStatusChange}
-              onBulkExport={() => console.log('Export')}
-              onClearSelection={() => setSelectedToys([])}
+      <Fade in timeout={800} style={{ transitionDelay: '400ms' }}>
+        <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+          <CardContent sx={{ p: 0 }}>
+            {/* Filters */}
+            <ToyFiltersComponent
+              filters={filters}
+              categories={categories}
+              brands={brands}
+              onFiltersChange={handleFiltersChange}
+              onClearFilters={handleClearFilters}
             />
-          )}
 
-          {/* Table */}
-          <ToyTable
-            toys={toys}
-            loading={loading}
-            onEdit={handleEditToy}
-            onDelete={handleDeleteToy}
-            onView={handleViewToy}
-            onSort={handleSort}
-            sortField={sortField}
-            sortDirection={sortDirection}
-            selectedToys={selectedToys}
-            onSelectToy={handleSelectToy}
-            onSelectAll={handleSelectAll}
-          />
+            {/* Bulk Actions */}
+            {selectedToys.length > 0 && (
+              <Grow in>
+                <Box>
+                  <BulkActions
+                    selectedCount={selectedToys.length}
+                    onBulkDelete={handleBulkDelete}
+                    onBulkStatusChange={handleBulkStatusChange}
+                    onBulkExport={() => console.log('Export')}
+                    onClearSelection={() => setSelectedToys([])}
+                  />
+                </Box>
+              </Grow>
+            )}
 
-          {/* Pagination */}
-          <ToyPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            itemsPerPage={itemsPerPage}
-            onPageChange={setCurrentPage}
-            onItemsPerPageChange={(limit) => {
-              setItemsPerPage(limit);
-              setCurrentPage(1);
-            }}
-          />
-        </CardContent>
-      </BlankCard>
+            {/* Table */}
+            <ToyTable
+              toys={toys}
+              loading={loading}
+              onEdit={handleEditToy}
+              onDelete={handleDeleteToy}
+              onView={handleViewToy}
+              onSort={handleSort}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              selectedToys={selectedToys}
+              onSelectToy={handleSelectToy}
+              onSelectAll={handleSelectAll}
+            />
+
+            {/* Pagination */}
+            <ToyPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(limit) => {
+                setItemsPerPage(limit);
+                setCurrentPage(1);
+              }}
+            />
+          </CardContent>
+        </Card>
+      </Fade>
 
       {/* Toy Form Dialog */}
       <ToyForm
