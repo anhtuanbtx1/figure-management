@@ -126,9 +126,9 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
-    title: "Phòng lab lai tạo guppy",
+    title: "Quản lý cá Guppy",
     icon: IconFlask,
-    href: "/guppy-preview",
+    href: "/apps/guppy-breeding",
   },
   {
     id: uniqueId(),
