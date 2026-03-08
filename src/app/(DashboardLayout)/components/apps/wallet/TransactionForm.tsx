@@ -199,14 +199,39 @@ const TransactionForm: React.FC = () => {
 
   return (
     <>
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Thêm giao dịch mới
-          </Typography>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          border: '1px solid',
+          borderColor: 'divider',
+          overflow: 'hidden',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+          },
+        }}
+      >
+        {/* Form header */}
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #1B5E20 0%, #43A047 100%)',
+            px: 3,
+            py: 2,
+            color: 'white',
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <Box sx={{ fontSize: 22 }}>✍️</Box>
+            <Typography variant="h6" fontWeight={700}>
+              Thêm giao dịch mới
+            </Typography>
+          </Box>
+        </Box>
 
+        <CardContent sx={{ p: 3 }}>
           <Box component="form" onSubmit={handleSubmit}>
-            <Grid container spacing={2}>
+            <Grid container spacing={2.5}>
               {/* Transaction Type */}
               <Grid item xs={12}>
                 <FormControl fullWidth size="small" error={!!formErrors.type}>
@@ -216,13 +241,13 @@ const TransactionForm: React.FC = () => {
                     label="Loại giao dịch *"
                     onChange={(e) => {
                       handleFieldChange('type', e.target.value);
-                      // Reset category when type changes
                       handleFieldChange('categoryId', '');
                     }}
+                    sx={{ borderRadius: 2 }}
                   >
-                    <MenuItem value="Thu nhập">Thu nhập</MenuItem>
-                    <MenuItem value="Chi tiêu">Chi tiêu</MenuItem>
-                    <MenuItem value="Chuyển khoản">Chuyển khoản</MenuItem>
+                    <MenuItem value="Thu nhập">📈 Thu nhập</MenuItem>
+                    <MenuItem value="Chi tiêu">📉 Chi tiêu</MenuItem>
+                    <MenuItem value="Chuyển khoản">🔄 Chuyển khoản</MenuItem>
                   </Select>
                   {formErrors.type && (
                     <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
@@ -249,6 +274,7 @@ const TransactionForm: React.FC = () => {
                     endAdornment: <InputAdornment position="end">VNĐ</InputAdornment>,
                   }}
                   inputProps={{ inputMode: 'numeric' }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
 
@@ -265,10 +291,11 @@ const TransactionForm: React.FC = () => {
                   error={!!formErrors.description}
                   helperText={formErrors.description}
                   placeholder="Nhập mô tả giao dịch..."
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
 
-              {/* Category - Using Working Pattern from WalletTransactionList */}
+              {/* Category */}
               <Grid item xs={12}>
                 <FormControl fullWidth size="small" error={!!formErrors.categoryId}>
                   <InputLabel>Danh mục *</InputLabel>
@@ -277,29 +304,18 @@ const TransactionForm: React.FC = () => {
                     label="Danh mục *"
                     onChange={(e) => handleFieldChange('categoryId', e.target.value)}
                     disabled={!formData.type || loading}
+                    sx={{ borderRadius: 2 }}
                   >
                     {categories
                       .filter(cat => {
                         if (!formData.type) return true;
-
-                        // Direct match should work now that database encoding is fixed
                         const directMatch = cat.type === formData.type;
-
-                        // Fallback: normalize strings for comparison to handle any remaining encoding issues
                         if (!directMatch) {
                           const normalizeString = (str: string) => {
-                            return str
-                              .normalize('NFD')
-                              .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-                              .toLowerCase()
-                              .trim();
+                            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
                           };
-
-                          const categoryType = normalizeString(cat.type);
-                          const formType = normalizeString(formData.type);
-                          return categoryType === formType;
+                          return normalizeString(cat.type) === normalizeString(formData.type);
                         }
-
                         return directMatch;
                       })
                       .map((category) => (
@@ -323,7 +339,6 @@ const TransactionForm: React.FC = () => {
                       {formErrors.categoryId}
                     </Typography>
                   )}
-
                 </FormControl>
               </Grid>
 
@@ -338,9 +353,8 @@ const TransactionForm: React.FC = () => {
                   onChange={(e) => handleFieldChange('transactionDate', e.target.value)}
                   error={!!formErrors.transactionDate}
                   helperText={formErrors.transactionDate}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
 
@@ -352,9 +366,10 @@ const TransactionForm: React.FC = () => {
                     value={formData.status}
                     label="Trạng thái *"
                     onChange={(e) => handleFieldChange('status', e.target.value)}
+                    sx={{ borderRadius: 2 }}
                   >
-                    <MenuItem value="Hoàn thành">Hoàn thành</MenuItem>
-                    <MenuItem value="Đang chờ">Đang chờ</MenuItem>
+                    <MenuItem value="Hoàn thành">✅ Hoàn thành</MenuItem>
+                    <MenuItem value="Đang chờ">⏳ Đang chờ</MenuItem>
                   </Select>
                   {formErrors.status && (
                     <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
@@ -366,15 +381,30 @@ const TransactionForm: React.FC = () => {
 
               {/* Action Buttons */}
               <Grid item xs={12}>
-                <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
                   <Button
                     type="submit"
                     variant="contained"
                     startIcon={<AddIcon />}
                     disabled={loading}
                     fullWidth
+                    sx={{
+                      background: 'linear-gradient(135deg, #1B5E20 0%, #43A047 100%)',
+                      fontWeight: 700,
+                      py: 1.2,
+                      borderRadius: 2.5,
+                      textTransform: 'none',
+                      fontSize: '0.95rem',
+                      boxShadow: '0 4px 12px rgba(27, 94, 32, 0.3)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 6px 20px rgba(27, 94, 32, 0.4)',
+                      },
+                      transition: 'all 0.3s ease',
+                    }}
                   >
-                    {loading ? 'Đang tạo...' : 'Thêm giao dịch'}
+                    {loading ? 'Đang tạo...' : '💳 Thêm giao dịch'}
                   </Button>
                 </Box>
               </Grid>
@@ -387,8 +417,19 @@ const TransactionForm: React.FC = () => {
                   disabled={loading}
                   fullWidth
                   size="small"
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderColor: 'divider',
+                    color: 'text.secondary',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      backgroundColor: 'rgba(0,0,0,0.02)',
+                    },
+                  }}
                 >
-                  Reset
+                  🔄 Xóa form
                 </Button>
               </Grid>
             </Grid>

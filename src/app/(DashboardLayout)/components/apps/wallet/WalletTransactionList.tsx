@@ -415,11 +415,36 @@ const WalletTransactionList: React.FC = () => {
 
   return (
     <>
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Danh sách giao dịch
-          </Typography>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          border: '1px solid',
+          borderColor: 'divider',
+          overflow: 'hidden',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+          },
+        }}
+      >
+        {/* Card Header */}
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #1B5E20 0%, #43A047 100%)',
+            px: 3,
+            py: 2,
+            color: 'white',
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <Box sx={{ fontSize: 22 }}>📋</Box>
+            <Typography variant="h6" fontWeight={700}>
+              Danh sách giao dịch
+            </Typography>
+          </Box>
+        </Box>
+        <CardContent sx={{ p: 3 }}>
 
           {/* Filters */}
           <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -438,6 +463,7 @@ const WalletTransactionList: React.FC = () => {
                     </InputAdornment>
                   ),
                 }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               />
             </Grid>
 
@@ -526,22 +552,35 @@ const WalletTransactionList: React.FC = () => {
           {/* Transactions Table */}
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
-          {/* Bulk Delete Confirmation Dialog */}
-          <Dialog open={showBulkDeleteDialog} onClose={closeBulkDelete} maxWidth="xs" fullWidth>
-            <DialogTitle>Xóa {selectedIds.length} giao dịch?</DialogTitle>
-            <DialogContent>
-              <Typography>Bạn có chắc chắn muốn xóa {selectedIds.length} giao dịch đã chọn? Hành động này không thể hoàn tác.</Typography>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={closeBulkDelete}>Hủy</Button>
-              <Button onClick={handleBulkDeleteConfirm} color="error" variant="contained" disabled={bulkDeleting}>
-                {bulkDeleting ? 'Đang xóa...' : 'Xóa' }
-              </Button>
-            </DialogActions>
-          </Dialog>
+              {/* Bulk Delete Confirmation Dialog */}
+              <Dialog open={showBulkDeleteDialog} onClose={closeBulkDelete} maxWidth="xs" fullWidth>
+                <DialogTitle>Xóa {selectedIds.length} giao dịch?</DialogTitle>
+                <DialogContent>
+                  <Typography>Bạn có chắc chắn muốn xóa {selectedIds.length} giao dịch đã chọn? Hành động này không thể hoàn tác.</Typography>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={closeBulkDelete}>Hủy</Button>
+                  <Button onClick={handleBulkDeleteConfirm} color="error" variant="contained" disabled={bulkDeleting}>
+                    {bulkDeleting ? 'Đang xóa...' : 'Xóa'}
+                  </Button>
+                </DialogActions>
+              </Dialog>
 
               <TableHead>
-                <TableRow>
+                <TableRow
+                  sx={{
+                    backgroundColor: 'rgba(27, 94, 32, 0.04)',
+                    '& .MuiTableCell-head': {
+                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      color: 'text.primary',
+                      borderBottom: '2px solid',
+                      borderColor: 'rgba(27, 94, 32, 0.15)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    },
+                  }}
+                >
                   <TableCell padding="checkbox">
                     <Checkbox
                       indeterminate={partiallySelected}
@@ -574,7 +613,16 @@ const WalletTransactionList: React.FC = () => {
                   </TableRow>
                 ) : (
                   transactions.map((transaction) => (
-                    <TableRow key={transaction.id} hover>
+                    <TableRow
+                      key={transaction.id}
+                      hover
+                      sx={{
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          backgroundColor: 'rgba(27, 94, 32, 0.03)',
+                        },
+                      }}
+                    >
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={selectedIds.includes(transaction.id)}
