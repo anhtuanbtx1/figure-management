@@ -63,7 +63,7 @@ function Page() {
                     SYSTEM.KANBAN
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ letterSpacing: '0.02em' }}>
-                    // COMMAND & CONTROL CENTER
+                    {"// COMMAND & CONTROL CENTER"}
                   </Typography>
                 </Stack>
               </Stack>
