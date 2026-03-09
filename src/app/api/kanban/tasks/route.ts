@@ -20,6 +20,8 @@ export async function GET(request: NextRequest) {
         t.DoUuTien as priority,
         t.ThuTu as orderIndex,
         t.NguoiDuocGan as assignee,
+        t.NgayBatDau as startDate,
+        t.NgayKetThuc as endDate,
         t.Metadata as metadata,
         t.NgayTao as createdAt,
         t.NgayCapNhat as updatedAt,
@@ -55,6 +57,8 @@ export async function POST(request: Request) {
       description = '',
       priority = 'Trung bình',
       assignee = null,
+      startDate = null,
+      endDate = null,
       metadata = null,
     } = body || {};
 
@@ -77,26 +81,28 @@ export async function POST(request: Request) {
 
     const insertQuery = `
       INSERT INTO zen50558_ManagementStore.dbo.KanbanTasks
-      (Id, BoardId, ColumnId, TieuDe, MoTa, DoUuTien, ThuTu, NguoiDuocGan, Metadata)
-      VALUES (@id, @boardId, @columnId, @title, @description, @priority, @orderIndex, @assignee, @metadata)
+      (Id, BoardId, ColumnId, TieuDe, MoTa, DoUuTien, ThuTu, NguoiDuocGan, NgayBatDau, NgayKetThuc, Metadata)
+      VALUES (@id, @boardId, @columnId, @title, @description, @priority, @orderIndex, @assignee, @startDate, @endDate, @metadata)
     `;
 
     await executeQuery(insertQuery, {
       id: { type: sql.NVarChar, value: id },
-      boardId: { type: sql.NVarChar, value: boardId },
-      columnId: { type: sql.NVarChar, value: columnId },
-      title: { type: sql.NVarChar, value: title },
-      description: { type: sql.NVarChar, value: description },
-      priority: { type: sql.NVarChar, value: priority },
-      orderIndex: { type: sql.Int, value: nextOrder },
-      assignee: { type: sql.NVarChar, value: assignee },
-      metadata: { type: sql.NVarChar, value: metadata },
+      boardId: { type: sql.NVarChar, value: boardId ?? null },
+      columnId: { type: sql.NVarChar, value: columnId ?? null },
+      title: { type: sql.NVarChar, value: title ?? null },
+      description: { type: sql.NVarChar, value: description ?? null },
+      priority: { type: sql.NVarChar, value: priority ?? null },
+      orderIndex: { type: sql.Int, value: nextOrder ?? 0 },
+      assignee: { type: sql.NVarChar, value: assignee ?? null },
+      startDate: { type: sql.DateTime, value: startDate ? new Date(startDate) : null },
+      endDate: { type: sql.DateTime, value: endDate ? new Date(endDate) : null },
+      metadata: { type: sql.NVarChar, value: metadata ?? null },
     });
 
     const fetchQuery = `
       SELECT t.Id as id, t.BoardId as boardId, t.ColumnId as columnId, c.TenCot as columnName, c.ThuTu as columnOrder,
              t.TieuDe as title, t.MoTa as description, t.DoUuTien as priority, t.ThuTu as orderIndex,
-             t.NguoiDuocGan as assignee, t.Metadata as metadata, t.NgayTao as createdAt, t.NgayCapNhat as updatedAt
+             t.NguoiDuocGan as assignee, t.NgayBatDau as startDate, t.NgayKetThuc as endDate, t.Metadata as metadata, t.NgayTao as createdAt, t.NgayCapNhat as updatedAt
       FROM zen50558_ManagementStore.dbo.KanbanTasks t
       LEFT JOIN zen50558_ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId
       WHERE t.Id = @id

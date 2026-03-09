@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from 'react';
-import { Box, Chip, IconButton, Stack, Typography, Tooltip, Avatar, useTheme, alpha } from '@mui/material';
-import { IconPencil, IconTrash, IconUser, IconClock, IconCheck } from '@tabler/icons-react';
+import { Box, Chip, IconButton, Stack, Typography, Tooltip, useTheme, alpha } from '@mui/material';
+import { IconPencil, IconTrash, IconUser, IconCheck, IconCircle } from '@tabler/icons-react';
 import { KanbanTaskDb, KanbanPriority } from '@/types/apps/kanban-db';
 
 interface Props {
   task: KanbanTaskDb;
+  statusName?: string; // Passed from parent since columns are now Days
   onEdit: (task: KanbanTaskDb) => void;
   onDelete: (task: KanbanTaskDb) => void;
   isDragging?: boolean;
@@ -14,52 +15,34 @@ interface Props {
 const priorityConfig = (p?: KanbanPriority) => {
   switch (p) {
     case 'Thấp':
-      return { color: '#10B981', bg: '#ECFDF5', label: 'Thấp', icon: '🟢' };
+      return { color: '#10B981', bg: '#10B98115', label: 'Thấp', icon: '🟢' };
     case 'Trung bình':
-      return { color: '#3B82F6', bg: '#EFF6FF', label: 'Trung bình', icon: '🔵' };
+      return { color: '#3B82F6', bg: '#3B82F615', label: 'Trung bình', icon: '🔵' };
     case 'Cao':
-      return { color: '#F59E0B', bg: '#FFFBEB', label: 'Cao', icon: '🟡' };
+      return { color: '#F59E0B', bg: '#F59E0B15', label: 'Cao', icon: '🟡' };
     case 'Khẩn cấp':
-      return { color: '#EF4444', bg: '#FEF2F2', label: 'Khẩn cấp', icon: '🔴' };
+      return { color: '#EF4444', bg: '#EF444415', label: 'Khẩn cấp', icon: '🔴' };
     default:
-      return { color: '#6B7280', bg: '#F9FAFB', label: 'Không xác định', icon: '⚪' };
+      return { color: '#6B7280', bg: '#6B728015', label: 'Không xác định', icon: '⚪' };
   }
 };
 
-const KanbanTaskCard: React.FC<Props> = ({ task, onEdit, onDelete, isDragging = false }) => {
+const KanbanTaskCard: React.FC<Props> = ({ task, statusName = 'Chưa xác định', onEdit, onDelete, isDragging = false }) => {
   const theme = useTheme();
   const [isHovered, setIsHovered] = useState(false);
   const priority = priorityConfig(task.priority);
 
-  // Check if task is in completed column
-  const isCompleted = task.columnId === 'col-done';
+  const isCompleted = task.columnId === 'col-done' || statusName.toLowerCase().includes('done') || statusName.toLowerCase().includes('hoàn thành');
+  const isInProgress = statusName.toLowerCase().includes('progress') || statusName.toLowerCase().includes('đang làm');
 
-  // Define theme-aware completed task colors
-  const completedColors = {
-    // Background colors that work with both light and dark themes
-    background: isCompleted
-      ? theme.palette.mode === 'dark'
-        ? alpha(theme.palette.success.dark, 0.15) // Dark theme: darker green with transparency
-        : alpha(theme.palette.success.light, 0.1)  // Light theme: light green with transparency
-      : 'background.paper',
+  const baseBackground = theme.palette.mode === 'dark' ? '#1E293B' : '#FFFFFF';
+  const completedBg = isCompleted ? alpha(theme.palette.success.main, 0.04) : baseBackground;
 
-    // Hover background
-    hoverBackground: isCompleted
-      ? theme.palette.mode === 'dark'
-        ? alpha(theme.palette.success.dark, 0.25) // Dark theme: slightly more opaque
-        : alpha(theme.palette.success.light, 0.15) // Light theme: slightly more opaque
-      : 'background.paper',
-
-    // Border color
-    borderColor: isCompleted
-      ? alpha(theme.palette.success.main, 0.3) // Use theme success color for border
-      : 'divider',
-
-    // Shadow color for hover
-    shadowColor: isCompleted
-      ? alpha(theme.palette.success.main, 0.2)
-      : alpha(theme.palette.grey[500], 0.1)
-  };
+  const statusColor = isCompleted
+    ? theme.palette.success.main
+    : isInProgress
+      ? theme.palette.info.main
+      : theme.palette.text.secondary;
 
   return (
     <Box
@@ -67,78 +50,61 @@ const KanbanTaskCard: React.FC<Props> = ({ task, onEdit, onDelete, isDragging = 
       onMouseLeave={() => setIsHovered(false)}
       sx={{
         p: 2,
-        borderRadius: 3,
-        bgcolor: completedColors.background,
+        borderRadius: 1, // Sharper corners for utilitarian feel
+        bgcolor: completedBg,
         border: '1px solid',
         borderColor: isDragging
-          ? 'primary.main'
-          : completedColors.borderColor,
-        boxShadow: isDragging
-          ? `0 8px 25px ${alpha(theme.palette.primary.main, 0.15)}`
+          ? theme.palette.primary.main
           : isHovered
-            ? `0 4px 20px ${completedColors.shadowColor}`
-            : `0 1px 3px ${alpha(theme.palette.grey[500], 0.08)}`,
-        transform: isDragging ? 'rotate(2deg) scale(1.02)' : isHovered ? 'translateY(-2px)' : 'none',
-        transition: isCompleted
-          ? 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' // Slightly longer transition for completed tasks
-          : 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            ? alpha(theme.palette.text.primary, 0.2)
+            : alpha(theme.palette.divider, 0.8),
+        boxShadow: isDragging
+          ? `0 12px 24px ${alpha(theme.palette.common.black, 0.2)}`
+          : isHovered
+            ? `0 4px 12px ${alpha(theme.palette.common.black, 0.05)}`
+            : 'none', // Flat design by default
+        transform: isDragging ? 'rotate(1deg) scale(1.02)' : isHovered ? 'translateY(-2px)' : 'none',
+        transition: 'all 0.2s cubic-bezier(0.2, 0, 0, 1)',
         cursor: 'grab',
         position: 'relative',
         overflow: 'hidden',
         '&:active': {
           cursor: 'grabbing',
         },
-        '&:hover': {
-          bgcolor: completedColors.hoverBackground,
-        },
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 3,
-          bgcolor: priority.color,
-          borderRadius: '12px 12px 0 0',
-        }
+        // Industrial Accent Border
+        borderLeft: `4px solid ${isCompleted ? theme.palette.success.main : priority.color}`,
       }}
     >
-      {/* Header with title and actions */}
       <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1} mb={1}>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1 }}>
           {isCompleted && (
             <Box
               sx={{
-                width: 18,
-                height: 18,
-                borderRadius: '50%',
-                bgcolor: theme.palette.success.main,
+                width: 20,
+                height: 20,
+                borderRadius: 1,
+                bgcolor: alpha(theme.palette.success.main, 0.1),
+                border: `1px solid ${theme.palette.success.main}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
-                boxShadow: `0 2px 4px ${alpha(theme.palette.success.main, 0.3)}`
               }}
             >
-              <IconCheck size={12} color="white" />
+              <IconCheck size={14} color={theme.palette.success.main} />
             </Box>
           )}
           <Typography
             variant="subtitle1"
-            fontWeight={600}
             sx={{
               flex: 1,
               lineHeight: 1.3,
-              color: isCompleted
-                ? theme.palette.mode === 'dark'
-                  ? alpha(theme.palette.text.primary, 0.9) // Better contrast in dark mode
-                  : alpha(theme.palette.text.primary, 0.8) // Slightly muted in light mode
-                : 'text.primary',
+              fontWeight: 700, // Bolder typography
+              fontFamily: "'JetBrains Mono', 'Roboto Mono', monospace", // Utilitarian monospace hint if available, else clean sans
+              letterSpacing: '-0.02em',
+              color: isCompleted ? 'text.disabled' : 'text.primary',
               fontSize: '0.95rem',
               textDecoration: isCompleted ? 'line-through' : 'none',
-              textDecorationColor: isCompleted
-                ? alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.6 : 0.4)
-                : 'transparent'
             }}
           >
             {task.title}
@@ -153,24 +119,28 @@ const KanbanTaskCard: React.FC<Props> = ({ task, onEdit, onDelete, isDragging = 
             ml: 1
           }}
         >
-          <Tooltip title="Chỉnh sửa" arrow>
+          <Tooltip title="Chỉnh sửa" arrow placement="top">
             <IconButton
               size="small"
               onClick={(e) => { e.stopPropagation(); onEdit(task); }}
               sx={{
+                borderRadius: 1,
                 bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
                 '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
               }}
             >
               <IconPencil size={14} />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Xóa" arrow>
+          <Tooltip title="Xóa" arrow placement="top">
             <IconButton
               size="small"
               onClick={(e) => { e.stopPropagation(); onDelete(task); }}
               sx={{
+                borderRadius: 1,
                 bgcolor: alpha(theme.palette.error.main, 0.1),
+                color: theme.palette.error.main,
                 '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.2) }
               }}
             >
@@ -180,91 +150,73 @@ const KanbanTaskCard: React.FC<Props> = ({ task, onEdit, onDelete, isDragging = 
         </Stack>
       </Stack>
 
-      {/* Description */}
+      <Typography
+        variant="caption"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          fontWeight: 600,
+          color: statusColor,
+          mb: 1.5,
+          fontFamily: 'monospace',
+          textTransform: 'uppercase'
+        }}
+      >
+        <IconCircle size={10} fill={statusColor} /> {statusName}
+      </Typography>
+
       {task.description && (
         <Typography
           variant="body2"
           sx={{
             mb: 2,
-            lineHeight: 1.4,
+            lineHeight: 1.5,
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            color: isCompleted
-              ? theme.palette.mode === 'dark'
-                ? alpha(theme.palette.text.secondary, 0.8) // Better contrast in dark mode
-                : alpha(theme.palette.text.secondary, 0.7) // Slightly muted in light mode
-              : 'text.secondary',
-            opacity: isCompleted
-              ? theme.palette.mode === 'dark' ? 0.9 : 0.8 // Better visibility in dark mode
-              : 1
+            color: isCompleted ? 'text.disabled' : 'text.secondary',
           }}
         >
           {task.description}
         </Typography>
       )}
 
-      {/* Footer with priority, assignee, and metadata */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          {/* Priority indicator */}
-          <Chip
-            size="small"
-            label={priority.label}
-            sx={{
-              bgcolor: isCompleted
-                ? theme.palette.mode === 'dark'
-                  ? alpha(priority.color, 0.15) // Slightly more visible in dark mode
-                  : alpha(priority.color, 0.1)  // Subtle in light mode
-                : priority.bg,
-              color: isCompleted
-                ? theme.palette.mode === 'dark'
-                  ? alpha(priority.color, 0.9) // Better contrast in dark mode
-                  : alpha(priority.color, 0.8) // Slightly muted in light mode
-                : priority.color,
-              border: `1px solid ${alpha(priority.color, isCompleted
-                ? theme.palette.mode === 'dark' ? 0.2 : 0.15
-                : 0.2)}`,
-              fontWeight: 500,
-              fontSize: '0.75rem',
-              height: 24,
-              opacity: isCompleted
-                ? theme.palette.mode === 'dark' ? 0.95 : 0.9 // Better visibility in dark mode
-                : 1,
-              '& .MuiChip-label': { px: 1 }
-            }}
-          />
-        </Stack>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mt: 'auto', pt: 1, borderTop: `1px dashed ${alpha(theme.palette.divider, 0.6)}` }}>
+        <Chip
+          size="small"
+          label={priority.label.toUpperCase()}
+          sx={{
+            bgcolor: priority.bg,
+            color: priority.color,
+            borderRadius: 1, // Blocky chips
+            fontWeight: 700,
+            fontSize: '0.65rem',
+            letterSpacing: '0.05em',
+            height: 22,
+            '& .MuiChip-label': { px: 1 }
+          }}
+        />
 
-        {/* Assignee */}
         {task.assignee && (
           <Stack direction="row" alignItems="center" spacing={0.5}>
             <IconUser
               size={14}
-              color={isCompleted
-                ? theme.palette.mode === 'dark'
-                  ? alpha(theme.palette.text.secondary, 0.8)
-                  : alpha(theme.palette.text.secondary, 0.7)
-                : theme.palette.text.secondary
-              }
+              color={theme.palette.text.secondary}
             />
             <Typography
               variant="caption"
               sx={{
-                fontWeight: 500,
+                fontWeight: 600,
                 maxWidth: 80,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                color: isCompleted
-                  ? theme.palette.mode === 'dark'
-                    ? alpha(theme.palette.text.secondary, 0.8)
-                    : alpha(theme.palette.text.secondary, 0.7)
-                  : 'text.secondary',
-                opacity: isCompleted
-                  ? theme.palette.mode === 'dark' ? 0.9 : 0.8
-                  : 1
+                color: 'text.secondary',
+                textTransform: 'uppercase',
+                letterSpacing: '0.02em',
+                fontSize: '0.65rem'
               }}
             >
               {task.assignee}

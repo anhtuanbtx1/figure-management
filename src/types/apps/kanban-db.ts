@@ -11,6 +11,8 @@ export interface KanbanTaskDb {
   priority?: KanbanPriority;
   orderIndex: number; // ThuTu
   assignee?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
   metadata?: string | null;
   createdAt?: string;
   updatedAt?: string;

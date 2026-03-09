@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeQuery, executeStoredProcedure } from '@/lib/database';
+import { executeQuery } from '@/lib/database';
 import sql from 'mssql';
 
 // PUT /api/kanban/tasks/[id]/move - move task between columns and reorder
@@ -14,11 +14,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Get current column of the task
-    const [task] = await executeQuery<any>(
+    const taskResult = await executeQuery<any>(
       `SELECT ColumnId FROM zen50558_ManagementStore.dbo.KanbanTasks WHERE Id=@id`,
       { id: { type: sql.NVarChar, value: id } }
     );
-
+    const task = taskResult[0];
     const sourceColumnId = fromColumnId || task?.ColumnId;
 
     // Shift tasks in destination column to make room
@@ -45,16 +45,27 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       }
     );
 
-    // Reindex both columns to keep order sequential
+    // Reindex both columns to keep order sequential using a CTE
     const reindexColumn = async (colId: string) => {
-      await executeStoredProcedure('zen50558_ManagementStore.dbo.sp_Kanban_ReindexColumn', {
-        BoardId: { type: sql.NVarChar, value: boardId },
-        ColumnId: { type: sql.NVarChar, value: colId },
-      });
+      await executeQuery(
+        `WITH IndexedTasks AS (
+            SELECT Id, ROW_NUMBER() OVER(ORDER BY ThuTu ASC, NgayCapNhat DESC, NgayTao ASC) as RowNum
+            FROM zen50558_ManagementStore.dbo.KanbanTasks
+            WHERE BoardId=@boardId AND ColumnId=@colId AND IsActive=1
+         )
+         UPDATE T
+         SET T.ThuTu = I.RowNum
+         FROM zen50558_ManagementStore.dbo.KanbanTasks T
+         INNER JOIN IndexedTasks I ON T.Id = I.Id`,
+        {
+          boardId: { type: sql.NVarChar, value: boardId },
+          colId: { type: sql.NVarChar, value: colId },
+        }
+      );
     };
 
     // Reindex source and destination columns
-    if (sourceColumnId) {
+    if (sourceColumnId && sourceColumnId !== toColumnId) {
       await reindexColumn(sourceColumnId);
     }
     await reindexColumn(toColumnId);

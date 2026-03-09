@@ -5,8 +5,7 @@ import PageContainer from "@/app/components/container/PageContainer";
 import KanbanBoardDB from "@/app/components/apps/kanban/KanbanBoardDB";
 import KanbanMetricsChips from "@/app/components/apps/kanban/KanbanMetricsChips";
 import { KanbanDataContextProvider } from "@/app/context/kanbancontext/index";
-import BlankCard from "@/app/components/shared/BlankCard";
-import { CardContent, Box, useTheme, alpha, Stack, Typography, Tooltip, IconButton } from "@mui/material";
+import { CardContent, Box, useTheme, alpha, Stack, Typography, Tooltip, IconButton, Paper } from "@mui/material";
 import { IconLayoutKanban, IconKeyboard } from "@tabler/icons-react";
 
 const BCrumb = [
@@ -15,7 +14,7 @@ const BCrumb = [
     title: "Trang chủ",
   },
   {
-    title: "Bảng Kanban",
+    title: "Kanban Workspace",
   },
 ];
 
@@ -24,52 +23,57 @@ function Page() {
   const metricsRef = useRef<{ refreshStats: () => void } | null>(null);
 
   const handleMetricsRefresh = () => {
-    // This could trigger a refresh of the Kanban board if needed
     console.log('📊 Metrics refreshed');
   };
 
   const handleKanbanDataChange = () => {
-    // Refresh metrics when Kanban data changes
     console.log('📊 Kanban data changed, refreshing metrics...');
-    // We'll implement this when we add a ref to the metrics component
   };
 
   return (
     <KanbanDataContextProvider>
-      <PageContainer title="Bảng Kanban" description="Quản lý công việc với bảng Kanban">
+      <PageContainer title="Kanban Workspace" description="Quản lý công việc với bảng Kanban">
         <Box sx={{ mb: 3 }}>
-          <Breadcrumb title="Bảng Kanban" items={BCrumb} />
+          <Breadcrumb title="KANBAN WORKSPACE" items={BCrumb} />
 
-          {/* Enhanced Header */}
+          {/* Enhanced Header - Industrial Aesthetic */}
           <Box sx={{ mt: 2, mb: 3 }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-              <Stack direction="row" alignItems="center" spacing={2}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{
+                borderLeft: `4px solid ${theme.palette.primary.main}`,
+                pl: 2
+              }}>
                 <Box
                   sx={{
                     p: 1.5,
-                    borderRadius: 2,
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
-                    color: 'primary.main'
+                    borderRadius: 1,
+                    bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.primary.main, 0.15) : alpha(theme.palette.primary.main, 0.1),
+                    color: 'primary.main',
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`
                   }}
                 >
-                  <IconLayoutKanban size={24} />
+                  <IconLayoutKanban size={24} stroke={1.5} />
                 </Box>
                 <Stack>
-                  <Typography variant="h4" fontWeight={700} color="text.primary">
-                    Bảng Kanban
+                  <Typography variant="h4" fontWeight={800} color="text.primary" sx={{
+                    letterSpacing: '-0.02em',
+                    textTransform: 'uppercase',
+                    fontFamily: "'JetBrains Mono', 'Roboto Mono', monospace"
+                  }}>
+                    SYSTEM.KANBAN
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Quản lý và theo dõi tiến độ công việc một cách trực quan
+                  <Typography variant="body2" color="text.secondary" sx={{ letterSpacing: '0.02em' }}>
+                    // COMMAND & CONTROL CENTER
                   </Typography>
                 </Stack>
               </Stack>
 
               <Tooltip
                 title={
-                  <Box sx={{ p: 1 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>Phím tắt:</Typography>
-                    <Typography variant="body2">Ctrl/Cmd + N: Tạo nhiệm vụ mới</Typography>
-                    <Typography variant="body2">Esc: Đóng hộp thoại</Typography>
+                  <Box sx={{ p: 1, fontFamily: 'monospace' }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>KEYBINDINGS</Typography>
+                    <Typography variant="body2">Ctrl/Cmd + N: NEW_TASK</Typography>
+                    <Typography variant="body2">Esc: CLOSE_MODAL</Typography>
                   </Box>
                 }
                 arrow
@@ -77,8 +81,10 @@ function Page() {
               >
                 <IconButton
                   sx={{
-                    bgcolor: alpha(theme.palette.grey[500], 0.1),
-                    '&:hover': { bgcolor: alpha(theme.palette.grey[500], 0.2) }
+                    borderRadius: 1,
+                    border: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+                    bgcolor: alpha(theme.palette.background.paper, 0.5),
+                    '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.05) }
                   }}
                 >
                   <IconKeyboard size={20} />
@@ -86,30 +92,18 @@ function Page() {
               </Tooltip>
             </Stack>
 
-            {/* Real-time Metrics */}
+            {/* Real-time Metrics - Cyberpunk / Glassmorphism mix */}
             <Box
               sx={{
                 mb: 3,
                 p: { xs: 2, sm: 2.5, md: 3 },
-                borderRadius: 3,
-                bgcolor: alpha(theme.palette.background.paper, 0.8),
-                border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
-                backdropFilter: 'blur(20px)',
-                boxShadow: `0 4px 20px ${alpha(theme.palette.grey[500], 0.08)}`,
+                borderRadius: 1,
+                bgcolor: theme.palette.mode === 'dark' ? alpha('#000000', 0.4) : alpha('#ffffff', 0.4),
+                border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+                borderLeft: `4px solid ${theme.palette.secondary.main}`,
+                backdropFilter: 'blur(24px)',
                 position: 'relative',
                 overflow: 'hidden',
-                // Subtle gradient overlay
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.02)} 0%, ${alpha(theme.palette.secondary.main, 0.02)} 100%)`,
-                  pointerEvents: 'none'
-                },
-                // Ensure proper container width and alignment
                 width: '100%',
                 display: 'flex',
                 justifyContent: 'center',
@@ -132,24 +126,28 @@ function Page() {
           </Box>
         </Box>
 
-        <BlankCard
+        <Paper
+          elevation={0}
           sx={{
-            background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.02)} 0%, ${alpha(theme.palette.background.paper, 1)} 100%)`,
-            boxShadow: `0 8px 32px ${alpha(theme.palette.grey[500], 0.08)}`,
-            borderRadius: 4,
+            background: theme.palette.mode === 'dark'
+              ? `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${alpha('#000000', 0.2)} 100%)`
+              : `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.9)} 0%, ${alpha(theme.palette.grey[100], 0.4)} 100%)`,
+            backdropFilter: 'blur(20px)',
+            borderRadius: 1,
             border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
             overflow: 'hidden',
             position: 'relative',
             width: '100%',
             maxWidth: '100%',
+            // Utility accent line top
             '&::before': {
               content: '""',
               position: 'absolute',
               top: 0,
               left: 0,
               right: 0,
-              height: 4,
-              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              height: 2,
+              background: theme.palette.text.primary,
             }
           }}
         >
@@ -162,7 +160,7 @@ function Page() {
           }}>
             <KanbanBoardDB onDataChange={handleKanbanDataChange} />
           </CardContent>
-        </BlankCard>
+        </Paper>
       </PageContainer>
     </KanbanDataContextProvider>
   );
