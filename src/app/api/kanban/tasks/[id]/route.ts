@@ -3,9 +3,10 @@ import { executeQuery } from '@/lib/database';
 import sql from 'mssql';
 
 // PUT /api/kanban/tasks/[id] - update a task
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
     const body = await request.json();
     const { title, description, priority, assignee, columnId, startDate, endDate, orderIndex, metadata } = body || {};
 
@@ -56,9 +57,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/kanban/tasks/[id] - soft delete
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
     const deleteQuery = `UPDATE zen50558_ManagementStore.dbo.KanbanTasks SET IsActive=0, NgayCapNhat=SYSUTCDATETIME() WHERE Id=@id`;
     await executeQuery(deleteQuery, { id: { type: sql.NVarChar, value: id } });
     return NextResponse.json({ success: true, message: 'Task deleted', data: { id } });

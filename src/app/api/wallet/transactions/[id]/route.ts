@@ -5,10 +5,11 @@ import sql from 'mssql';
 // GET /api/wallet/transactions/[id] - Get single transaction
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    console.log(`💳 Fetching wallet transaction: ${params.id}`);
+    console.log(`💳 Fetching wallet transaction: ${id}`);
 
     const query = `
       SELECT 
@@ -29,7 +30,7 @@ export async function GET(
       WHERE t.Id = @id AND t.IsActive = 1
     `;
 
-    const result = await executeQuery(query, { id: { type: sql.NVarChar, value: params.id } });
+    const result = await executeQuery(query, { id: { type: sql.NVarChar, value: id } });
 
     if (result.length === 0) {
       return NextResponse.json({
@@ -61,7 +62,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error(`❌ Error fetching wallet transaction ${params.id}:`, error);
+    console.error(`❌ Error fetching wallet transaction ${id}:`, error);
     
     return NextResponse.json({
       success: false,
@@ -75,10 +76,11 @@ export async function GET(
 // PUT /api/wallet/transactions/[id] - Update existing transaction
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    console.log(`💳 Updating wallet transaction: ${params.id}`);
+    console.log(`💳 Updating wallet transaction: ${id}`);
 
     const body = await request.json();
     const { type, amount, description, categoryId, transactionDate, status } = body;
@@ -98,7 +100,7 @@ export async function PUT(
       WHERE Id = @id AND IsActive = 1
     `;
     
-    const existingTransaction = await executeQuery(checkQuery, { id: { type: sql.NVarChar, value: params.id } });
+    const existingTransaction = await executeQuery(checkQuery, { id: { type: sql.NVarChar, value: id } });
     
     if (existingTransaction.length === 0) {
       return NextResponse.json({
@@ -122,7 +124,7 @@ export async function PUT(
     `;
 
     await executeQuery(updateQuery, {
-      id: { type: sql.NVarChar, value: params.id },
+      id: { type: sql.NVarChar, value: id },
       type: { type: sql.NVarChar, value: type },
       amount: { type: sql.Decimal, value: parseFloat(amount) },
       description: { type: sql.NText, value: description },
@@ -131,7 +133,7 @@ export async function PUT(
       status: { type: sql.NVarChar, value: status || 'Hoàn thành' }
     });
 
-    console.log(`✅ Updated wallet transaction: ${params.id}`);
+    console.log(`✅ Updated wallet transaction: ${id}`);
 
     // Fetch updated transaction with category info
     const fetchQuery = `
@@ -152,7 +154,7 @@ export async function PUT(
       WHERE t.Id = @id
     `;
 
-    const result = await executeQuery(fetchQuery, { id: { type: sql.NVarChar, value: params.id } });
+    const result = await executeQuery(fetchQuery, { id: { type: sql.NVarChar, value: id } });
     const transaction = result[0];
 
     return NextResponse.json({
@@ -174,7 +176,7 @@ export async function PUT(
     });
 
   } catch (error) {
-    console.error(`❌ Error updating wallet transaction ${params.id}:`, error);
+    console.error(`❌ Error updating wallet transaction ${id}:`, error);
     
     return NextResponse.json({
       success: false,
@@ -188,10 +190,11 @@ export async function PUT(
 // DELETE /api/wallet/transactions/[id] - Delete transaction
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    console.log(`💳 Deleting wallet transaction: ${params.id}`);
+    console.log(`💳 Deleting wallet transaction: ${id}`);
 
     // Check if transaction exists
     const checkQuery = `
@@ -199,7 +202,7 @@ export async function DELETE(
       WHERE Id = @id AND IsActive = 1
     `;
     
-    const existingTransaction = await executeQuery(checkQuery, { id: { type: sql.NVarChar, value: params.id } });
+    const existingTransaction = await executeQuery(checkQuery, { id: { type: sql.NVarChar, value: id } });
     
     if (existingTransaction.length === 0) {
       return NextResponse.json({
@@ -217,19 +220,19 @@ export async function DELETE(
     `;
 
     await executeQuery(deleteQuery, {
-      id: { type: sql.NVarChar, value: params.id }
+      id: { type: sql.NVarChar, value: id }
     });
 
-    console.log(`✅ Deleted wallet transaction: ${params.id}`);
+    console.log(`✅ Deleted wallet transaction: ${id}`);
 
     return NextResponse.json({
       success: true,
       message: 'Transaction deleted successfully',
-      data: { id: params.id }
+      data: { id }
     });
 
   } catch (error) {
-    console.error(`❌ Error deleting wallet transaction ${params.id}:`, error);
+    console.error(`❌ Error deleting wallet transaction ${id}:`, error);
     
     return NextResponse.json({
       success: false,

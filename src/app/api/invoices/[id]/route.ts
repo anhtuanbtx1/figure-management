@@ -18,8 +18,8 @@ function getNumericId(id: string): { numericId: number | null; errorResponse: Ne
 }
 
 // GET /api/invoices/[id] - get invoice header by id
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
-    const { id } = context.params;
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const { id } = await context.params;
     console.log(`Handling GET /api/invoices/[id] with ID: "${id}"`);
 
     const { numericId, errorResponse } = getNumericId(id);
@@ -49,8 +49,8 @@ export async function GET(request: NextRequest, context: { params: { id: string 
 }
 
 // PUT /api/invoices/[id] - update invoice by id using a direct SQL query
-export async function PUT(request: NextRequest, context: { params: { id: string } }) {
-    const { id } = context.params;
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const { id } = await context.params;
     const { numericId, errorResponse } = getNumericId(id);
     if (errorResponse) {
         return errorResponse;
@@ -130,8 +130,8 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
 
 
 // DELETE /api/invoices/[id] - soft delete invoice by id
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
-    const { id } = context.params;
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const { id } = await context.params;
     const { numericId, errorResponse } = getNumericId(id);
     if (errorResponse) {
         return errorResponse;

@@ -3,9 +3,9 @@ import { executeStoredProcedure } from '@/lib/database';
 import sql from 'mssql';
 
 // Batch update items: { adds: [{itemName, unitPrice, units}], updates: [{itemId, itemName, unitPrice, units}], deletes: [itemId] }
-export async function POST(request: NextRequest, context: { params: { id: string } }) {
+export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
     const body = await request.json();
     const { adds = [], updates = [], deletes = [] } = body || {};
 

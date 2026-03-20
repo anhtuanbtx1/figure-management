@@ -144,6 +144,12 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
+    title: "Xin nghỉ phép",
+    icon: IconCalendar,
+    href: "/apps/leave-requests",
+  },
+  {
+    id: uniqueId(),
     title: "Hóa đơn",
     icon: IconFileCheck,
     href: "/apps/invoice/list",
