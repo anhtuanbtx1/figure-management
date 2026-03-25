@@ -83,6 +83,12 @@ async function triggerReminders() {
         let nextTriggerDate = reminder.nextTriggerDate ? new Date(reminder.nextTriggerDate) : new Date();
         let shouldDeactivate = false;
         
+        // Khôi phục lại đúng giờ/phút/giây gốc từ reminderTime mà người dùng đã thiết lập
+        if (reminder.reminderTime) {
+            const timeDate = new Date(reminder.reminderTime);
+            nextTriggerDate.setHours(timeDate.getHours(), timeDate.getMinutes(), timeDate.getSeconds(), 0);
+        }
+
         const now = new Date();
 
         switch (reminder.reminderType) {
