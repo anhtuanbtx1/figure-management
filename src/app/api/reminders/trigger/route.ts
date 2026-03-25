@@ -80,16 +80,28 @@ async function triggerReminders() {
         console.log(`[LOG] Step 3.2: Message sent for reminder ID: ${reminder.id}. Sent count: ${sentCount}`);
 
         // 4. Update the nextTriggerDate
-        let nextTriggerDate = new Date();
+        let nextTriggerDate = reminder.nextTriggerDate ? new Date(reminder.nextTriggerDate) : new Date();
         let shouldDeactivate = false;
+        
+        const now = new Date();
 
         switch (reminder.reminderType) {
-            case 'daily': nextTriggerDate.setDate(nextTriggerDate.getDate() + 1); break;
-            case 'weekly': nextTriggerDate.setDate(nextTriggerDate.getDate() + 7); break;
-            case 'monthly': nextTriggerDate.setMonth(nextTriggerDate.getMonth() + 1); break;
-            case 'yearly': nextTriggerDate.setFullYear(nextTriggerDate.getFullYear() + 1); break;
+            case 'daily': 
+                do { nextTriggerDate.setDate(nextTriggerDate.getDate() + 1); } while (nextTriggerDate <= now);
+                break;
+            case 'weekly': 
+                do { nextTriggerDate.setDate(nextTriggerDate.getDate() + 7); } while (nextTriggerDate <= now);
+                break;
+            case 'monthly': 
+                do { nextTriggerDate.setMonth(nextTriggerDate.getMonth() + 1); } while (nextTriggerDate <= now);
+                break;
+            case 'yearly': 
+                do { nextTriggerDate.setFullYear(nextTriggerDate.getFullYear() + 1); } while (nextTriggerDate <= now);
+                break;
             case 'once':
-            default: shouldDeactivate = true; break;
+            default: 
+                shouldDeactivate = true; 
+                break;
         }
 
         const updateQuery = `
