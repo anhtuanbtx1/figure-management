@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const EXTERNAL_API_URL = "https://biso24-gateway-api.biso24.net/v1/requests";
+const EXTERNAL_API_URL = "https://biso24-gateway-api.biso24.net/v1/leaves";
 const DEFAULT_AUTHORIZATION = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODBhODI3Nzc1N2QxNTRlMmZhN2FlYiIsIm9yZ0lkIjoiNjc0MDUzZTVmM2JkYWZkMjQyODI2YTdiIiwiaWF0IjoxNzczMzY0MjcwLCJleHAiOjE3NzQ1NzM4NzB9.B9XY6YhiLVSRyylU__1VmKey5gLREwdvyOuvAUUclKE";
 const DEFAULT_ACCEPT = "application/json, text/plain, */*";
 const DEFAULT_ACCEPT_LANGUAGE = "vi,en-US;q=0.9,en;q=0.8";
@@ -112,6 +112,7 @@ function mapStatus(status?: string) {
   switch (status) {
     case "APPROVED":
       return "Approved";
+    case "WAITING":
     case "WAITING_FOR_APPROVAL":
       return "Pending";
     case "REJECTED":
@@ -123,20 +124,32 @@ function mapStatus(status?: string) {
   }
 }
 
-function mapLeaveRequest(item: ExternalLeaveRequestItem) {
-  const startDate = item.details?.date;
-  const endDate = item.details?.toDate;
+function mapLeaveRequest(item: any) {
+  const startDate = item.details?.date || item.fromDate;
+  const endDate = item.details?.toDate || item.toDate;
+
+  const typeName = item.details?.typeLeave?.name || item.leaveConfigurationId?.name || "Leave Request";
+  const fullName = item.employeeId?.fullName || item.employeeDetails?.fullName || "-";
+  const staffCode = item.employeeId?.staffCode || item.employeeDetails?.staffCode || "-";
+  const reqStatus = item.requestStatus || item.status;
+
+  let approvedByName = "-";
+  if (Array.isArray(item.approvedBy)) {
+    approvedByName = item.approvedBy.map((x: any) => x.fullName).join(", ") || "-";
+  } else if (item.approvedBy) {
+    approvedByName = item.approvedBy.fullName || "-";
+  }
 
   return {
     id: item.id || item._id || crypto.randomUUID(),
-    type: item.details?.typeLeave?.name || "Leave Request",
-    fullName: item.employeeId?.fullName || "-",
-    staffCode: item.employeeId?.staffCode || "-",
+    type: typeName,
+    fullName: fullName,
+    staffCode: staffCode,
     start_date: formatDate(startDate),
     end_date: formatDate(endDate),
-    status: mapStatus(item.requestStatus),
-    approved_by: item.approvedBy?.fullName || "-",
-    notes: item.details?.notes || "",
+    status: mapStatus(reqStatus),
+    approved_by: approvedByName,
+    notes: item.details?.notes || item.notes || "",
     created_at: item.createdAt || null,
   };
 }
@@ -149,12 +162,23 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, Number(searchParams.get("page") || "1"));
     const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") || "20")));
     const q = searchParams.get("q") || DEFAULT_QUERY;
+    const staffCode = searchParams.get("staffCode");
+    const planYear = searchParams.get("planYear");
 
     const externalParams = new URLSearchParams({
       page: String(page),
       limit: String(limit),
-      q,
     });
+
+    if (q && q !== "leave") {
+      externalParams.append("q", q);
+    }
+    if (staffCode) {
+      externalParams.append("staffCode", staffCode);
+    }
+    if (planYear) {
+      externalParams.append("planYear", planYear);
+    }
 
     const externalResponse = await fetch(`${EXTERNAL_API_URL}?${externalParams.toString()}`, {
       method: "GET",
