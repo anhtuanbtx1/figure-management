@@ -4,6 +4,7 @@ import React from "react";
 import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 import Chip from "@mui/material/Chip";
+import TextField from "@mui/material/TextField";
 import { DataGrid, GridColDef, GridRenderCellParams, GridPaginationModel } from "@mui/x-data-grid";
 
 import { fetchLeaveRequests, LeaveRequestCounts, LeaveRequestRow } from "./leaveRequestService";
@@ -36,9 +37,10 @@ const noop = () => {};
 
 const loadLeaveRequests = async (
   paginationModel: GridPaginationModel,
-  onCountsChange: (counts: LeaveRequestCounts | null, total: number) => void
+  onCountsChange: (counts: LeaveRequestCounts | null, total: number) => void,
+  staffCode?: string
 ) => {
-  const response = await fetchLeaveRequests(paginationModel.page + 1, paginationModel.pageSize, "leave");
+  const response = await fetchLeaveRequests(paginationModel.page + 1, paginationModel.pageSize, "leave", staffCode);
 
   onCountsChange(response.counts, response.pagination.total);
 
@@ -114,6 +116,15 @@ const columns: GridColDef[] = [
 const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: LeaveRequestListProps) => {
   const [dataState, setDataState] = React.useState<LeaveRequestListState>(initialState);
   const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>(DEFAULT_PAGINATION_MODEL);
+  const [staffCodeInput, setStaffCodeInput] = React.useState<string>("");
+  const [debouncedStaffCode, setDebouncedStaffCode] = React.useState<string>("");
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedStaffCode(staffCodeInput);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [staffCodeInput]);
 
   React.useEffect(() => {
     let active = true;
@@ -121,7 +132,7 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
     const run = async () => {
       try {
         setDataState((prev) => ({ ...prev, loading: true, error: null }));
-        const result = await loadLeaveRequests(paginationModel, onCountsChange);
+        const result = await loadLeaveRequests(paginationModel, onCountsChange, debouncedStaffCode);
 
         if (!active) return;
 
@@ -147,11 +158,26 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
     return () => {
       active = false;
     };
-  }, [paginationModel, onCountsChange]);
+  }, [paginationModel, onCountsChange, debouncedStaffCode]);
 
   return (
     <Box sx={{ width: "100%", height: 500 }}>
       {dataState.error ? <Alert severity="error" sx={{ mb: 2 }}>{dataState.error}</Alert> : null}
+      <Box sx={{ mb: 2, display: "flex", gap: 2 }}>
+        <TextField
+          label="Mã nhân viên"
+          variant="outlined"
+          size="small"
+          value={staffCodeInput}
+          onChange={(e) => {
+            setStaffCodeInput(e.target.value);
+            if (paginationModel.page !== 0) {
+              setPaginationModel((prev) => ({ ...prev, page: 0 }));
+            }
+          }}
+          sx={{ width: 300 }}
+        />
+      </Box>
       <DataGrid
         rows={dataState.rows}
         columns={columns}

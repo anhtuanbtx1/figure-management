@@ -35,12 +35,16 @@ export interface LeaveRequestListResponse {
   };
 }
 
-export async function fetchLeaveRequests(page = 1, limit = 20, q = "leave") {
+export async function fetchLeaveRequests(page = 1, limit = 20, q = "leave", staffCode?: string) {
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
     q,
   });
+
+  if (staffCode) {
+    params.append("staffCode", staffCode);
+  }
 
   const response = await fetch(`/api/leave-requests?${params.toString()}`, {
     method: "GET",
