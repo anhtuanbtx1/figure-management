@@ -1,12 +1,22 @@
 "use client";
 
 import React from "react";
-import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
-import TextField from "@mui/material/TextField";
-import { DataGrid, GridColDef, GridRenderCellParams, GridPaginationModel } from "@mui/x-data-grid";
+import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 
+import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
+import BlankCard from "@/app/components/shared/BlankCard";
+import PaginationControls from "@/app/components/shared/PaginationControls";
 import { fetchLeaveRequests, LeaveRequestCounts, LeaveRequestRow } from "./leaveRequestService";
 
 interface LeaveRequestListProps {
@@ -16,39 +26,29 @@ interface LeaveRequestListProps {
 
 interface LeaveRequestListState {
   rows: LeaveRequestRow[];
+  counts: LeaveRequestCounts | null;
   total: number;
+  totalPages: number;
+  pageSize: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: LeaveRequestListState = {
   rows: [],
+  counts: null,
   total: 0,
+  totalPages: 0,
+  pageSize: 20,
+  hasNextPage: false,
+  hasPreviousPage: false,
   loading: false,
   error: null,
 };
 
-const DEFAULT_PAGINATION_MODEL: GridPaginationModel = {
-  page: 0,
-  pageSize: 20,
-};
-
 const noop = () => {};
-
-const loadLeaveRequests = async (
-  paginationModel: GridPaginationModel,
-  onCountsChange: (counts: LeaveRequestCounts | null, total: number) => void,
-  staffCode?: string
-) => {
-  const response = await fetchLeaveRequests(paginationModel.page + 1, paginationModel.pageSize, "leave", staffCode);
-
-  onCountsChange(response.counts, response.pagination.total);
-
-  return {
-    rows: response.data,
-    total: response.pagination.total,
-  };
-};
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -63,66 +63,45 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const columns: GridColDef[] = [
-  { field: "id", headerName: "Mã đơn", width: 120 },
+const summaryItems = (counts: LeaveRequestCounts | null, total: number) => [
   {
-    field: "fullName",
-    headerName: "Họ và tên",
-    flex: 1,
-    minWidth: 180,
+    title: "Tổng đơn",
+    value: total,
+    color: "primary.light",
+    iconColor: "primary.main",
   },
   {
-    field: "staffCode",
-    headerName: "Mã nhân viên",
-    flex: 1,
-    minWidth: 130,
+    title: "Nghỉ phép",
+    value: counts?.countLeave ?? 0,
+    color: "success.light",
+    iconColor: "success.main",
   },
   {
-    field: "type",
-    headerName: "Loại nghỉ phép",
-    flex: 1,
-    minWidth: 180,
+    title: "Công tác",
+    value: counts?.countBusinessTrip ?? 0,
+    color: "secondary.light",
+    iconColor: "secondary.main",
   },
   {
-    field: "start_date",
-    headerName: "Từ ngày",
-    flex: 1,
-    minWidth: 130,
-  },
-  {
-    field: "end_date",
-    headerName: "Đến ngày",
-    flex: 1,
-    minWidth: 130,
-  },
-  {
-    field: "status",
-    headerName: "Trạng thái",
-    flex: 1,
-    minWidth: 140,
-    renderCell: (params: GridRenderCellParams) => {
-      const color = getStatusColor(params.value as string);
-      return (
-        <Chip
-          label={params.value as string}
-          color={color as "success" | "warning" | "error" | "default"}
-          size="small"
-        />
-      );
-    },
+    title: "Đăng ký WS",
+    value: counts?.countWSRegistration ?? 0,
+    color: "warning.light",
+    iconColor: "warning.main",
   },
 ];
 
 const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: LeaveRequestListProps) => {
   const [dataState, setDataState] = React.useState<LeaveRequestListState>(initialState);
-  const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>(DEFAULT_PAGINATION_MODEL);
-  const [staffCodeInput, setStaffCodeInput] = React.useState<string>("");
-  const [debouncedStaffCode, setDebouncedStaffCode] = React.useState<string>("");
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(20);
+  const [staffCodeInput, setStaffCodeInput] = React.useState("");
+  const [debouncedStaffCode, setDebouncedStaffCode] = React.useState("");
 
   React.useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedStaffCode(staffCodeInput);
+      setDebouncedStaffCode(staffCodeInput.trim());
     }, 500);
+
     return () => clearTimeout(handler);
   }, [staffCodeInput]);
 
@@ -132,13 +111,21 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
     const run = async () => {
       try {
         setDataState((prev) => ({ ...prev, loading: true, error: null }));
-        const result = await loadLeaveRequests(paginationModel, onCountsChange, debouncedStaffCode);
+
+        const response = await fetchLeaveRequests(currentPage, itemsPerPage, "leave", debouncedStaffCode || undefined);
 
         if (!active) return;
 
+        onCountsChange(response.counts, response.pagination.total);
+
         setDataState({
-          rows: result.rows,
-          total: result.total,
+          rows: response.data,
+          counts: response.counts,
+          total: response.pagination.total,
+          totalPages: response.pagination.totalPages,
+          pageSize: response.pagination.pageSize,
+          hasNextPage: response.pagination.hasNextPage,
+          hasPreviousPage: response.pagination.hasPreviousPage,
           loading: false,
           error: null,
         });
@@ -158,40 +145,140 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
     return () => {
       active = false;
     };
-  }, [paginationModel, onCountsChange, debouncedStaffCode]);
+  }, [currentPage, itemsPerPage, onCountsChange, debouncedStaffCode]);
+
+  const startIndex = dataState.total === 0 ? 0 : (currentPage - 1) * itemsPerPage;
+  const endIndex = dataState.total === 0 ? 0 : Math.min(startIndex + dataState.rows.length, dataState.total);
 
   return (
-    <Box sx={{ width: "100%", height: 500 }}>
-      {dataState.error ? <Alert severity="error" sx={{ mb: 2 }}>{dataState.error}</Alert> : null}
-      <Box sx={{ mb: 2, display: "flex", gap: 2 }}>
-        <TextField
-          label="Mã nhân viên"
-          variant="outlined"
-          size="small"
-          value={staffCodeInput}
-          onChange={(e) => {
-            setStaffCodeInput(e.target.value);
-            if (paginationModel.page !== 0) {
-              setPaginationModel((prev) => ({ ...prev, page: 0 }));
-            }
+    <Stack spacing={3}>
+      {dataState.error ? <Alert severity="error">{dataState.error}</Alert> : null}
+
+      <Grid container spacing={3}>
+        {summaryItems(dataState.counts, dataState.total).map((item) => (
+          <Grid item xs={12} sm={6} lg={3} key={item.title}>
+            <Box
+              sx={{
+                p: 3,
+                bgcolor: item.color,
+                borderRadius: 1,
+                height: "100%",
+              }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 1,
+                    bgcolor: item.iconColor,
+                  }}
+                />
+                <Box>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    {item.title}
+                  </Typography>
+                  <Typography variant="h6">{item.value}</Typography>
+                </Box>
+              </Stack>
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
+
+      <BlankCard>
+        <Stack spacing={3}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={2}
+            justifyContent="space-between"
+            alignItems={{ xs: "stretch", md: "center" }}
+          >
+            <Box>
+              <Typography variant="h5" mb={0.5}>
+                Danh sách đơn nghỉ phép
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Theo dõi và tra cứu đơn nghỉ phép theo mã nhân viên.
+              </Typography>
+            </Box>
+            <CustomTextField
+              label="Mã nhân viên"
+              variant="outlined"
+              size="small"
+              value={staffCodeInput}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setStaffCodeInput(e.target.value);
+                setCurrentPage(1);
+              }}
+              sx={{ width: { xs: "100%", md: 320 } }}
+            />
+          </Stack>
+
+          <TableContainer sx={{ overflowX: "auto" }}>
+            <Table sx={{ minWidth: 900 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Mã đơn</TableCell>
+                  <TableCell>Họ và tên</TableCell>
+                  <TableCell>Mã nhân viên</TableCell>
+                  <TableCell>Loại nghỉ phép</TableCell>
+                  <TableCell>Từ ngày</TableCell>
+                  <TableCell>Đến ngày</TableCell>
+                  <TableCell>Trạng thái</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {dataState.rows.length === 0 && !dataState.loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      <Typography py={4} color="textSecondary">
+                        Không có dữ liệu đơn nghỉ phép.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+
+                {dataState.rows.map((row) => (
+                  <TableRow hover key={row.id}>
+                    <TableCell>{row.id}</TableCell>
+                    <TableCell>{row.fullName}</TableCell>
+                    <TableCell>{row.staffCode}</TableCell>
+                    <TableCell>{row.type}</TableCell>
+                    <TableCell>{row.start_date}</TableCell>
+                    <TableCell>{row.end_date}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={row.status}
+                        color={getStatusColor(row.status) as "success" | "warning" | "error" | "default"}
+                        size="small"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Stack>
+
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={Math.max(dataState.totalPages, 1)}
+          itemsPerPage={dataState.pageSize}
+          totalItems={dataState.total}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(value) => {
+            setItemsPerPage(value);
+            setCurrentPage(1);
           }}
-          sx={{ width: 300 }}
+          canGoNext={dataState.hasNextPage}
+          canGoPrevious={dataState.hasPreviousPage}
+          itemsPerPageOptions={[5, 10, 20]}
         />
-      </Box>
-      <DataGrid
-        rows={dataState.rows}
-        columns={columns}
-        rowCount={dataState.total}
-        loading={dataState.loading}
-        pagination
-        paginationMode="server"
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
-        pageSizeOptions={[5, 10, 20]}
-        checkboxSelection
-        disableRowSelectionOnClick
-      />
-    </Box>
+      </BlankCard>
+    </Stack>
   );
 };
 
