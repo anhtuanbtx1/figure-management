@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const EXTERNAL_API_URL = "https://biso24-gateway-api.biso24.net/v1/leaves";
-const DEFAULT_AUTHORIZATION = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODBhODI3Nzc1N2QxNTRlMmZhN2FlYiIsIm9yZ0lkIjoiNjc0MDUzZTVmM2JkYWZkMjQyODI2YTdiIiwiaWF0IjoxNzc0NDg3OTQxLCJleHAiOjE3NzU2OTc1NDF9.Xj5w1N92-SAdu357cAPmPKMYYgBRp9eaMj31c2RD-xM";
+const DEFAULT_AUTHORIZATION = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODBhODI3Nzc1N2QxNTRlMmZhN2FlYiIsIm9yZ0lkIjoiNjc0MDUzZTVmM2JkYWZkMjQyODI2YTdiIiwiaWF0IjoxNzc2MDYyODg2LCJleHAiOjE3NzcyNzI0ODZ9.8fxOlKHYoqJeim13bdei-HFb1wnY3ia08huxWERQoJ8";
 const DEFAULT_ACCEPT = "application/json, text/plain, */*";
 const DEFAULT_ACCEPT_LANGUAGE = "vi,en-US;q=0.9,en;q=0.8";
 const DEFAULT_DOMAIN = "gtel-ots.biso24.net";
