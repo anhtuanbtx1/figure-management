@@ -84,6 +84,7 @@ import {
   IconBell,
   IconClock,
   IconFlask,
+  IconBallFootball,
 } from "@tabler/icons-react";
 
 const Menuitems: MenuitemsType[] = [
@@ -129,6 +130,14 @@ const Menuitems: MenuitemsType[] = [
     title: "Quản lý cá Guppy",
     icon: IconFlask,
     href: "/apps/guppy-breeding",
+  },
+  {
+    id: uniqueId(),
+    title: "Quản lý đội hình",
+    icon: IconBallFootball,
+    href: "/apps/football-lineup",
+    chip: "New",
+    chipColor: "success",
   },
   {
     id: uniqueId(),
