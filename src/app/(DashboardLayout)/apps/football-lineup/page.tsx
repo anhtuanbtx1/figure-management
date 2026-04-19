@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Box, Typography, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Snackbar, Alert, Grid } from '@mui/material';
 import PageContainer from '@/app/components/container/PageContainer';
 import TeamManagement from './TeamManagement';
 
@@ -113,10 +113,9 @@ const FORMATIONS: Record<Formation, { posLabel: string; isGK: boolean; x: number
 const AVAILABLE_FORMATIONS: Formation[] = ['4-3-3', '4-4-2', '3-5-2', '4-2-3-1'];
 
 function ratingColor(val: number) {
-  if (val >= 85) return '#4ae176';
-  if (val >= 80) return '#bcf0a2';
-  if (val >= 70) return '#f4ee86';
-  return '#fba796';
+  if (val > 90) return '#ff4d4d'; // Red for legends
+  if (val < 80) return '#f4ee86'; // Yellow for low tier
+  return '#4ae176'; // Green for standard
 }
 
 function avatarBg(id: string) {
@@ -191,8 +190,8 @@ const PlayerNode = ({
         boxShadow: '0 4px 12px rgba(0,0,0,0.3)', minWidth: 60
       }}>
         {player ? (
-          <Typography sx={{ fontSize: 11, fontWeight: 700, color: C.onSurface, fontFamily: '"Space Grotesk", sans-serif', whiteSpace: 'nowrap', userSelect: 'none' }}>
-            {player.shortName}
+          <Typography sx={{ fontSize: 10, fontWeight: 800, color: C.onSurface, fontFamily: '"Space Grotesk", sans-serif', whiteSpace: 'nowrap', userSelect: 'none', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {player.shortName} <Box component="span" sx={{ color: ratingColor(player.rating), fontSize: 11 }}>{player.rating}</Box>
           </Typography>
         ) : (
           <Typography sx={{ fontSize: 10, fontWeight: 600, color: C.onSurfaceVariant, fontFamily: '"Space Grotesk", sans-serif', userSelect: 'none' }}>
@@ -338,17 +337,29 @@ export default function FootballLineupPage() {
   const pitchPlayerIds = useMemo(() => new Set(slots.map(s => s.playerId).filter(Boolean)), [slots]);
   const benchPlayers = useMemo(() => mappedPlayers.filter(p => !pitchPlayerIds.has(p.id)), [pitchPlayerIds, mappedPlayers]);
 
-  // Team ratings
+  // Team ratings logic
   const teamRatings = useMemo(() => {
-    const attackPos = ['ST', 'CF', 'LW', 'RW', 'CAM'];
-    const midPos = ['CM', 'CDM', 'CAM', 'LM', 'RM', 'LWB', 'RWB'];
-    const defPos = ['GK', 'LB', 'CB', 'RB'];
-    const avg = (positions: string[]) => {
+    const attackPos = ['ST', 'CF', 'LW', 'RW'];
+    const midPos = ['CM', 'CDM', 'CAM', 'LM', 'RM'];
+    const defPos = ['CB', 'LB', 'RB', 'LWB', 'RWB'];
+    const gkPos = ['GK'];
+
+    const getAvg = (positions: string[]) => {
       const relevant = slots.filter(s => positions.includes(s.posLabel)).map(s => playerById(s.playerId)).filter(Boolean) as Player[];
       if (!relevant.length) return 0;
       return Math.round(relevant.reduce((acc, p) => acc + p.rating, 0) / relevant.length);
     };
-    return { attack: avg(attackPos), midfield: avg(midPos), defense: avg(defPos) };
+
+    const allOnPitch = slots.map(s => playerById(s.playerId)).filter(Boolean) as Player[];
+    const overallAvg = allOnPitch.length ? Math.round(allOnPitch.reduce((acc, p) => acc + p.rating, 0) / allOnPitch.length) : 0;
+
+    return { 
+      attack: getAvg(attackPos), 
+      midfield: getAvg(midPos), 
+      defense: getAvg(defPos),
+      goalkeeper: getAvg(gkPos),
+      average: overallAvg
+    };
   }, [slots, playerById]);
 
   const filledCount = slots.filter(s => s.playerId).length;
@@ -554,6 +565,44 @@ export default function FootballLineupPage() {
                      );
                   })()}
                 </Box>
+
+                {/* --- TEAM ANALYTICS CARD --- */}
+                <Box sx={{ p: 2, borderBottom: `1px solid ${C.surfaceContainer}` }}>
+                   <Box sx={{ 
+                     ...glass({ borderRadius: '16px', p: 2, border: '1px solid rgba(74,225,118,0.1)' }),
+                     background: 'rgba(74,225,118,0.03)'
+                   }}>
+                      <Typography sx={{ color: C.primary, fontSize: 11, fontWeight: 800, letterSpacing: '1px', mb: 2, textTransform: 'uppercase' }}>
+                         Thống kê sức mạnh
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {[
+                          { label: 'Tiền đạo', val: teamRatings.attack, icon: '⚽' },
+                          { label: 'Tiền vệ', val: teamRatings.midfield, icon: '🛡️' },
+                          { label: 'Hậu vệ', val: teamRatings.defense, icon: '🧱' },
+                          { label: 'Thủ môn', val: teamRatings.goalkeeper, icon: '🧤' }
+                        ].map((item, idx) => (
+                          <Grid item xs={6} key={idx}>
+                             <Box>
+                                <Typography sx={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{item.icon} {item.label}</Typography>
+                                <Typography sx={{ fontSize: 18, fontWeight: 800, color: 'white', fontFamily: '"Space Grotesk", sans-serif' }}>{item.val || '--'}</Typography>
+                                <Box sx={{ width: '100%', height: 3, background: 'rgba(255,255,255,0.05)', borderRadius: 2, mt: 0.5, overflow: 'hidden' }}>
+                                   <Box sx={{ width: `${item.val}%`, height: '100%', background: C.primary, boxShadow: `0 0 10px ${C.primary}` }} />
+                                </Box>
+                             </Box>
+                          </Grid>
+                        ))}
+                      </Grid>
+                      <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                         <Typography sx={{ fontSize: 12, color: 'white', fontWeight: 700 }}>Trung bình (AVG)</Typography>
+                         <Typography sx={{ fontSize: 22, color: C.primary, fontWeight: 900, fontFamily: '"Space Grotesk", sans-serif' }}>
+                            {teamRatings.average || '--'}
+                         </Typography>
+                      </Box>
+                   </Box>
+                </Box>
+                {/* ---------------------------- */}
+
                 <Box sx={{ px: 2, py: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Box sx={{ p: 2, color: C.primary, fontWeight: 700, background: `linear-gradient(90deg, ${C.primaryContainer}, transparent)`, borderLeft: `4px solid ${C.primary}`}}>👥 Đội hình chính</Box>
                 </Box>

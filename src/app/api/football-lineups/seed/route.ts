@@ -7,9 +7,9 @@ export async function GET() {
   const result = await executeTransaction(async (transaction) => {
     // Check if teams already exist
     const checkReq = new sql.Request(transaction);
-    const existing = await checkReq.query("SELECT id FROM zen50558_ManagementStore.teams WHERE name = 'Manchester City'");
+    const existing = await checkReq.query("SELECT id FROM zen50558_ManagementStore.teams WHERE name = 'Manchester United'");
     if (existing.recordset.length > 0) {
-      return { message: 'Data already populated', status: 200 };
+      return { message: 'Manchester United already exists', status: 200 };
     }
 
     // Insert Manchester City
@@ -81,7 +81,43 @@ export async function GET() {
       await pReq.query("INSERT INTO zen50558_ManagementStore.players (team_id, full_name, short_name, position, rating, jersey_number) VALUES (@teamId, @fn, @sn, @pos, @rt, @jn)");
     }
 
-    return { message: 'Database seeded successfully with Teams and Players', status: 201 };
+    // Insert Manchester United
+    req = new sql.Request(transaction);
+    req.input('tName3', sql.VarChar, 'Manchester United');
+    req.input('tLeague3', sql.VarChar, 'Premier League');
+    req.input('tLogo3', sql.VarChar, '🔴');
+    res = await req.query("INSERT INTO zen50558_ManagementStore.teams (name, league, logo_url) OUTPUT INSERTED.id VALUES (@tName3, @tLeague3, @tLogo3)");
+    const manUtdId = res.recordset[0].id;
+
+    const muPlayers = [
+      { shortName: 'Onana', name: 'André Onana', pos: 'GK', rating: 85, jersey: 24 },
+      { shortName: 'Dalot', name: 'Diogo Dalot', pos: 'RB', rating: 82, jersey: 20 },
+      { shortName: 'De Ligt', name: 'Matthijs de Ligt', pos: 'CB', rating: 86, jersey: 4 },
+      { shortName: 'Martinez', name: 'Lisandro Martínez', pos: 'CB', rating: 84, jersey: 6 },
+      { shortName: 'Mazraoui', name: 'Noussair Mazraoui', pos: 'LB', rating: 81, jersey: 3 },
+      { shortName: 'Mainoo', name: 'Kobbie Mainoo', pos: 'CDM', rating: 80, jersey: 37 },
+      { shortName: 'Ugarte', name: 'Manuel Ugarte', pos: 'CDM', rating: 81, jersey: 25 },
+      { shortName: 'Bruno', name: 'Bruno Fernandes', pos: 'CAM', rating: 88, jersey: 8 },
+      { shortName: 'Garnacho', name: 'Alejandro Garnacho', pos: 'RW', rating: 81, jersey: 17 },
+      { shortName: 'Rashford', name: 'Marcus Rashford', pos: 'LW', rating: 83, jersey: 10 },
+      { shortName: 'Højlund', name: 'Rasmus Højlund', pos: 'ST', rating: 80, jersey: 9 },
+      { shortName: 'Amad', name: 'Amad Diallo', pos: 'RW', rating: 78, jersey: 16 },
+      { shortName: 'Casemiro', name: 'Casemiro', pos: 'CDM', rating: 84, jersey: 18 },
+      { shortName: 'Maguire', name: 'Harry Maguire', pos: 'CB', rating: 79, jersey: 5 }
+    ];
+
+    for (const p of muPlayers) {
+      const pReq = new sql.Request(transaction);
+      pReq.input('teamId', sql.Int, manUtdId);
+      pReq.input('fn', sql.VarChar, p.name);
+      pReq.input('sn', sql.VarChar, p.shortName);
+      pReq.input('pos', sql.VarChar, p.pos);
+      pReq.input('rt', sql.Int, p.rating);
+      pReq.input('jn', sql.Int, p.jersey);
+      await pReq.query("INSERT INTO zen50558_ManagementStore.players (team_id, full_name, short_name, position, rating, jersey_number) VALUES (@teamId, @fn, @sn, @pos, @rt, @jn)");
+    }
+
+    return { message: 'Database seeded successfully with City, Real and United', status: 201 };
   });
 
   return NextResponse.json(result);
