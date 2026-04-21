@@ -171,7 +171,7 @@ const PlayerNode = ({
       }}>
         {player ? (
             <img 
-              src={`https://i.pravatar.cc/150?u=${player.id}`}
+              src={player.avatar || `https://i.pravatar.cc/150?u=${player.id}`}
               alt={player.shortName}
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', pointerEvents: 'none' }}
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -279,7 +279,7 @@ export default function FootballLineupPage() {
   useEffect(() => {
     if (!selectedTeamId) return;
     setIsLoading(true);
-    fetch(`/api/football-lineups?teamId=${selectedTeamId}`)
+    fetch(`/api/football-lineups?teamId=${selectedTeamId}&formation=${formation}`)
       .then(r => r.json())
       .then(data => {
         if (data.players) {
@@ -300,20 +300,16 @@ export default function FootballLineupPage() {
                  posLabel: s.pos_label,
                  playerId: s.player_id?.toString() || '',
                  isGK: s.is_gk,
-                 x: s.loc_x,
-                 y: s.loc_y
+                 x: Number(s.loc_x),
+                 y: Number(s.loc_y)
               })));
-              if (data.lineups && data.lineups.length > 0) {
-                 setFormation(data.lineups[0].formation);
-              }
            } else {
-              setSlots(buildSlotsForDb('4-3-3', parsedPlayers));
-              setFormation('4-3-3');
+              setSlots(buildSlotsForDb(formation, parsedPlayers));
            }
         }
         setIsLoading(false);
       });
-  }, [selectedTeamId, refreshKey]);
+  }, [selectedTeamId, formation, refreshKey]);
 
   useEffect(() => {
     const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -555,15 +551,24 @@ export default function FootballLineupPage() {
                   <select value={selectedTeamId} onChange={e => handleTeamChange(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', background: C.surfaceContainer, color: 'white', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', outline: 'none' }}>
                     {dbTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
-                  {dbTeams.find(t => t.id.toString() === selectedTeamId) && (() => {
-                     const t = dbTeams.find(t => t.id.toString() === selectedTeamId);
-                     return (
-                       <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                         <Typography sx={{ fontSize: 30 }}>{t.logo_url}</Typography>
-                         <Typography sx={{ color: 'white', fontWeight: 700, mt: 1 }}>{t.name}</Typography>
-                       </Box>
-                     );
-                  })()}
+                      {dbTeams.find(t => t.id.toString() === selectedTeamId) && (() => {
+                         const t = dbTeams.find(t => t.id.toString() === selectedTeamId);
+                         return (
+                           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                             {t.logo_url ? (
+                               <img 
+                                 src={t.logo_url} 
+                                 alt={t.name} 
+                                 style={{ width: 64, height: 64, objectFit: 'contain', marginBottom: '8px' }} 
+                                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                               />
+                             ) : (
+                               <Typography sx={{ fontSize: 30 }}>⚽</Typography>
+                             )}
+                             <Typography sx={{ color: 'white', fontWeight: 700 }}>{t.name}</Typography>
+                           </Box>
+                         );
+                      })()}
                 </Box>
 
                 {/* --- TEAM ANALYTICS CARD --- */}
@@ -610,7 +615,7 @@ export default function FootballLineupPage() {
                 <Box sx={{ px: 2, display: 'flex', flexDirection: 'column', gap: 1, pb: 3 }}>
                   {benchPlayers.map(p => (
                     <Box key={p.id} onClick={() => handleAddBench(p)} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, background: C.surfaceContainer, borderRadius: '12px', cursor: 'pointer', '&:hover': { background: C.surfaceContainerHigh }}}>
-                      <img src={`https://i.pravatar.cc/150?u=${p.id}`} style={{ width: 40, height: 40, borderRadius: '50%' }} />
+                      <img src={p.avatar || `https://i.pravatar.cc/150?u=${p.id}`} style={{ width: 40, height: 40, borderRadius: '50%' }} />
                       <Box flex={1}>
                         <Typography sx={{ color: 'white', fontSize: 13, fontWeight: 600 }}>{p.shortName}</Typography>
                         <Typography sx={{ color: C.onSurfaceVariant, fontSize: 11 }}>{p.pos} • {p.rating} OVR</Typography>
@@ -692,7 +697,12 @@ export default function FootballLineupPage() {
 
         </Box>
       </Box>
-      <Snackbar open={snack.open} autoHideDuration={3000} onClose={() => setSnack(s => ({...s, open: false}))}>
+      <Snackbar 
+        open={snack.open} 
+        autoHideDuration={3000} 
+        onClose={() => setSnack(s => ({...s, open: false}))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
         <Alert severity={snack.type as any} variant="filled">{snack.msg}</Alert>
       </Snackbar>
     </PageContainer>

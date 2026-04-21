@@ -25,8 +25,8 @@ export async function GET(
         t.Status as status,
         t.CreatedAt as createdAt,
         t.IsActive as isActive
-      FROM zen50558_ManagementStore.dbo.WalletTransactions t
-      LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+      FROM ManagementStore.dbo.WalletTransactions t
+      LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       WHERE t.Id = @id AND t.IsActive = 1
     `;
 
@@ -96,7 +96,7 @@ export async function PUT(
 
     // Check if transaction exists
     const checkQuery = `
-      SELECT Id FROM zen50558_ManagementStore.dbo.WalletTransactions 
+      SELECT Id FROM ManagementStore.dbo.WalletTransactions 
       WHERE Id = @id AND IsActive = 1
     `;
     
@@ -112,7 +112,7 @@ export async function PUT(
 
     // Update transaction
     const updateQuery = `
-      UPDATE zen50558_ManagementStore.dbo.WalletTransactions
+      UPDATE ManagementStore.dbo.WalletTransactions
       SET
         Type = @type,
         Amount = @amount,
@@ -149,8 +149,8 @@ export async function PUT(
         t.TransactionDate as transactionDate,
         t.Status as status,
         t.CreatedAt as createdAt
-      FROM zen50558_ManagementStore.dbo.WalletTransactions t
-      LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+      FROM ManagementStore.dbo.WalletTransactions t
+      LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       WHERE t.Id = @id
     `;
 
@@ -198,7 +198,7 @@ export async function DELETE(
 
     // Check if transaction exists
     const checkQuery = `
-      SELECT Id FROM zen50558_ManagementStore.dbo.WalletTransactions 
+      SELECT Id FROM ManagementStore.dbo.WalletTransactions 
       WHERE Id = @id AND IsActive = 1
     `;
     
@@ -214,7 +214,7 @@ export async function DELETE(
 
     // Soft delete (set IsActive = 0)
     const deleteQuery = `
-      UPDATE zen50558_ManagementStore.dbo.WalletTransactions
+      UPDATE ManagementStore.dbo.WalletTransactions
       SET IsActive = 0
       WHERE Id = @id
     `;

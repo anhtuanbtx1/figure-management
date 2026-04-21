@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
       SELECT
         ISNULL(b.Name, '') AS name,
         COUNT(*) AS count
-      FROM zen50558_ManagementStore.dbo.Toys t
-      LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+      FROM ManagementStore.dbo.Toys t
+      LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
       ${whereClause}
       GROUP BY b.Name
       ORDER BY COUNT(*) DESC

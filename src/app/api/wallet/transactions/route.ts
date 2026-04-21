@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     // Get total count
     const countQuery = `
       SELECT COUNT(*) as total
-      FROM zen50558_ManagementStore.dbo.WalletTransactions t
+      FROM ManagementStore.dbo.WalletTransactions t
       ${whereClause}
     `;
 
@@ -74,8 +74,8 @@ export async function GET(request: NextRequest) {
         t.Status as status,
         t.CreatedAt as createdAt,
         t.IsActive as isActive
-      FROM zen50558_ManagementStore.dbo.WalletTransactions t
-      LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+      FROM ManagementStore.dbo.WalletTransactions t
+      LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       ${whereClause}
       ORDER BY ${sortField} ${sortDirection}
       OFFSET ${offset} ROWS
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
 
     // Insert new transaction
     const insertQuery = `
-      INSERT INTO zen50558_ManagementStore.dbo.WalletTransactions 
+      INSERT INTO ManagementStore.dbo.WalletTransactions 
       (Id, Type, Amount, Description, CategoryId, TransactionDate, Status, CreatedAt, IsActive)
       VALUES (@id, @type, @amount, @description, @categoryId, @transactionDate, @status, @createdAt, 1)
     `;
@@ -187,8 +187,8 @@ export async function POST(request: Request) {
         t.TransactionDate as transactionDate,
         t.Status as status,
         t.CreatedAt as createdAt
-      FROM zen50558_ManagementStore.dbo.WalletTransactions t
-      LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+      FROM ManagementStore.dbo.WalletTransactions t
+      LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       WHERE t.Id = @id
     `;
 

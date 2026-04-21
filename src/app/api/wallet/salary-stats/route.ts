@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     // Query to get salary category by specific ID (cat-luong)
     const categoryQuery = `
       SELECT Id, Name, Color
-      FROM zen50558_ManagementStore.dbo.WalletCategories
+      FROM ManagementStore.dbo.WalletCategories
       WHERE Id = 'cat-luong'
         AND IsActive = 1
         AND Type = N'Thu nhập'
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
         COALESCE(SUM(Amount), 0) as totalSalary,
         COUNT(*) as transactionCount,
         COALESCE(AVG(Amount), 0) as avgSalary
-      FROM zen50558_ManagementStore.dbo.WalletTransactions
+      FROM ManagementStore.dbo.WalletTransactions
       WHERE CategoryId = @categoryId
         AND IsActive = 1
         AND Status LIKE N'%Hoàn thành%'
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
         COALESCE(SUM(Amount), 0) as totalSalary,
         COUNT(*) as transactionCount,
         COALESCE(AVG(Amount), 0) as avgSalary
-      FROM zen50558_ManagementStore.dbo.WalletTransactions
+      FROM ManagementStore.dbo.WalletTransactions
       WHERE CategoryId = @categoryId
         AND IsActive = 1
         AND Status LIKE N'%Hoàn thành%'
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
         SUM(Amount) as totalSalary,
         COUNT(*) as transactionCount,
         AVG(Amount) as avgSalary
-      FROM zen50558_ManagementStore.dbo.WalletTransactions
+      FROM ManagementStore.dbo.WalletTransactions
       WHERE CategoryId = @categoryId
         AND IsActive = 1
         AND Status LIKE N'%Hoàn thành%'
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
         COALESCE(SUM(Amount), 0) as totalSalary,
         COUNT(DISTINCT FORMAT(TransactionDate, 'yyyy-MM')) as monthsWithSalary,
         COALESCE(AVG(Amount), 0) as avgTransactionAmount
-      FROM zen50558_ManagementStore.dbo.WalletTransactions
+      FROM ManagementStore.dbo.WalletTransactions
       WHERE CategoryId = @categoryId
         AND IsActive = 1
         AND Status LIKE N'%Hoàn thành%'
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
         Description as description,
         TransactionDate as transactionDate,
         Status as status
-      FROM zen50558_ManagementStore.dbo.WalletTransactions
+      FROM ManagementStore.dbo.WalletTransactions
       WHERE CategoryId = @categoryId
         AND IsActive = 1
       ORDER BY TransactionDate DESC

@@ -68,15 +68,20 @@ const PlayerInfoDialog: React.FC<PlayerInfoDialogProps> = ({
             sx={{
               width: 44, height: 44, borderRadius: 2,
               background: player
-                ? `linear-gradient(135deg, hsl(${(parseInt(player.id.replace('p', '')) * 37) % 360}, 60%, 30%), hsl(${(parseInt(player.id.replace('p', '')) * 37 + 30) % 360}, 70%, 18%))`
+                ? (player.avatar ? 'transparent' : `linear-gradient(135deg, hsl(${(parseInt(player.id.replace('p', '')) * 37) % 360}, 60%, 30%), hsl(${(parseInt(player.id.replace('p', '')) * 37 + 30) % 360}, 70%, 18%))`)
                 : 'rgba(255,255,255,0.05)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: '1px solid rgba(255,255,255,0.12)',
+              overflow: 'hidden',
             }}
           >
-            <Typography sx={{ fontSize: 20, fontWeight: 800, color: 'white' }}>
-              {player ? player.shortName.charAt(0) : slot.label}
-            </Typography>
+            {player?.avatar ? (
+               <img src={player.avatar} alt={player.shortName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <Typography sx={{ fontSize: 20, fontWeight: 800, color: 'white' }}>
+                {player ? player.shortName.charAt(0) : slot.label}
+              </Typography>
+            )}
           </Box>
           <Box>
             <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2 }}>
@@ -172,12 +177,17 @@ const PlayerInfoDialog: React.FC<PlayerInfoDialogProps> = ({
                   <Box
                     sx={{
                       width: 32, height: 32, borderRadius: 1,
-                      background: `linear-gradient(135deg, hsl(${(parseInt(p.id.replace('p', '')) * 37) % 360}, 60%, 30%), hsl(${(parseInt(p.id.replace('p', '')) * 37 + 30) % 360}, 70%, 18%))`,
+                      background: p.avatar ? 'transparent' : `linear-gradient(135deg, hsl(${(parseInt(p.id.replace('p', '')) * 37) % 360}, 60%, 30%), hsl(${(parseInt(p.id.replace('p', '')) * 37 + 30) % 360}, 70%, 18%))`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       flexShrink: 0,
+                      overflow: 'hidden',
                     }}
                   >
-                    <Typography sx={{ fontSize: 14, fontWeight: 800, color: 'white' }}>{p.shortName.charAt(0)}</Typography>
+                    {p.avatar ? (
+                       <img src={p.avatar} alt={p.shortName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                       <Typography sx={{ fontSize: 14, fontWeight: 800, color: 'white' }}>{p.shortName.charAt(0)}</Typography>
+                    )}
                   </Box>
                   <Box flex={1} minWidth={0}>
                     <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'white', lineHeight: 1 }}>{p.shortName}</Typography>

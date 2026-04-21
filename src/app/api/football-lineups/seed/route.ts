@@ -2,12 +2,15 @@ import { NextResponse } from 'next/server';
 import { executeTransaction } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // Seed initial TEAMS to the database to match FE mock data.
 export async function GET() {
   const result = await executeTransaction(async (transaction) => {
     // Check if teams already exist
     const checkReq = new sql.Request(transaction);
-    const existing = await checkReq.query("SELECT id FROM zen50558_ManagementStore.teams WHERE name = 'Manchester United'");
+    const existing = await checkReq.query("SELECT id FROM ManagementStore.dbo.teams WHERE name = 'Manchester United'");
     if (existing.recordset.length > 0) {
       return { message: 'Manchester United already exists', status: 200 };
     }
@@ -17,7 +20,7 @@ export async function GET() {
     req.input('tName', sql.VarChar, 'Manchester City');
     req.input('tLeague', sql.VarChar, 'Premier League');
     req.input('tLogo', sql.VarChar, '🛡️');
-    let res = await req.query("INSERT INTO zen50558_ManagementStore.teams (name, league, logo_url) OUTPUT INSERTED.id VALUES (@tName, @tLeague, @tLogo)");
+    let res = await req.query("INSERT INTO ManagementStore.dbo.teams (name, league, logo_url) OUTPUT INSERTED.id VALUES (@tName, @tLeague, @tLogo)");
     const manCityId = res.recordset[0].id;
 
     // Players ManCity
@@ -45,7 +48,7 @@ export async function GET() {
       pReq.input('pos', sql.VarChar, p.pos);
       pReq.input('rt', sql.Int, p.rating);
       pReq.input('jn', sql.Int, p.jersey);
-      await pReq.query("INSERT INTO zen50558_ManagementStore.players (team_id, full_name, short_name, position, rating, jersey_number) VALUES (@teamId, @fn, @sn, @pos, @rt, @jn)");
+      await pReq.query("INSERT INTO ManagementStore.dbo.players (team_id, full_name, short_name, position, rating, jersey_number) VALUES (@teamId, @fn, @sn, @pos, @rt, @jn)");
     }
 
     // Insert Real Madrid
@@ -53,7 +56,7 @@ export async function GET() {
     req.input('tName2', sql.VarChar, 'Real Madrid');
     req.input('tLeague2', sql.VarChar, 'La Liga');
     req.input('tLogo2', sql.VarChar, '👑');
-    res = await req.query("INSERT INTO zen50558_ManagementStore.teams (name, league, logo_url) OUTPUT INSERTED.id VALUES (@tName2, @tLeague2, @tLogo2)");
+    res = await req.query("INSERT INTO ManagementStore.dbo.teams (name, league, logo_url) OUTPUT INSERTED.id VALUES (@tName2, @tLeague2, @tLogo2)");
     const realMadridId = res.recordset[0].id;
 
     const realPlayers = [
@@ -78,7 +81,7 @@ export async function GET() {
       pReq.input('pos', sql.VarChar, p.pos);
       pReq.input('rt', sql.Int, p.rating);
       pReq.input('jn', sql.Int, p.jersey);
-      await pReq.query("INSERT INTO zen50558_ManagementStore.players (team_id, full_name, short_name, position, rating, jersey_number) VALUES (@teamId, @fn, @sn, @pos, @rt, @jn)");
+      await pReq.query("INSERT INTO ManagementStore.dbo.players (team_id, full_name, short_name, position, rating, jersey_number) VALUES (@teamId, @fn, @sn, @pos, @rt, @jn)");
     }
 
     // Insert Manchester United
@@ -86,7 +89,7 @@ export async function GET() {
     req.input('tName3', sql.VarChar, 'Manchester United');
     req.input('tLeague3', sql.VarChar, 'Premier League');
     req.input('tLogo3', sql.VarChar, '🔴');
-    res = await req.query("INSERT INTO zen50558_ManagementStore.teams (name, league, logo_url) OUTPUT INSERTED.id VALUES (@tName3, @tLeague3, @tLogo3)");
+    res = await req.query("INSERT INTO ManagementStore.dbo.teams (name, league, logo_url) OUTPUT INSERTED.id VALUES (@tName3, @tLeague3, @tLogo3)");
     const manUtdId = res.recordset[0].id;
 
     const muPlayers = [
@@ -114,7 +117,7 @@ export async function GET() {
       pReq.input('pos', sql.VarChar, p.pos);
       pReq.input('rt', sql.Int, p.rating);
       pReq.input('jn', sql.Int, p.jersey);
-      await pReq.query("INSERT INTO zen50558_ManagementStore.players (team_id, full_name, short_name, position, rating, jersey_number) VALUES (@teamId, @fn, @sn, @pos, @rt, @jn)");
+      await pReq.query("INSERT INTO ManagementStore.dbo.players (team_id, full_name, short_name, position, rating, jersey_number) VALUES (@teamId, @fn, @sn, @pos, @rt, @jn)");
     }
 
     return { message: 'Database seeded successfully with City, Real and United', status: 201 };

@@ -22,7 +22,7 @@ export async function GET() {
             Type as type,
             Color as color,
             IsActive as isActive
-          FROM zen50558_ManagementStore.dbo.WalletCategories 
+          FROM ManagementStore.dbo.WalletCategories 
           WHERE IsActive = 1
           ORDER BY Type, Name
         `;
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
     // Insert new category
     const insertQuery = `
-      INSERT INTO zen50558_ManagementStore.dbo.WalletCategories 
+      INSERT INTO ManagementStore.dbo.WalletCategories 
       (Id, Name, Type, Color, IsActive)
       VALUES (@id, @name, @type, @color, 1)
     `;

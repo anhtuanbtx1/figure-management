@@ -93,8 +93,8 @@ export async function GET(request: NextRequest) {
         -- Completed transactions - using LIKE for better Unicode matching
         COUNT(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN 1 END) as completedTransactions
 
-      FROM zen50558_ManagementStore.dbo.WalletTransactions t
-      LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+      FROM ManagementStore.dbo.WalletTransactions t
+      LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       WHERE ${whereClause}
     `;
 
@@ -111,8 +111,8 @@ export async function GET(request: NextRequest) {
         COUNT(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN 1 END) as completedCount,
         COUNT(CASE WHEN t.Status LIKE N'%ang chờ%' THEN 1 END) as pendingCount,
         SUM(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN ABS(t.Amount) ELSE 0 END) as completedAmount
-      FROM zen50558_ManagementStore.dbo.WalletTransactions t
-      LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+      FROM ManagementStore.dbo.WalletTransactions t
+      LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       WHERE ${whereClause}
       GROUP BY t.Type
       ORDER BY completedAmount DESC
@@ -133,8 +133,8 @@ export async function GET(request: NextRequest) {
         COUNT(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN 1 END) as completedCount,
         COUNT(CASE WHEN t.Status LIKE N'%ang chờ%' THEN 1 END) as pendingCount,
         SUM(CASE WHEN t.Status LIKE N'%Hoàn thành%' THEN ABS(t.Amount) ELSE 0 END) as completedAmount
-      FROM zen50558_ManagementStore.dbo.WalletTransactions t
-      JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+      FROM ManagementStore.dbo.WalletTransactions t
+      JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       WHERE ${whereClause.replace('t.IsActive = 1', 't.IsActive = 1 AND c.IsActive = 1')}
       GROUP BY c.Id, c.Name, c.Type, c.Color
       ORDER BY completedAmount DESC
@@ -153,8 +153,8 @@ export async function GET(request: NextRequest) {
         c.Color as categoryColor,
         t.TransactionDate as transactionDate,
         t.Status as status
-      FROM zen50558_ManagementStore.dbo.WalletTransactions t
-      LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+      FROM ManagementStore.dbo.WalletTransactions t
+      LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       WHERE t.IsActive = 1
       ORDER BY t.TransactionDate DESC
     `;
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
         SUM(CASE WHEN Type = 'Thu nhập' THEN Amount ELSE 0 END) as income,
         SUM(CASE WHEN Type = 'Chi tiêu' THEN ABS(Amount) ELSE 0 END) as expense,
         COUNT(*) as transactionCount
-      FROM zen50558_ManagementStore.dbo.WalletTransactions
+      FROM ManagementStore.dbo.WalletTransactions
       WHERE IsActive = 1
         AND TransactionDate >= DATEADD(MONTH, -6, GETDATE())
       GROUP BY FORMAT(TransactionDate, 'yyyy-MM')
@@ -181,24 +181,24 @@ export async function GET(request: NextRequest) {
     const dateRangeStatsQuery = `
       SELECT
         -- Weekly stats (last 4 weeks)
-        (SELECT COUNT(*) FROM zen50558_ManagementStore.dbo.WalletTransactions
+        (SELECT COUNT(*) FROM ManagementStore.dbo.WalletTransactions
          WHERE IsActive = 1 AND TransactionDate >= DATEADD(WEEK, -1, GETDATE())) as thisWeekCount,
-        (SELECT COUNT(*) FROM zen50558_ManagementStore.dbo.WalletTransactions
+        (SELECT COUNT(*) FROM ManagementStore.dbo.WalletTransactions
          WHERE IsActive = 1 AND TransactionDate >= DATEADD(WEEK, -2, GETDATE())
          AND TransactionDate < DATEADD(WEEK, -1, GETDATE())) as lastWeekCount,
 
         -- Monthly stats
-        (SELECT COUNT(*) FROM zen50558_ManagementStore.dbo.WalletTransactions
+        (SELECT COUNT(*) FROM ManagementStore.dbo.WalletTransactions
          WHERE IsActive = 1 AND YEAR(TransactionDate) = YEAR(GETDATE())
          AND MONTH(TransactionDate) = MONTH(GETDATE())) as thisMonthCount,
-        (SELECT COUNT(*) FROM zen50558_ManagementStore.dbo.WalletTransactions
+        (SELECT COUNT(*) FROM ManagementStore.dbo.WalletTransactions
          WHERE IsActive = 1 AND YEAR(TransactionDate) = YEAR(DATEADD(MONTH, -1, GETDATE()))
          AND MONTH(TransactionDate) = MONTH(DATEADD(MONTH, -1, GETDATE()))) as lastMonthCount,
 
         -- Yearly stats
-        (SELECT COUNT(*) FROM zen50558_ManagementStore.dbo.WalletTransactions
+        (SELECT COUNT(*) FROM ManagementStore.dbo.WalletTransactions
          WHERE IsActive = 1 AND YEAR(TransactionDate) = YEAR(GETDATE())) as thisYearCount,
-        (SELECT COUNT(*) FROM zen50558_ManagementStore.dbo.WalletTransactions
+        (SELECT COUNT(*) FROM ManagementStore.dbo.WalletTransactions
          WHERE IsActive = 1 AND YEAR(TransactionDate) = YEAR(GETDATE()) - 1) as lastYearCount
     `;
 

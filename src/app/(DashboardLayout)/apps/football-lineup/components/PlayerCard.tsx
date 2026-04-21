@@ -81,12 +81,22 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ slot, player, onPlayerClick, is
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: `linear-gradient(135deg, hsl(${(parseInt(player!.id.replace('p', '')) * 37) % 360}, 60%, 25%), hsl(${(parseInt(player!.id.replace('p', '')) * 37 + 30) % 360}, 70%, 15%))`,
+              background: player!.avatar 
+                ? 'transparent' 
+                : `linear-gradient(135deg, hsl(${(parseInt(player!.id.replace('p', '')) * 37) % 360}, 60%, 25%), hsl(${(parseInt(player!.id.replace('p', '')) * 37 + 30) % 360}, 70%, 15%))`,
             }}
           >
-            <Typography sx={{ fontSize: 18, fontWeight: 800, color: 'rgba(255,255,255,0.9)' }}>
-              {player!.shortName.charAt(0)}
-            </Typography>
+            {player!.avatar ? (
+              <img 
+                src={player!.avatar} 
+                alt={player!.shortName} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            ) : (
+              <Typography sx={{ fontSize: 18, fontWeight: 800, color: 'rgba(255,255,255,0.9)' }}>
+                {player!.shortName.charAt(0)}
+              </Typography>
+            )}
           </Box>
         )}
       </Box>

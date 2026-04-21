@@ -10,31 +10,41 @@ export async function GET(req: Request) {
 
     // Nếu không truyền teamId, trả về danh sách tất cả Teams
     if (!teamIdStr) {
-      const teams = await executeQuery('SELECT * FROM zen50558_ManagementStore.teams');
+      const teams = await executeQuery('SELECT * FROM ManagementStore.dbo.teams');
       return NextResponse.json({ teams });
     }
 
     const teamId = parseInt(teamIdStr);
-    
+    const formationParam = searchParams.get('formation');
+
     // Nếu truyền teamId, lấy players và lineups của team đó
-    const players = await executeQuery('SELECT * FROM zen50558_ManagementStore.players WHERE team_id = @teamId', {
+    const players = await executeQuery('SELECT * FROM ManagementStore.dbo.players WHERE team_id = @teamId', {
       teamId: { type: sql.Int, value: teamId }
     });
 
-    const lineups = await executeQuery('SELECT * FROM zen50558_ManagementStore.lineups WHERE team_id = @teamId', {
+    const lineups = await executeQuery('SELECT * FROM ManagementStore.dbo.lineups WHERE team_id = @teamId', {
       teamId: { type: sql.Int, value: teamId }
     });
 
-    // Lấy slots của lineup được đánh dấu là default hoặc lineup đầu tiên
+    // Lấy slots của lineup
     let slots: any[] = [];
+    let selectedLineup = null;
+
     if (lineups.length > 0) {
-      const defaultLineup = lineups.find(l => l.is_default) || lineups[0];
-      slots = await executeQuery('SELECT * FROM zen50558_ManagementStore.lineup_slots WHERE lineup_id = @lineupId', {
-        lineupId: { type: sql.Int, value: defaultLineup.id }
-      });
+      if (formationParam) {
+        selectedLineup = lineups.find(l => l.formation === formationParam);
+      } else {
+        selectedLineup = lineups.find(l => l.is_default) || lineups[0];
+      }
+
+      if (selectedLineup) {
+        slots = await executeQuery('SELECT * FROM ManagementStore.dbo.lineup_slots WHERE lineup_id = @lineupId', {
+          lineupId: { type: sql.Int, value: selectedLineup.id }
+        });
+      }
     }
 
-    return NextResponse.json({ players, lineups, slots });
+    return NextResponse.json({ players, lineups, slots, selectedLineup });
   } catch (error: any) {
     console.error('API Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -58,15 +68,15 @@ export async function POST(req: Request) {
       const request = new sql.Request(transaction);
       request.input('teamId', sql.Int, parseInt(teamId));
       request.input('formation', sql.VarChar, formation);
-      
-      const existingLineups = await request.query(`SELECT id FROM zen50558_ManagementStore.lineups WHERE team_id = @teamId AND formation = @formation`);
+
+      const existingLineups = await request.query(`SELECT id FROM ManagementStore.dbo.lineups WHERE team_id = @teamId AND formation = @formation`);
       let lineupId;
 
       if (existingLineups.recordset.length > 0) {
         lineupId = existingLineups.recordset[0].id;
         // Đã có, tiến hành UPDATE is_default nếu cần, sau đó xoá slots cũ đi làm lại
         const updReq = new sql.Request(transaction);
-        await updReq.query(`DELETE FROM zen50558_ManagementStore.lineup_slots WHERE lineup_id = ${lineupId}`);
+        await updReq.query(`DELETE FROM ManagementStore.dbo.lineup_slots WHERE lineup_id = ${lineupId}`);
       } else {
         // Tạo mới lineup
         const insertLineup = new sql.Request(transaction);
@@ -74,9 +84,9 @@ export async function POST(req: Request) {
         insertLineup.input('name', sql.VarChar, name || `Lineup ${formation}`);
         insertLineup.input('formation', sql.VarChar, formation);
         insertLineup.input('isDefault', sql.Bit, isDefault ? 1 : 0);
-        
+
         const res = await insertLineup.query(`
-          INSERT INTO zen50558_ManagementStore.lineups (team_id, name, formation, is_default)
+          INSERT INTO ManagementStore.dbo.lineups (team_id, name, formation, is_default)
           OUTPUT INSERTED.id
           VALUES (@teamId, @name, @formation, @isDefault)
         `);
@@ -94,7 +104,7 @@ export async function POST(req: Request) {
         slotReq.input('locY', sql.Decimal(5, 2), slot.y);
 
         await slotReq.query(`
-          INSERT INTO zen50558_ManagementStore.lineup_slots (lineup_id, player_id, pos_label, is_gk, loc_x, loc_y)
+          INSERT INTO ManagementStore.dbo.lineup_slots (lineup_id, player_id, pos_label, is_gk, loc_x, loc_y)
           VALUES (@lineupId, @playerId, @posLabel, @isGk, @locX, @locY)
         `);
       }

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }).join(', ');
 
     const sql = `
-      UPDATE zen50558_ManagementStore.dbo.WalletTransactions
+      UPDATE ManagementStore.dbo.WalletTransactions
       SET IsActive = 0
       WHERE Id IN (${placeholders})
     `;
