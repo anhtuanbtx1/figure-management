@@ -104,9 +104,9 @@ export async function GET(request: NextRequest) {
         executeStoredProcedureCached('sp_GetToysForFrontend', params, `${cacheKey}:data`, cacheTTL),
         executeQueryCached(
           `SELECT COUNT(*) as total
-           FROM zen50558_ManagementStore.dbo.Toys t
-           LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-           LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+           FROM ManagementStore.dbo.Toys t
+           LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+           LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
            WHERE t.IsActive = 1
              AND (@Search IS NULL OR @Search = '' OR t.Name LIKE '%' + @Search + '%' OR t.Description LIKE '%' + @Search + '%')
              AND (@CategoryId IS NULL OR @CategoryId = '' OR t.CategoryId = @CategoryId)
@@ -183,9 +183,9 @@ export async function GET(request: NextRequest) {
         {
           query: `
             SELECT COUNT(*) as total
-            FROM zen50558_ManagementStore.dbo.Toys t WITH (NOLOCK)
-            LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c WITH (NOLOCK) ON t.CategoryId = c.Id
-            LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
+            FROM ManagementStore.dbo.Toys t WITH (NOLOCK)
+            LEFT JOIN ManagementStore.dbo.ToyCategories c WITH (NOLOCK) ON t.CategoryId = c.Id
+            LEFT JOIN ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
             WHERE ${whereClause}
           `,
           params: queryParams
@@ -215,9 +215,9 @@ export async function GET(request: NextRequest) {
               ISNULL(t.IsNew, 0) as isNew,
               ISNULL(t.IsFeatured, 0) as isFeatured,
               ISNULL(t.Discount, 0) as discount
-            FROM zen50558_ManagementStore.dbo.Toys t WITH (NOLOCK)
-            LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c WITH (NOLOCK) ON t.CategoryId = c.Id
-            LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
+            FROM ManagementStore.dbo.Toys t WITH (NOLOCK)
+            LEFT JOIN ManagementStore.dbo.ToyCategories c WITH (NOLOCK) ON t.CategoryId = c.Id
+            LEFT JOIN ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
             WHERE ${whereClause}
             ORDER BY
               CASE WHEN '${sortField}' = 'name' AND '${sortDirection}' = 'ASC' THEN t.Name END ASC,

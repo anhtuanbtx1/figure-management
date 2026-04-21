@@ -86,9 +86,9 @@ export async function GET(request: NextRequest) {
       // For count, use a direct query instead of the paginated stored procedure
       const countQuery = `
         SELECT COUNT(*) as total
-        FROM zen50558_ManagementStore.dbo.Toys t
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+        FROM ManagementStore.dbo.Toys t
+        LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+        LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
         WHERE t.IsActive = 1
           AND (@Search IS NULL OR @Search = '' OR t.Name LIKE '%' + @Search + '%' OR t.Description LIKE '%' + @Search + '%')
           AND (@CategoryId IS NULL OR @CategoryId = '' OR t.CategoryId = @CategoryId)
@@ -161,9 +161,9 @@ export async function GET(request: NextRequest) {
       // Count query
       const countQuery = `
         SELECT COUNT(*) as total
-        FROM zen50558_ManagementStore.dbo.Toys t
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+        FROM ManagementStore.dbo.Toys t
+        LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+        LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
         ${whereClause}
       `;
 
@@ -192,9 +192,9 @@ export async function GET(request: NextRequest) {
           ISNULL(t.IsNew, 0) as isNew,
           ISNULL(t.IsFeatured, 0) as isFeatured,
           ISNULL(t.Discount, 0) as discount
-        FROM zen50558_ManagementStore.dbo.Toys t
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+        FROM ManagementStore.dbo.Toys t
+        LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+        LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
         ${whereClause}
         ORDER BY
           CASE WHEN '${sortField}' = 'name' AND '${sortDirection}' = 'asc' THEN t.Name END ASC,

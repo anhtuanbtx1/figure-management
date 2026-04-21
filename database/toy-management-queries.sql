@@ -1,9 +1,9 @@
--- =====================================================
+﻿-- =====================================================
 -- TOY MANAGEMENT - SAMPLE QUERIES & API ENDPOINTS
 -- Common queries for the Toy Management System
 -- =====================================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 -- =====================================================
@@ -180,8 +180,8 @@ INSERT INTO Toys (
     Colors, Tags, IsNew, IsFeatured, Discount
 ) VALUES (
     'toy-new-001', 
-    N'Tên đồ chơi mới', 
-    N'Mô tả chi tiết về đồ chơi', 
+    N'TÃªn Ä‘á»“ chÆ¡i má»›i', 
+    N'MÃ´ táº£ chi tiáº¿t vá» Ä‘á»“ chÆ¡i', 
     '/images/toys/new-toy.jpg',
     'cat-001', 
     'brand-001', 
@@ -189,11 +189,11 @@ INSERT INTO Toys (
     1199000, 
     50, 
     'active',
-    '3-8 tuổi', 
-    'Nhựa ABS', 
+    '3-8 tuá»•i', 
+    'Nhá»±a ABS', 
     30.0, 25.0, 15.0, 1.0,
-    '["Đỏ", "Xanh", "Vàng"]', 
-    '["Mới", "Giáo dục", "Sáng tạo"]', 
+    '["Äá»", "Xanh", "VÃ ng"]', 
+    '["Má»›i", "GiÃ¡o dá»¥c", "SÃ¡ng táº¡o"]', 
     1, 0, 16.68
 );
 */
@@ -202,7 +202,7 @@ INSERT INTO Toys (
 /*
 UPDATE Toys 
 SET 
-    Name = N'Tên đã cập nhật',
+    Name = N'TÃªn Ä‘Ã£ cáº­p nháº­t',
     Price = 899000,
     Stock = 45,
     UpdatedAt = GETDATE(),
@@ -255,10 +255,10 @@ ORDER BY Year DESC, Month DESC;
 -- Price distribution
 SELECT 
     CASE 
-        WHEN Price < 500000 THEN 'Dưới 500K'
+        WHEN Price < 500000 THEN 'DÆ°á»›i 500K'
         WHEN Price < 1000000 THEN '500K - 1M'
         WHEN Price < 2000000 THEN '1M - 2M'
-        ELSE 'Trên 2M'
+        ELSE 'TrÃªn 2M'
     END as PriceRange,
     COUNT(*) as Count,
     AVG(Rating) as AvgRating
@@ -266,10 +266,10 @@ FROM Toys
 WHERE IsActive = 1
 GROUP BY 
     CASE 
-        WHEN Price < 500000 THEN 'Dưới 500K'
+        WHEN Price < 500000 THEN 'DÆ°á»›i 500K'
         WHEN Price < 1000000 THEN '500K - 1M'
         WHEN Price < 2000000 THEN '1M - 2M'
-        ELSE 'Trên 2M'
+        ELSE 'TrÃªn 2M'
     END
 ORDER BY MIN(Price);
 
@@ -311,3 +311,4 @@ SELECT * INTO ToyBrands_Backup FROM ToyBrands;
 */
 
 PRINT 'Sample queries ready for Toy Management System!';
+

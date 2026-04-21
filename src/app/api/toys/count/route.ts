@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const sql = `
       SELECT COUNT(*) AS total
-      FROM zen50558_ManagementStore.dbo.Toys t
+      FROM ManagementStore.dbo.Toys t
       ${whereClause}
     `;
 
@@ -41,4 +41,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, total: 0, error: 'Failed to get toys count' }, { status: 500 });
   }
 }
+
 

@@ -1,4 +1,4 @@
-USE zen50558_ManagementStore;
+﻿USE ManagementStore;
 GO
 
 -- Recalculate totals helper
@@ -14,20 +14,20 @@ BEGIN
     DECLARE @SubTotal DECIMAL(18,2) = 0, @VAT DECIMAL(18,2) = 0, @GrandTotal DECIMAL(18,2) = 0;
 
     SELECT @SubTotal = ISNULL(SUM(UnitTotalPrice), 0)
-    FROM zen50558_ManagementStore.dbo.InvoiceItems
+    FROM ManagementStore.dbo.InvoiceItems
     WHERE InvoiceId = @InvoiceId AND IsActive = 1;
 
     SET @VAT = @SubTotal * 0.1; -- default 10%
     SET @GrandTotal = @SubTotal + @VAT;
 
-    UPDATE zen50558_ManagementStore.dbo.Invoices
+    UPDATE ManagementStore.dbo.Invoices
     SET SubTotal = @SubTotal,
         VAT = @VAT,
         GrandTotal = @GrandTotal,
         UpdatedAt = GETDATE()
     WHERE Id = @InvoiceId;
 
-    SELECT * FROM zen50558_ManagementStore.dbo.Invoices WHERE Id = @InvoiceId;
+    SELECT * FROM ManagementStore.dbo.Invoices WHERE Id = @InvoiceId;
 END
 GO
 
@@ -44,7 +44,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    UPDATE zen50558_ManagementStore.dbo.InvoiceItems
+    UPDATE ManagementStore.dbo.InvoiceItems
     SET ItemName = @ItemName,
         UnitPrice = @UnitPrice,
         Units = @Units,
@@ -52,7 +52,7 @@ BEGIN
     WHERE Id = @ItemId;
 
     DECLARE @InvoiceId NVARCHAR(50);
-    SELECT @InvoiceId = InvoiceId FROM zen50558_ManagementStore.dbo.InvoiceItems WHERE Id = @ItemId;
+    SELECT @InvoiceId = InvoiceId FROM ManagementStore.dbo.InvoiceItems WHERE Id = @ItemId;
 
     EXEC sp_RecalculateInvoiceTotalsFromItems @InvoiceId;
 END
@@ -69,9 +69,9 @@ BEGIN
     SET NOCOUNT ON;
 
     DECLARE @InvoiceId NVARCHAR(50);
-    SELECT @InvoiceId = InvoiceId FROM zen50558_ManagementStore.dbo.InvoiceItems WHERE Id = @ItemId;
+    SELECT @InvoiceId = InvoiceId FROM ManagementStore.dbo.InvoiceItems WHERE Id = @ItemId;
 
-    UPDATE zen50558_ManagementStore.dbo.InvoiceItems
+    UPDATE ManagementStore.dbo.InvoiceItems
     SET IsActive = 0,
         UpdatedAt = GETDATE()
     WHERE Id = @ItemId;
@@ -93,7 +93,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    INSERT INTO zen50558_ManagementStore.dbo.InvoiceItems (
+    INSERT INTO ManagementStore.dbo.InvoiceItems (
         InvoiceId, ItemName, UnitPrice, Units, IsActive, CreatedAt, UpdatedAt
     ) VALUES (
         @InvoiceId,
@@ -108,3 +108,4 @@ BEGIN
     EXEC sp_RecalculateInvoiceTotalsFromItems @InvoiceId;
 END
 GO
+

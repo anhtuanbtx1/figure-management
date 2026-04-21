@@ -1,7 +1,7 @@
--- Add unit column to WeddingGuests table if it doesn't exist
+﻿-- Add unit column to WeddingGuests table if it doesn't exist
 -- This migration adds the missing 'unit' column to store guest organization/unit information
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 -- Check if the column exists and add it if it doesn't
@@ -24,7 +24,7 @@ GO
 
 -- Update existing records with default unit values if they are NULL
 UPDATE WeddingGuests 
-SET unit = 'Chưa xác định'
+SET unit = 'ChÆ°a xÃ¡c Ä‘á»‹nh'
 WHERE unit IS NULL OR unit = '';
 
 -- Make the column NOT NULL after updating existing records
@@ -53,3 +53,4 @@ BEGIN
 END
 
 PRINT 'Migration completed successfully';
+

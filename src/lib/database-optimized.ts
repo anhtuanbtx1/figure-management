@@ -1,4 +1,4 @@
-import sql from 'mssql';
+﻿import sql from 'mssql';
 
 // Simple in-memory cache implementation (replace with Redis in production)
 interface CacheItem<T> {
@@ -85,8 +85,8 @@ const queryCache = new SimpleCache();
 // Enhanced database configuration
 const config: sql.config = {
   server: process.env.DB_SERVER || '112.78.2.70',
-  database: process.env.DB_DATABASE || 'zen50558_ManagementStore',
-  user: process.env.DB_USER || 'zen50558_ManagementStore',
+  database: process.env.DB_DATABASE || 'ManagementStore',
+  user: process.env.DB_USER || 'ManagementStore',
   password: process.env.DB_PASSWORD || 'Passwordla@123',
   options: {
     encrypt: true,
@@ -153,7 +153,7 @@ export async function getConnection(): Promise<sql.ConnectionPool> {
         
         // Add connection event listeners
         pool.on('error', (err) => {
-          console.error('❌ Connection pool error:', err);
+          console.error('âŒ Connection pool error:', err);
           pool = null; // Reset pool on error
         });
 
@@ -161,12 +161,12 @@ export async function getConnection(): Promise<sql.ConnectionPool> {
         
         connectionRetries = 0; // Reset retry counter on success
         isConnecting = false;
-        console.log(`✅ Connected to SQL Server database (attempt ${attempt})`);
+        console.log(`âœ… Connected to SQL Server database (attempt ${attempt})`);
         return pool;
         
       } catch (error) {
         lastError = error;
-        console.warn(`⚠️ Connection attempt ${attempt}/${MAX_CONNECTION_RETRIES} failed:`, error);
+        console.warn(`âš ï¸ Connection attempt ${attempt}/${MAX_CONNECTION_RETRIES} failed:`, error);
         
         if (attempt < MAX_CONNECTION_RETRIES) {
           // Wait before retry with exponential backoff
@@ -181,7 +181,7 @@ export async function getConnection(): Promise<sql.ConnectionPool> {
 
   } catch (error) {
     isConnecting = false;
-    console.error('❌ Database connection failed:', error);
+    console.error('âŒ Database connection failed:', error);
     throw new Error(`Database connection failed: ${error}`);
   }
 }
@@ -200,7 +200,7 @@ export async function executeQueryCached<T = any>(
   if (cacheKey || process.env.NODE_ENV !== 'development') {
     const cached = queryCache.get<T[]>(finalCacheKey);
     if (cached) {
-      console.log('🎯 Cache hit for query:', finalCacheKey.substring(0, 50) + '...');
+      console.log('ðŸŽ¯ Cache hit for query:', finalCacheKey.substring(0, 50) + '...');
       return cached;
     }
   }
@@ -211,7 +211,7 @@ export async function executeQueryCached<T = any>(
   // Cache result
   if (cacheKey || process.env.NODE_ENV !== 'development') {
     queryCache.set(finalCacheKey, result, cacheTTL || 300);
-    console.log('💾 Cached query result:', finalCacheKey.substring(0, 50) + '...');
+    console.log('ðŸ’¾ Cached query result:', finalCacheKey.substring(0, 50) + '...');
   }
   
   return result;
@@ -252,7 +252,7 @@ export async function executeQuery<T = any>(
   
   // Log slow queries
   if (executionTime > 1000) {
-    console.warn(`🐌 Slow query detected (${executionTime}ms):`, query.substring(0, 100) + '...');
+    console.warn(`ðŸŒ Slow query detected (${executionTime}ms):`, query.substring(0, 100) + '...');
   }
 
   return result.recordset;
@@ -272,7 +272,7 @@ export async function executeStoredProcedureCached<T = any>(
   if (cacheKey || process.env.NODE_ENV !== 'development') {
     const cached = queryCache.get<T[]>(finalCacheKey);
     if (cached) {
-      console.log('🎯 Cache hit for stored procedure:', procedureName);
+      console.log('ðŸŽ¯ Cache hit for stored procedure:', procedureName);
       return cached;
     }
   }
@@ -283,7 +283,7 @@ export async function executeStoredProcedureCached<T = any>(
   // Cache result
   if (cacheKey || process.env.NODE_ENV !== 'development') {
     queryCache.set(finalCacheKey, result, cacheTTL || 300);
-    console.log('💾 Cached stored procedure result:', procedureName);
+    console.log('ðŸ’¾ Cached stored procedure result:', procedureName);
   }
   
   return result;
@@ -324,7 +324,7 @@ export async function executeStoredProcedure<T = any>(
   
   // Log slow procedures
   if (executionTime > 1000) {
-    console.warn(`🐌 Slow stored procedure detected (${executionTime}ms):`, procedureName);
+    console.warn(`ðŸŒ Slow stored procedure detected (${executionTime}ms):`, procedureName);
   }
 
   return result.recordset;
@@ -369,10 +369,10 @@ export function clearCache(pattern?: string) {
   if (pattern) {
     const keys = queryCache.keys().filter((key: string) => key.includes(pattern));
     keys.forEach(key => queryCache.delete(key));
-    console.log(`🗑️ Cleared ${keys.length} cache entries matching pattern: ${pattern}`);
+    console.log(`ðŸ—‘ï¸ Cleared ${keys.length} cache entries matching pattern: ${pattern}`);
   } else {
     queryCache.clear();
-    console.log('🗑️ Cleared entire query cache');
+    console.log('ðŸ—‘ï¸ Cleared entire query cache');
   }
 }
 
@@ -409,12 +409,12 @@ export async function closeConnection(): Promise<void> {
     if (pool) {
       await pool.close();
       pool = null;
-      console.log('✅ Database connection closed');
+      console.log('âœ… Database connection closed');
     }
     queryCache.clear();
-    console.log('✅ Query cache cleared');
+    console.log('âœ… Query cache cleared');
   } catch (error) {
-    console.error('❌ Error closing database connection:', error);
+    console.error('âŒ Error closing database connection:', error);
   }
 }
 

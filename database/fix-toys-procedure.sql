@@ -1,9 +1,9 @@
--- =====================================================
+﻿-- =====================================================
 -- FIX TOYS STORED PROCEDURE
 -- Simple version that should work with existing data
 -- =====================================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '==============================================';
@@ -12,12 +12,12 @@ PRINT '==============================================';
 PRINT '';
 
 -- First, let's check what data we have
-PRINT '🔍 Checking existing data...';
+PRINT 'ðŸ” Checking existing data...';
 
 DECLARE @ToyCount INT, @CategoryCount INT, @BrandCount INT;
-SELECT @ToyCount = COUNT(*) FROM zen50558_ManagementStore.dbo.Toys;
-SELECT @CategoryCount = COUNT(*) FROM zen50558_ManagementStore.dbo.ToyCategories;
-SELECT @BrandCount = COUNT(*) FROM zen50558_ManagementStore.dbo.ToyBrands;
+SELECT @ToyCount = COUNT(*) FROM ManagementStore.dbo.Toys;
+SELECT @CategoryCount = COUNT(*) FROM ManagementStore.dbo.ToyCategories;
+SELECT @BrandCount = COUNT(*) FROM ManagementStore.dbo.ToyBrands;
 
 PRINT 'Total Toys: ' + CAST(@ToyCount AS NVARCHAR(10));
 PRINT 'Total Categories: ' + CAST(@CategoryCount AS NVARCHAR(10));
@@ -25,20 +25,20 @@ PRINT 'Total Brands: ' + CAST(@BrandCount AS NVARCHAR(10));
 
 -- Check active toys
 DECLARE @ActiveToys INT;
-SELECT @ActiveToys = COUNT(*) FROM zen50558_ManagementStore.dbo.Toys WHERE IsActive = 1;
+SELECT @ActiveToys = COUNT(*) FROM ManagementStore.dbo.Toys WHERE IsActive = 1;
 PRINT 'Active Toys: ' + CAST(@ActiveToys AS NVARCHAR(10));
 
 -- Show sample toy data
 PRINT '';
-PRINT '📋 Sample toy data:';
+PRINT 'ðŸ“‹ Sample toy data:';
 SELECT TOP 1 
     Id, Name, CategoryId, BrandId, Price, Stock, Status, IsActive,
     CreatedAt, UpdatedAt
-FROM zen50558_ManagementStore.dbo.Toys;
+FROM ManagementStore.dbo.Toys;
 
 -- Check if categories and brands exist for the toy
 PRINT '';
-PRINT '🔗 Checking relationships:';
+PRINT 'ðŸ”— Checking relationships:';
 SELECT 
     t.Id as ToyId,
     t.Name as ToyName,
@@ -49,19 +49,19 @@ SELECT
     t.IsActive as ToyActive,
     c.IsActive as CategoryActive,
     b.IsActive as BrandActive
-FROM zen50558_ManagementStore.dbo.Toys t
-LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id;
+FROM ManagementStore.dbo.Toys t
+LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id;
 
 -- Create a simple version of the stored procedure
 PRINT '';
-PRINT '🔧 Creating simplified sp_GetToysForFrontend...';
+PRINT 'ðŸ”§ Creating simplified sp_GetToysForFrontend...';
 
 -- Drop existing procedure if it exists
 IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_GetToysForFrontend')
 BEGIN
     DROP PROCEDURE sp_GetToysForFrontend;
-    PRINT '🗑️ Dropped existing sp_GetToysForFrontend';
+    PRINT 'ðŸ—‘ï¸ Dropped existing sp_GetToysForFrontend';
 END
 
 -- Create new simplified procedure
@@ -116,9 +116,9 @@ BEGIN
         ISNULL(t.IsNew, 0) as isNew,
         ISNULL(t.IsFeatured, 0) as isFeatured,
         ISNULL(t.Discount, 0) as discount
-    FROM zen50558_ManagementStore.dbo.Toys t
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+    FROM ManagementStore.dbo.Toys t
+    LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+    LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
     WHERE t.IsActive = 1
         -- Apply filters only if provided
         AND (@Search IS NULL OR @Search = '' OR t.Name LIKE '%' + @Search + '%')
@@ -142,23 +142,23 @@ BEGIN
 END
 GO
 
-PRINT '✅ Simplified sp_GetToysForFrontend created successfully';
+PRINT 'âœ… Simplified sp_GetToysForFrontend created successfully';
 
 -- Test the new procedure
 PRINT '';
-PRINT '🧪 Testing the new procedure...';
+PRINT 'ðŸ§ª Testing the new procedure...';
 
 BEGIN TRY
     EXEC sp_GetToysForFrontend @Page = 1, @PageSize = 5;
-    PRINT '✅ sp_GetToysForFrontend test: SUCCESS';
+    PRINT 'âœ… sp_GetToysForFrontend test: SUCCESS';
 END TRY
 BEGIN CATCH
-    PRINT '❌ sp_GetToysForFrontend test: ERROR - ' + ERROR_MESSAGE();
+    PRINT 'âŒ sp_GetToysForFrontend test: ERROR - ' + ERROR_MESSAGE();
 END CATCH
 
 -- Also create a super simple test procedure
 PRINT '';
-PRINT '🔧 Creating test procedure for debugging...';
+PRINT 'ðŸ”§ Creating test procedure for debugging...';
 
 CREATE OR ALTER PROCEDURE sp_GetToysSimpleTest
 AS
@@ -172,22 +172,22 @@ BEGIN
         c.Name as categoryName,
         b.Name as brandName,
         t.IsActive
-    FROM zen50558_ManagementStore.dbo.Toys t
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+    FROM ManagementStore.dbo.Toys t
+    LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+    LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
     WHERE t.IsActive = 1;
 END
 GO
 
-PRINT '✅ sp_GetToysSimpleTest created successfully';
+PRINT 'âœ… sp_GetToysSimpleTest created successfully';
 
 -- Test simple procedure
 BEGIN TRY
     EXEC sp_GetToysSimpleTest;
-    PRINT '✅ sp_GetToysSimpleTest: SUCCESS';
+    PRINT 'âœ… sp_GetToysSimpleTest: SUCCESS';
 END TRY
 BEGIN CATCH
-    PRINT '❌ sp_GetToysSimpleTest: ERROR - ' + ERROR_MESSAGE();
+    PRINT 'âŒ sp_GetToysSimpleTest: ERROR - ' + ERROR_MESSAGE();
 END CATCH
 
 PRINT '';
@@ -195,3 +195,4 @@ PRINT '==============================================';
 PRINT 'TOYS PROCEDURE FIX COMPLETED';
 PRINT '==============================================';
 GO
+

@@ -43,7 +43,7 @@ export async function GET() {
               Description as description,
               Icon as icon,
               Color as color
-            FROM zen50558_ManagementStore.dbo.ToyCategories
+            FROM ManagementStore.dbo.ToyCategories
             WHERE IsActive = 1
             ORDER BY Name
           `;
@@ -165,3 +165,4 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
   }
 }
+

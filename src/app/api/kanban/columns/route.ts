@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         NgayTao as createdAt,
         NgayCapNhat as updatedAt,
         IsActive as isActive
-      FROM zen50558_ManagementStore.dbo.KanbanColumns
+      FROM ManagementStore.dbo.KanbanColumns
       WHERE BoardId = @boardId AND IsActive = 1
       ORDER BY ThuTu ASC
     `;
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
       for (const col of missingColumns) {
         await executeQuery(`
-          INSERT INTO zen50558_ManagementStore.dbo.KanbanColumns
+          INSERT INTO ManagementStore.dbo.KanbanColumns
           (Id, BoardId, TenCot, MaCot, ThuTu, NgayTao, NgayCapNhat, IsActive)
           VALUES (@id, @boardId, @name, @code, @order, SYSUTCDATETIME(), SYSUTCDATETIME(), 1)
         `, {
@@ -82,3 +82,4 @@ export async function GET(request: NextRequest) {
     }, { status: 500 });
   }
 }
+

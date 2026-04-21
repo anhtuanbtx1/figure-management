@@ -1,7 +1,7 @@
--- Performance Analysis for WeddingGuests table
+﻿-- Performance Analysis for WeddingGuests table
 -- This script analyzes current indexes, query performance, and suggests optimizations
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '=== WEDDING GUESTS PERFORMANCE ANALYSIS ===';
@@ -136,3 +136,4 @@ ORDER BY improvement_measure DESC;
 
 PRINT '';
 PRINT '=== ANALYSIS COMPLETE ===';
+

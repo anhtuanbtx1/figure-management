@@ -10,14 +10,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const { title, description, priority, assignee, columnId, startDate, endDate, orderIndex, metadata } = body || {};
 
-    const checkQuery = `SELECT Id FROM zen50558_ManagementStore.dbo.KanbanTasks WHERE Id=@id AND IsActive=1`;
+    const checkQuery = `SELECT Id FROM ManagementStore.dbo.KanbanTasks WHERE Id=@id AND IsActive=1`;
     const exists = await executeQuery(checkQuery, { id: { type: sql.NVarChar, value: id } });
     if (exists.length === 0) {
       return NextResponse.json({ success: false, message: 'Task not found', data: null }, { status: 404 });
     }
 
     const updateQuery = `
-      UPDATE zen50558_ManagementStore.dbo.KanbanTasks
+      UPDATE ManagementStore.dbo.KanbanTasks
       SET TieuDe = ISNULL(@title, TieuDe),
           MoTa = ISNULL(@description, MoTa),
           DoUuTien = ISNULL(@priority, DoUuTien),
@@ -61,7 +61,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const resolvedParams = await params;
     const id = resolvedParams.id;
-    const deleteQuery = `UPDATE zen50558_ManagementStore.dbo.KanbanTasks SET IsActive=0, NgayCapNhat=SYSUTCDATETIME() WHERE Id=@id`;
+    const deleteQuery = `UPDATE ManagementStore.dbo.KanbanTasks SET IsActive=0, NgayCapNhat=SYSUTCDATETIME() WHERE Id=@id`;
     await executeQuery(deleteQuery, { id: { type: sql.NVarChar, value: id } });
     return NextResponse.json({ success: true, message: 'Task deleted', data: { id } });
   } catch (error) {

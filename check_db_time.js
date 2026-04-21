@@ -1,10 +1,10 @@
-const sql = require('mssql');
+﻿const sql = require('mssql');
 require('dotenv').config({path: '.env.local'});
 
 const config = {
   server: process.env.DB_SERVER || '112.78.2.70',
-  database: process.env.DB_DATABASE || 'zen50558_ManagementStore',
-  user: process.env.DB_USER || 'zen50558_ManagementStore',
+  database: process.env.DB_DATABASE || 'ManagementStore',
+  user: process.env.DB_USER || 'ManagementStore',
   password: process.env.DB_PASSWORD || 'Passwordla@123',
   options: {
     encrypt: true,
@@ -27,3 +27,4 @@ async function run() {
   }
 }
 run();
+

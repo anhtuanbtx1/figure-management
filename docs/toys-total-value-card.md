@@ -1,93 +1,93 @@
-# Card Báo Cáo Thống Kê Tổng Giá Trị Đồ Chơi
+﻿# Card BÃ¡o CÃ¡o Thá»‘ng KÃª Tá»•ng GiÃ¡ Trá»‹ Äá»“ ChÆ¡i
 
-## Tổng Quan
+## Tá»•ng Quan
 
-Card báo cáo thống kê tổng giá trị đồ chơi là một component mới được thêm vào dashboard để hiển thị tổng giá trị của tất cả đồ chơi trong hệ thống. Card này tính tổng (SUM) của cột Price từ bảng Toys và hiển thị thông tin một cách trực quan và dễ hiểu.
+Card bÃ¡o cÃ¡o thá»‘ng kÃª tá»•ng giÃ¡ trá»‹ Ä‘á»“ chÆ¡i lÃ  má»™t component má»›i Ä‘Æ°á»£c thÃªm vÃ o dashboard Ä‘á»ƒ hiá»ƒn thá»‹ tá»•ng giÃ¡ trá»‹ cá»§a táº¥t cáº£ Ä‘á»“ chÆ¡i trong há»‡ thá»‘ng. Card nÃ y tÃ­nh tá»•ng (SUM) cá»§a cá»™t Price tá»« báº£ng Toys vÃ  hiá»ƒn thá»‹ thÃ´ng tin má»™t cÃ¡ch trá»±c quan vÃ  dá»… hiá»ƒu.
 
-## Tính Năng
+## TÃ­nh NÄƒng
 
-### 1. Hiển Thị Thông Tin
-- **Tổng giá trị**: Tổng giá trị của tất cả đồ chơi (SUM của Price)
-- **Số lượng sản phẩm**: Tổng số đồ chơi được tính
-- **Giá trung bình**: Giá trung bình của các đồ chơi
-- **Tiến độ mục tiêu**: Thanh tiến độ so với mục tiêu 100 triệu VNĐ
+### 1. Hiá»ƒn Thá»‹ ThÃ´ng Tin
+- **Tá»•ng giÃ¡ trá»‹**: Tá»•ng giÃ¡ trá»‹ cá»§a táº¥t cáº£ Ä‘á»“ chÆ¡i (SUM cá»§a Price)
+- **Sá»‘ lÆ°á»£ng sáº£n pháº©m**: Tá»•ng sá»‘ Ä‘á»“ chÆ¡i Ä‘Æ°á»£c tÃ­nh
+- **GiÃ¡ trung bÃ¬nh**: GiÃ¡ trung bÃ¬nh cá»§a cÃ¡c Ä‘á»“ chÆ¡i
+- **Tiáº¿n Ä‘á»™ má»¥c tiÃªu**: Thanh tiáº¿n Ä‘á»™ so vá»›i má»¥c tiÃªu 100 triá»‡u VNÄ
 
-### 2. Format Hiển Thị
-- Định dạng tiền tệ VND theo chuẩn Việt Nam
-- Tự động chuyển đổi đơn vị (VNĐ, K VNĐ, triệu VNĐ, tỷ VNĐ)
-- Responsive design phù hợp với mọi kích thước màn hình
+### 2. Format Hiá»ƒn Thá»‹
+- Äá»‹nh dáº¡ng tiá»n tá»‡ VND theo chuáº©n Viá»‡t Nam
+- Tá»± Ä‘á»™ng chuyá»ƒn Ä‘á»•i Ä‘Æ¡n vá»‹ (VNÄ, K VNÄ, triá»‡u VNÄ, tá»· VNÄ)
+- Responsive design phÃ¹ há»£p vá»›i má»i kÃ­ch thÆ°á»›c mÃ n hÃ¬nh
 
-### 3. Trạng Thái
-- **Loading**: Hiển thị progress bar khi đang tải dữ liệu
-- **Error**: Hiển thị thông báo lỗi với nút "Thử lại"
-- **Success**: Hiển thị đầy đủ thông tin thống kê
+### 3. Tráº¡ng ThÃ¡i
+- **Loading**: Hiá»ƒn thá»‹ progress bar khi Ä‘ang táº£i dá»¯ liá»‡u
+- **Error**: Hiá»ƒn thá»‹ thÃ´ng bÃ¡o lá»—i vá»›i nÃºt "Thá»­ láº¡i"
+- **Success**: Hiá»ƒn thá»‹ Ä‘áº§y Ä‘á»§ thÃ´ng tin thá»‘ng kÃª
 
-## Cấu Trúc Kỹ Thuật
+## Cáº¥u TrÃºc Ká»¹ Thuáº­t
 
 ### 1. Database Layer
 **File**: `database/create-toys-total-value-procedure.sql`
 
-Stored procedure `sp_GetToysTotalValueForFrontend` với các tính năng:
-- Tính SUM(Price) từ bảng `zen50558_ManagementStore.dbo.Toys`
-- Hỗ trợ các bộ lọc: search, categoryId, brandName, status, priceRange, ageRange, inStock
-- Trả về: totalValue, totalCount, averagePrice, minPrice, maxPrice
-- Chỉ tính các record có `IsActive = 1` (soft delete aware)
+Stored procedure `sp_GetToysTotalValueForFrontend` vá»›i cÃ¡c tÃ­nh nÄƒng:
+- TÃ­nh SUM(Price) tá»« báº£ng `ManagementStore.dbo.Toys`
+- Há»— trá»£ cÃ¡c bá»™ lá»c: search, categoryId, brandName, status, priceRange, ageRange, inStock
+- Tráº£ vá»: totalValue, totalCount, averagePrice, minPrice, maxPrice
+- Chá»‰ tÃ­nh cÃ¡c record cÃ³ `IsActive = 1` (soft delete aware)
 
 ### 2. API Layer
 **File**: `src/app/api/toys/total-value/route.ts`
 
-API endpoint `/api/toys/total-value` với:
+API endpoint `/api/toys/total-value` vá»›i:
 - Method: GET
-- Query parameters hỗ trợ filtering
-- Response format JSON chuẩn
-- Error handling đầy đủ
-- Logging chi tiết
+- Query parameters há»— trá»£ filtering
+- Response format JSON chuáº©n
+- Error handling Ä‘áº§y Ä‘á»§
+- Logging chi tiáº¿t
 
 ### 3. Hook Layer
 **File**: `src/hooks/useToysTotalValue.ts`
 
-Custom hook `useToysTotalValue` cung cấp:
+Custom hook `useToysTotalValue` cung cáº¥p:
 - State management (data, loading, error)
-- Auto-refresh khi filters thay đổi
+- Auto-refresh khi filters thay Ä‘á»•i
 - Helper functions: formatVND, formatNumber
-- TypeScript interfaces đầy đủ
+- TypeScript interfaces Ä‘áº§y Ä‘á»§
 
 ### 4. Component Layer
 **File**: `src/app/components/dashboards/modern/ToysTotalValueCard.tsx`
 
-React component với:
+React component vá»›i:
 - Material-UI design system
-- Gradient background với primary theme
+- Gradient background vá»›i primary theme
 - Loading skeleton
-- Error state với retry button
-- Progress bar cho mục tiêu
+- Error state vá»›i retry button
+- Progress bar cho má»¥c tiÃªu
 - Responsive layout
 
-## Cách Sử Dụng
+## CÃ¡ch Sá»­ Dá»¥ng
 
-### 1. Chạy Stored Procedure
+### 1. Cháº¡y Stored Procedure
 ```sql
--- Chạy file tạo stored procedure
--- Trong SQL Server Management Studio hoặc Azure Data Studio
--- Mở và execute file: database/create-toys-total-value-procedure.sql
+-- Cháº¡y file táº¡o stored procedure
+-- Trong SQL Server Management Studio hoáº·c Azure Data Studio
+-- Má»Ÿ vÃ  execute file: database/create-toys-total-value-procedure.sql
 
 -- Test stored procedure
 EXEC sp_GetToysTotalValueForFrontend;
 
--- Test với filters
+-- Test vá»›i filters
 EXEC sp_GetToysTotalValueForFrontend @Status = 'active', @MinPrice = 100000;
 ```
 
 ### 2. Test API Endpoint
 ```bash
-# Test API endpoint cơ bản
+# Test API endpoint cÆ¡ báº£n
 curl http://localhost:3000/api/toys/total-value
 
-# Test với filters
+# Test vá»›i filters
 curl "http://localhost:3000/api/toys/total-value?status=active&minPrice=100000"
 ```
 
-### 3. Sử Dụng Component
+### 3. Sá»­ Dá»¥ng Component
 ```tsx
 import ToysTotalValueCard from '@/app/components/dashboards/modern/ToysTotalValueCard';
 
@@ -95,7 +95,7 @@ import ToysTotalValueCard from '@/app/components/dashboards/modern/ToysTotalValu
 <ToysTotalValueCard isLoading={false} />
 ```
 
-### 4. Sử Dụng Hook
+### 4. Sá»­ Dá»¥ng Hook
 ```tsx
 import { useToysTotalValue } from '@/hooks/useToysTotalValue';
 
@@ -106,28 +106,28 @@ const { data, loading, error, refresh } = useToysTotalValue({
 });
 ```
 
-## Vị Trí Trong Dashboard
+## Vá»‹ TrÃ­ Trong Dashboard
 
-Card được tích hợp vào 2 trang dashboard:
+Card Ä‘Æ°á»£c tÃ­ch há»£p vÃ o 2 trang dashboard:
 
-1. **Trang chủ**: `/` - `src/app/(DashboardLayout)/page.tsx`
+1. **Trang chá»§**: `/` - `src/app/(DashboardLayout)/page.tsx`
 2. **Dashboard Modern**: `/dashboards/modern` - `src/app/(DashboardLayout)/dashboards/modern/page.tsx`
 
-Vị trí: Grid item `xs={12} lg={4}` - chiếm 1/3 width trên desktop, full width trên mobile.
+Vá»‹ trÃ­: Grid item `xs={12} lg={4}` - chiáº¿m 1/3 width trÃªn desktop, full width trÃªn mobile.
 
 ## Customization
 
-### 1. Thay Đổi Mục Tiêu
-Trong file `ToysTotalValueCard.tsx`, thay đổi:
+### 1. Thay Äá»•i Má»¥c TiÃªu
+Trong file `ToysTotalValueCard.tsx`, thay Ä‘á»•i:
 ```tsx
 const targetValue = 100000000; // 100 million VND
 ```
 
-### 2. Thay Đổi Theme Color
-Card sử dụng `theme.palette.primary` - có thể thay đổi trong theme configuration.
+### 2. Thay Äá»•i Theme Color
+Card sá»­ dá»¥ng `theme.palette.primary` - cÃ³ thá»ƒ thay Ä‘á»•i trong theme configuration.
 
-### 3. Thêm Filters
-Có thể truyền filters vào hook:
+### 3. ThÃªm Filters
+CÃ³ thá»ƒ truyá»n filters vÃ o hook:
 ```tsx
 const { data } = useToysTotalValue({
   status: 'active',
@@ -157,34 +157,34 @@ npm run test:integration -- --testPathPattern=toys-total-value
 ```
 
 ### 3. Manual Testing
-1. Mở dashboard: `http://localhost:3000`
-2. Kiểm tra card hiển thị đúng
-3. Test responsive trên mobile
+1. Má»Ÿ dashboard: `http://localhost:3000`
+2. Kiá»ƒm tra card hiá»ƒn thá»‹ Ä‘Ãºng
+3. Test responsive trÃªn mobile
 4. Test error handling (disconnect database)
 5. Test loading state
 
 ## Troubleshooting
 
-### 1. Card Không Hiển Thị
-- Kiểm tra stored procedure đã được tạo
-- Kiểm tra database connection
+### 1. Card KhÃ´ng Hiá»ƒn Thá»‹
+- Kiá»ƒm tra stored procedure Ä‘Ã£ Ä‘Æ°á»£c táº¡o
+- Kiá»ƒm tra database connection
 - Xem console logs cho errors
 
-### 2. Dữ Liệu Không Chính Xác
+### 2. Dá»¯ Liá»‡u KhÃ´ng ChÃ­nh XÃ¡c
 - Verify stored procedure logic
 - Check database data integrity
-- Test API endpoint trực tiếp
+- Test API endpoint trá»±c tiáº¿p
 
 ### 3. Performance Issues
-- Kiểm tra database indexes
+- Kiá»ƒm tra database indexes
 - Monitor API response time
 - Consider caching strategies
 
 ## Maintenance
 
 ### 1. Database
-- Định kỳ kiểm tra performance của stored procedure
-- Update indexes nếu cần
+- Äá»‹nh ká»³ kiá»ƒm tra performance cá»§a stored procedure
+- Update indexes náº¿u cáº§n
 - Monitor query execution time
 
 ### 2. API
@@ -196,3 +196,4 @@ npm run test:integration -- --testPathPattern=toys-total-value
 - Update dependencies
 - Monitor bundle size
 - Test cross-browser compatibility
+

@@ -1,11 +1,11 @@
--- =============================================
+﻿-- =============================================
 -- REMINDER SYSTEM PERFORMANCE OPTIMIZATION
 -- =============================================
--- Script tối ưu hóa hiệu năng cho hệ thống nhắc nhở
--- Bao gồm: Indexes, Query hints, Statistics
+-- Script tá»‘i Æ°u hÃ³a hiá»‡u nÄƒng cho há»‡ thá»‘ng nháº¯c nhá»Ÿ
+-- Bao gá»“m: Indexes, Query hints, Statistics
 -- =============================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '=== REMINDER SYSTEM PERFORMANCE OPTIMIZATION ===';
@@ -23,7 +23,7 @@ BEGIN
     CREATE INDEX IX_Reminders_Active_NextTrigger 
     ON Reminders(isActive, isPaused, nextTriggerDate)
     INCLUDE (title, description, priority, telegramChatIds);
-    PRINT '✅ Created IX_Reminders_Active_NextTrigger';
+    PRINT 'âœ… Created IX_Reminders_Active_NextTrigger';
 END
 
 -- Index for date range queries
@@ -32,7 +32,7 @@ BEGIN
     CREATE INDEX IX_Reminders_DateRange 
     ON Reminders(startDate, endDate)
     WHERE isActive = 1;
-    PRINT '✅ Created IX_Reminders_DateRange';
+    PRINT 'âœ… Created IX_Reminders_DateRange';
 END
 
 -- Index for notification history queries
@@ -41,7 +41,7 @@ BEGIN
     CREATE INDEX IX_NotificationHistory_Reminder_Status 
     ON NotificationHistory(reminderId, status, sentDate DESC)
     INCLUDE (recipient, errorMessage);
-    PRINT '✅ Created IX_NotificationHistory_Reminder_Status';
+    PRINT 'âœ… Created IX_NotificationHistory_Reminder_Status';
 END
 
 -- Index for pending notifications
@@ -50,7 +50,7 @@ BEGIN
     CREATE INDEX IX_NotificationHistory_Pending 
     ON NotificationHistory(status, scheduledDate)
     WHERE status = 'pending';
-    PRINT '✅ Created IX_NotificationHistory_Pending';
+    PRINT 'âœ… Created IX_NotificationHistory_Pending';
 END
 
 -- Index for subscriber lookups
@@ -60,7 +60,7 @@ BEGIN
     ON ReminderSubscribers(reminderId, isActive)
     INCLUDE (subscriberName, subscriberAddress, mutedUntil)
     WHERE isActive = 1;
-    PRINT '✅ Created IX_ReminderSubscribers_Active';
+    PRINT 'âœ… Created IX_ReminderSubscribers_Active';
 END
 
 PRINT '';
@@ -108,7 +108,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ Created sp_GetTodayReminders';
+PRINT 'âœ… Created sp_GetTodayReminders';
 
 -- Procedure to get upcoming reminders with pagination
 IF EXISTS (SELECT * FROM sysobjects WHERE name='sp_GetUpcomingReminders' AND xtype='P')
@@ -165,7 +165,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ Created sp_GetUpcomingReminders';
+PRINT 'âœ… Created sp_GetUpcomingReminders';
 
 -- Procedure to log notification
 IF EXISTS (SELECT * FROM sysobjects WHERE name='sp_LogNotification' AND xtype='P')
@@ -228,7 +228,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ Created sp_LogNotification';
+PRINT 'âœ… Created sp_LogNotification';
 
 -- =============================================
 -- 3. MAINTENANCE PROCEDURES
@@ -269,7 +269,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ Created sp_CleanupNotificationHistory';
+PRINT 'âœ… Created sp_CleanupNotificationHistory';
 
 -- =============================================
 -- 4. FUNCTIONS FOR BUSINESS LOGIC
@@ -333,7 +333,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ Created fn_CalculateNextReminderDate';
+PRINT 'âœ… Created fn_CalculateNextReminderDate';
 
 -- =============================================
 -- 5. PERFORMANCE MONITORING
@@ -363,7 +363,7 @@ SELECT
 FROM Reminders;
 GO
 
-PRINT '✅ Created vw_ReminderStatistics';
+PRINT 'âœ… Created vw_ReminderStatistics';
 
 -- View for notification performance
 IF EXISTS (SELECT * FROM sysobjects WHERE name='vw_NotificationPerformance' AND xtype='V')
@@ -386,7 +386,7 @@ WHERE scheduledDate >= DATEADD(DAY, -30, GETDATE())
 GROUP BY CAST(scheduledDate AS DATE);
 GO
 
-PRINT '✅ Created vw_NotificationPerformance';
+PRINT 'âœ… Created vw_NotificationPerformance';
 
 -- =============================================
 -- 6. UPDATE STATISTICS
@@ -400,7 +400,7 @@ UPDATE STATISTICS NotificationTemplates WITH FULLSCAN;
 UPDATE STATISTICS NotificationHistory WITH FULLSCAN;
 UPDATE STATISTICS ReminderSubscribers WITH FULLSCAN;
 
-PRINT '✅ Statistics updated';
+PRINT 'âœ… Statistics updated';
 
 -- =============================================
 -- 7. PERFORMANCE TEST
@@ -430,7 +430,7 @@ SET STATISTICS IO OFF;
 
 -- =============================================
 PRINT '';
-PRINT '✅ REMINDER SYSTEM OPTIMIZATION COMPLETED!';
+PRINT 'âœ… REMINDER SYSTEM OPTIMIZATION COMPLETED!';
 PRINT '================================================';
 PRINT 'Performance improvements:';
 PRINT '  - Added 5 optimized indexes';

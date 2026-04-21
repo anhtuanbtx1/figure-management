@@ -24,7 +24,7 @@ export async function GET() {
           // Fallback to direct query with fully qualified names
           const query = `
             SELECT DISTINCT Name as brand
-            FROM zen50558_ManagementStore.dbo.ToyBrands
+            FROM ManagementStore.dbo.ToyBrands
             WHERE IsActive = 1
             ORDER BY Name
           `;
@@ -140,3 +140,4 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
   }
 }
+

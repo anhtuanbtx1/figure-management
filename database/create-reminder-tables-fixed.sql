@@ -1,11 +1,11 @@
--- ========================================
+﻿-- ========================================
 -- REMINDER SYSTEM DATABASE SCHEMA
 -- ========================================
 -- Script to create all tables for Reminder System
--- Database: zen50558_ManagementStore
+-- Database: ManagementStore
 -- ========================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '=== CREATING REMINDER SYSTEM TABLES ===';

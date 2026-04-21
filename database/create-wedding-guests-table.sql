@@ -1,7 +1,7 @@
--- Create WeddingGuests table with all required fields
+﻿-- Create WeddingGuests table with all required fields
 -- This script ensures the table has all necessary columns for the event guests feature
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 -- Drop table if exists (for clean recreation)
@@ -53,11 +53,11 @@ PRINT 'WeddingGuests table created successfully with all required fields';
 
 -- Insert sample data
 INSERT INTO WeddingGuests (name, unit, numberOfPeople, giftAmount, status, relationship, notes, createdBy) VALUES
-(N'Nguyễn Văn An', N'OTS', 2, 1000000, 'Going', N'Bạn bè', N'Bạn thân từ thời đại học', 'System'),
-(N'Trần Thị Bình', N'Eximbank', 1, 2000000, 'Going', N'Đồng nghiệp', N'Cùng phòng ban', 'System'),
-(N'Lê Minh Cường', N'Bên nội', 3, 500000, 'Pending', N'Họ hàng', N'Anh trai', 'System'),
-(N'Phạm Thu Dung', N'Bạn bè', 2, 3000000, 'Going', N'Bạn bè', N'Bạn thân từ nhỏ', 'System'),
-(N'Hoàng Văn Em', N'Bên ngoại', 4, 1500000, 'Maybe', N'Họ hàng', N'Chú ruột', 'System');
+(N'Nguyá»…n VÄƒn An', N'OTS', 2, 1000000, 'Going', N'Báº¡n bÃ¨', N'Báº¡n thÃ¢n tá»« thá»i Ä‘áº¡i há»c', 'System'),
+(N'Tráº§n Thá»‹ BÃ¬nh', N'Eximbank', 1, 2000000, 'Going', N'Äá»“ng nghiá»‡p', N'CÃ¹ng phÃ²ng ban', 'System'),
+(N'LÃª Minh CÆ°á»ng', N'BÃªn ná»™i', 3, 500000, 'Pending', N'Há» hÃ ng', N'Anh trai', 'System'),
+(N'Pháº¡m Thu Dung', N'Báº¡n bÃ¨', 2, 3000000, 'Going', N'Báº¡n bÃ¨', N'Báº¡n thÃ¢n tá»« nhá»', 'System'),
+(N'HoÃ ng VÄƒn Em', N'BÃªn ngoáº¡i', 4, 1500000, 'Maybe', N'Há» hÃ ng', N'ChÃº ruá»™t', 'System');
 
 PRINT 'Sample data inserted successfully';
 
@@ -76,3 +76,4 @@ PRINT 'Table structure verification completed';
 -- Show sample data
 SELECT TOP 3 * FROM WeddingGuests;
 PRINT 'Sample data verification completed';
+

@@ -15,7 +15,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Get current column of the task
     const taskResult = await executeQuery<any>(
-      `SELECT ColumnId FROM zen50558_ManagementStore.dbo.KanbanTasks WHERE Id=@id`,
+      `SELECT ColumnId FROM ManagementStore.dbo.KanbanTasks WHERE Id=@id`,
       { id: { type: sql.NVarChar, value: id } }
     );
     const task = taskResult[0];
@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Shift tasks in destination column to make room
     await executeQuery(
-      `UPDATE zen50558_ManagementStore.dbo.KanbanTasks
+      `UPDATE ManagementStore.dbo.KanbanTasks
        SET ThuTu = ThuTu + 1
        WHERE BoardId=@boardId AND ColumnId=@toColumnId AND IsActive=1 AND ThuTu >= @toPosition`,
       {
@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Move the task
     await executeQuery(
-      `UPDATE zen50558_ManagementStore.dbo.KanbanTasks
+      `UPDATE ManagementStore.dbo.KanbanTasks
        SET ColumnId=@toColumnId, ThuTu=@toPosition, NgayCapNhat=SYSUTCDATETIME()
        WHERE Id=@id`,
       {
@@ -50,12 +50,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       await executeQuery(
         `WITH IndexedTasks AS (
             SELECT Id, ROW_NUMBER() OVER(ORDER BY ThuTu ASC, NgayCapNhat DESC, NgayTao ASC) as RowNum
-            FROM zen50558_ManagementStore.dbo.KanbanTasks
+            FROM ManagementStore.dbo.KanbanTasks
             WHERE BoardId=@boardId AND ColumnId=@colId AND IsActive=1
          )
          UPDATE T
          SET T.ThuTu = I.RowNum
-         FROM zen50558_ManagementStore.dbo.KanbanTasks T
+         FROM ManagementStore.dbo.KanbanTasks T
          INNER JOIN IndexedTasks I ON T.Id = I.Id`,
         {
           boardId: { type: sql.NVarChar, value: boardId },

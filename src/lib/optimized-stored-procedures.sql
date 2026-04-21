@@ -1,4 +1,4 @@
--- =============================================
+﻿-- =============================================
 -- Optimized Stored Procedures for Figure Management
 -- Version: 2.0 - Performance Optimized
 -- =============================================
@@ -92,9 +92,9 @@ BEGIN
         ISNULL(t.IsNew, 0) as isNew,
         ISNULL(t.IsFeatured, 0) as isFeatured,
         ISNULL(t.Discount, 0) as discount
-    FROM zen50558_ManagementStore.dbo.Toys t WITH (NOLOCK, INDEX(IX_Toys_IsActive_CreatedAt))
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c WITH (NOLOCK) ON t.CategoryId = c.Id
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
+    FROM ManagementStore.dbo.Toys t WITH (NOLOCK, INDEX(IX_Toys_IsActive_CreatedAt))
+    LEFT JOIN ManagementStore.dbo.ToyCategories c WITH (NOLOCK) ON t.CategoryId = c.Id
+    LEFT JOIN ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
     ' + @WhereClause + '
     ORDER BY ' + @OrderClause + '
     OFFSET ' + CAST(@Offset AS NVARCHAR(10)) + ' ROWS
@@ -140,17 +140,17 @@ BEGIN
     
     BEGIN TRY
         -- Get or create brand
-        SELECT @BrandId = Id FROM zen50558_ManagementStore.dbo.ToyBrands WHERE Name = @Brand;
+        SELECT @BrandId = Id FROM ManagementStore.dbo.ToyBrands WHERE Name = @Brand;
         
         IF @BrandId IS NULL
         BEGIN
             SET @BrandId = NEWID();
-            INSERT INTO zen50558_ManagementStore.dbo.ToyBrands (Id, Name, CreatedAt, UpdatedAt, IsActive)
+            INSERT INTO ManagementStore.dbo.ToyBrands (Id, Name, CreatedAt, UpdatedAt, IsActive)
             VALUES (@BrandId, @Brand, @Now, @Now, 1);
         END
         
         -- Insert toy with optimized fields
-        INSERT INTO zen50558_ManagementStore.dbo.Toys (
+        INSERT INTO ManagementStore.dbo.Toys (
             Id, Name, Description, Image, CategoryId, BrandId, Price, OriginalPrice,
             Stock, Status, AgeRange, Material, DimensionLength, DimensionWidth, 
             DimensionHeight, Weight, Colors, Tags, Rating, ReviewCount,
@@ -189,9 +189,9 @@ BEGIN
             ISNULL(t.IsNew, 0) as isNew,
             ISNULL(t.IsFeatured, 0) as isFeatured,
             ISNULL(t.Discount, 0) as discount
-        FROM zen50558_ManagementStore.dbo.Toys t
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-        LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+        FROM ManagementStore.dbo.Toys t
+        LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+        LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
         WHERE t.Id = @NewId;
         
         COMMIT TRANSACTION;
@@ -241,7 +241,7 @@ BEGIN
         END
         
         -- Soft delete (set IsActive = 0) for better performance and data integrity
-        UPDATE zen50558_ManagementStore.dbo.Toys 
+        UPDATE ManagementStore.dbo.Toys 
         SET IsActive = 0, UpdatedAt = GETDATE()
         WHERE Id IN (SELECT Id FROM #ToyIdsToDelete)
           AND IsActive = 1;
@@ -333,86 +333,86 @@ GO
 PRINT 'Creating optimized indexes for better query performance...';
 
 -- Toys table indexes
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_IsActive_CreatedAt' AND object_id = OBJECT_ID('zen50558_ManagementStore.dbo.Toys'))
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_IsActive_CreatedAt' AND object_id = OBJECT_ID('ManagementStore.dbo.Toys'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Toys_IsActive_CreatedAt 
-    ON zen50558_ManagementStore.dbo.Toys (IsActive, CreatedAt DESC)
+    ON ManagementStore.dbo.Toys (IsActive, CreatedAt DESC)
     INCLUDE (Id, Name, Price, Stock, Status);
-    PRINT '✅ Created index: IX_Toys_IsActive_CreatedAt';
+    PRINT 'âœ… Created index: IX_Toys_IsActive_CreatedAt';
 END
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_CategoryId_IsActive' AND object_id = OBJECT_ID('zen50558_ManagementStore.dbo.Toys'))
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_CategoryId_IsActive' AND object_id = OBJECT_ID('ManagementStore.dbo.Toys'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Toys_CategoryId_IsActive 
-    ON zen50558_ManagementStore.dbo.Toys (CategoryId, IsActive)
+    ON ManagementStore.dbo.Toys (CategoryId, IsActive)
     INCLUDE (Name, Price, Stock, CreatedAt);
-    PRINT '✅ Created index: IX_Toys_CategoryId_IsActive';
+    PRINT 'âœ… Created index: IX_Toys_CategoryId_IsActive';
 END
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_BrandId_IsActive' AND object_id = OBJECT_ID('zen50558_ManagementStore.dbo.Toys'))
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_BrandId_IsActive' AND object_id = OBJECT_ID('ManagementStore.dbo.Toys'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Toys_BrandId_IsActive 
-    ON zen50558_ManagementStore.dbo.Toys (BrandId, IsActive)
+    ON ManagementStore.dbo.Toys (BrandId, IsActive)
     INCLUDE (Name, Price, Stock, CreatedAt);
-    PRINT '✅ Created index: IX_Toys_BrandId_IsActive';
+    PRINT 'âœ… Created index: IX_Toys_BrandId_IsActive';
 END
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_Price_IsActive' AND object_id = OBJECT_ID('zen50558_ManagementStore.dbo.Toys'))
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_Price_IsActive' AND object_id = OBJECT_ID('ManagementStore.dbo.Toys'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Toys_Price_IsActive 
-    ON zen50558_ManagementStore.dbo.Toys (Price, IsActive)
+    ON ManagementStore.dbo.Toys (Price, IsActive)
     INCLUDE (Id, Name, CategoryId, Stock);
-    PRINT '✅ Created index: IX_Toys_Price_IsActive';
+    PRINT 'âœ… Created index: IX_Toys_Price_IsActive';
 END
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_Name_IsActive' AND object_id = OBJECT_ID('zen50558_ManagementStore.dbo.Toys'))
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Toys_Name_IsActive' AND object_id = OBJECT_ID('ManagementStore.dbo.Toys'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Toys_Name_IsActive 
-    ON zen50558_ManagementStore.dbo.Toys (Name, IsActive);
-    PRINT '✅ Created index: IX_Toys_Name_IsActive';
+    ON ManagementStore.dbo.Toys (Name, IsActive);
+    PRINT 'âœ… Created index: IX_Toys_Name_IsActive';
 END
 
 -- ToyBrands table indexes
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ToyBrands_Name_IsActive' AND object_id = OBJECT_ID('zen50558_ManagementStore.dbo.ToyBrands'))
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ToyBrands_Name_IsActive' AND object_id = OBJECT_ID('ManagementStore.dbo.ToyBrands'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_ToyBrands_Name_IsActive 
-    ON zen50558_ManagementStore.dbo.ToyBrands (Name, IsActive);
-    PRINT '✅ Created index: IX_ToyBrands_Name_IsActive';
+    ON ManagementStore.dbo.ToyBrands (Name, IsActive);
+    PRINT 'âœ… Created index: IX_ToyBrands_Name_IsActive';
 END
 
 -- ToyCategories table indexes  
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ToyCategories_Name_IsActive' AND object_id = OBJECT_ID('zen50558_ManagementStore.dbo.ToyCategories'))
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ToyCategories_Name_IsActive' AND object_id = OBJECT_ID('ManagementStore.dbo.ToyCategories'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_ToyCategories_Name_IsActive 
-    ON zen50558_ManagementStore.dbo.ToyCategories (Name, IsActive);
-    PRINT '✅ Created index: IX_ToyCategories_Name_IsActive';
+    ON ManagementStore.dbo.ToyCategories (Name, IsActive);
+    PRINT 'âœ… Created index: IX_ToyCategories_Name_IsActive';
 END
 
-PRINT '🚀 All optimized indexes created successfully!';
+PRINT 'ðŸš€ All optimized indexes created successfully!';
 GO
 
 -- 6. Update Table Statistics for Better Query Plans
 -- =============================================
 PRINT 'Updating table statistics for optimal query performance...';
 
-UPDATE STATISTICS zen50558_ManagementStore.dbo.Toys;
-UPDATE STATISTICS zen50558_ManagementStore.dbo.ToyCategories;
-UPDATE STATISTICS zen50558_ManagementStore.dbo.ToyBrands;
+UPDATE STATISTICS ManagementStore.dbo.Toys;
+UPDATE STATISTICS ManagementStore.dbo.ToyCategories;
+UPDATE STATISTICS ManagementStore.dbo.ToyBrands;
 
-PRINT '📊 Table statistics updated successfully!';
+PRINT 'ðŸ“Š Table statistics updated successfully!';
 GO
 
 PRINT '==============================================';
-PRINT '🎉 All optimized stored procedures and indexes have been created successfully!';
+PRINT 'ðŸŽ‰ All optimized stored procedures and indexes have been created successfully!';
 PRINT '==============================================';
 PRINT '';
 PRINT 'Performance Improvements:';
-PRINT '- ✅ Cached query execution with TTL';
-PRINT '- ✅ Optimized stored procedures with proper indexing hints';
-PRINT '- ✅ Enhanced error handling and transaction management';
-PRINT '- ✅ Bulk operations with proper validation';
-PRINT '- ✅ Performance monitoring capabilities';
-PRINT '- ✅ Strategic database indexes for common query patterns';
+PRINT '- âœ… Cached query execution with TTL';
+PRINT '- âœ… Optimized stored procedures with proper indexing hints';
+PRINT '- âœ… Enhanced error handling and transaction management';
+PRINT '- âœ… Bulk operations with proper validation';
+PRINT '- âœ… Performance monitoring capabilities';
+PRINT '- âœ… Strategic database indexes for common query patterns';
 PRINT '';
 PRINT 'Next Steps:';
 PRINT '1. Replace existing API routes with optimized versions';

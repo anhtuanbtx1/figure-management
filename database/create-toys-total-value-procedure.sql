@@ -1,4 +1,4 @@
--- =====================================================
+﻿-- =====================================================
 -- CREATE STORED PROCEDURE FOR TOYS TOTAL VALUE
 -- =====================================================
 -- This procedure calculates the total value (SUM of Price) of toys
@@ -7,22 +7,22 @@
 -- Date: 2025-08-27
 -- =====================================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
-PRINT '🚀 Creating stored procedure for toys total value calculation...';
+PRINT 'ðŸš€ Creating stored procedure for toys total value calculation...';
 PRINT '';
 
 -- Drop existing procedure if it exists
 IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_GetToysTotalValueForFrontend')
 BEGIN
     DROP PROCEDURE sp_GetToysTotalValueForFrontend;
-    PRINT '🗑️ Dropped existing sp_GetToysTotalValueForFrontend';
+    PRINT 'ðŸ—‘ï¸ Dropped existing sp_GetToysTotalValueForFrontend';
 END
 GO
 
 -- Create the total value stored procedure
-PRINT '🔧 Creating sp_GetToysTotalValueForFrontend...';
+PRINT 'ðŸ”§ Creating sp_GetToysTotalValueForFrontend...';
 GO
 
 CREATE PROCEDURE sp_GetToysTotalValueForFrontend
@@ -45,9 +45,9 @@ BEGIN
         ISNULL(AVG(t.Price), 0) as averagePrice,
         ISNULL(MIN(t.Price), 0) as minPrice,
         ISNULL(MAX(t.Price), 0) as maxPrice
-    FROM zen50558_ManagementStore.dbo.Toys t
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+    FROM ManagementStore.dbo.Toys t
+    LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+    LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
     WHERE t.IsActive = 1
         -- Apply filters only if provided
         AND (@Search IS NULL OR @Search = '' OR t.Name LIKE '%' + @Search + '%' OR t.Description LIKE '%' + @Search + '%')
@@ -61,11 +61,11 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_GetToysTotalValueForFrontend created successfully';
+PRINT 'âœ… sp_GetToysTotalValueForFrontend created successfully';
 PRINT '';
 
 -- Test the new procedure
-PRINT '🧪 Testing the total value procedure...';
+PRINT 'ðŸ§ª Testing the total value procedure...';
 PRINT '';
 
 -- Test 1: Get total value of all active toys
@@ -90,13 +90,13 @@ BEGIN TRY
         @avgPrice = averagePrice
     FROM @result;
     
-    PRINT '✅ Test 1 - Total value of all active toys:';
-    PRINT '   Total Value: ' + FORMAT(@totalValue, 'N0', 'vi-VN') + ' VNĐ';
+    PRINT 'âœ… Test 1 - Total value of all active toys:';
+    PRINT '   Total Value: ' + FORMAT(@totalValue, 'N0', 'vi-VN') + ' VNÄ';
     PRINT '   Total Count: ' + CAST(@totalCount AS NVARCHAR(10)) + ' toys';
-    PRINT '   Average Price: ' + FORMAT(@avgPrice, 'N0', 'vi-VN') + ' VNĐ';
+    PRINT '   Average Price: ' + FORMAT(@avgPrice, 'N0', 'vi-VN') + ' VNÄ';
 END TRY
 BEGIN CATCH
-    PRINT '❌ Test 1 failed: ' + ERROR_MESSAGE();
+    PRINT 'âŒ Test 1 failed: ' + ERROR_MESSAGE();
 END CATCH
 
 PRINT '';
@@ -119,12 +119,12 @@ BEGIN TRY
         @totalCount = totalCount
     FROM @result2;
     
-    PRINT '✅ Test 2 - Total value of active status toys:';
-    PRINT '   Total Value: ' + FORMAT(@totalValue, 'N0', 'vi-VN') + ' VNĐ';
+    PRINT 'âœ… Test 2 - Total value of active status toys:';
+    PRINT '   Total Value: ' + FORMAT(@totalValue, 'N0', 'vi-VN') + ' VNÄ';
     PRINT '   Total Count: ' + CAST(@totalCount AS NVARCHAR(10)) + ' toys';
 END TRY
 BEGIN CATCH
-    PRINT '❌ Test 2 failed: ' + ERROR_MESSAGE();
+    PRINT 'âŒ Test 2 failed: ' + ERROR_MESSAGE();
 END CATCH
 
 PRINT '';
@@ -147,16 +147,16 @@ BEGIN TRY
         @totalCount = totalCount
     FROM @result3;
     
-    PRINT '✅ Test 3 - Total value of toys between 100K-1M VNĐ:';
-    PRINT '   Total Value: ' + FORMAT(@totalValue, 'N0', 'vi-VN') + ' VNĐ';
+    PRINT 'âœ… Test 3 - Total value of toys between 100K-1M VNÄ:';
+    PRINT '   Total Value: ' + FORMAT(@totalValue, 'N0', 'vi-VN') + ' VNÄ';
     PRINT '   Total Count: ' + CAST(@totalCount AS NVARCHAR(10)) + ' toys';
 END TRY
 BEGIN CATCH
-    PRINT '❌ Test 3 failed: ' + ERROR_MESSAGE();
+    PRINT 'âŒ Test 3 failed: ' + ERROR_MESSAGE();
 END CATCH
 
 PRINT '';
-PRINT '🎉 Stored procedure creation and testing completed!';
+PRINT 'ðŸŽ‰ Stored procedure creation and testing completed!';
 PRINT '';
 PRINT 'Usage examples:';
 PRINT '  -- Get total value of all active toys:';
@@ -165,3 +165,4 @@ PRINT '';
 PRINT '  -- Get total value with filters:';
 PRINT '  EXEC sp_GetToysTotalValueForFrontend @Status = ''active'', @MinPrice = 100000;';
 PRINT '';
+

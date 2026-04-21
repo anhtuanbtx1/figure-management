@@ -1,4 +1,4 @@
--- =====================================================
+﻿-- =====================================================
 -- Invoices Schema & Stored Procedures for Frontend (v2)
 -- Key Changes:
 -- 1. Invoices.Id is now INT IDENTITY(1,1) PRIMARY KEY.
@@ -7,17 +7,17 @@
 -- 4. All procedures now use INT for Ids.
 -- 5. InvoiceNumber remains NVARCHAR, as requested.
 -- =====================================================
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
-PRINT '🚀 Starting v2 update for Invoices schema and procedures...';
+PRINT 'ðŸš€ Starting v2 update for Invoices schema and procedures...';
 PRINT '';
 
 -- Drop existing foreign key constraints and procedures before altering tables
 IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_InvoiceItems_Invoices')
 BEGIN
     ALTER TABLE dbo.InvoiceItems DROP CONSTRAINT FK_InvoiceItems_Invoices;
-    PRINT '✅ Dropped constraint FK_InvoiceItems_Invoices';
+    PRINT 'âœ… Dropped constraint FK_InvoiceItems_Invoices';
 END
 GO
 
@@ -28,7 +28,7 @@ IF OBJECT_ID('sp_CreateInvoiceFromFrontend', 'P') IS NOT NULL DROP PROCEDURE sp_
 IF OBJECT_ID('sp_UpdateInvoiceFromFrontend', 'P') IS NOT NULL DROP PROCEDURE sp_UpdateInvoiceFromFrontend;
 IF OBJECT_ID('sp_DeleteInvoiceFromFrontend', 'P') IS NOT NULL DROP PROCEDURE sp_DeleteInvoiceFromFrontend;
 IF OBJECT_ID('dbo.sp_CreateInvoiceItem', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CreateInvoiceItem;
-PRINT '✅ Dropped existing invoice-related stored procedures.';
+PRINT 'âœ… Dropped existing invoice-related stored procedures.';
 GO
 
 -- Drop tables if they exist to recreate them with new schema
@@ -36,14 +36,14 @@ GO
 IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'InvoiceItems' AND type = 'U')
 BEGIN
     DROP TABLE dbo.InvoiceItems;
-    PRINT '✅ Dropped table InvoiceItems';
+    PRINT 'âœ… Dropped table InvoiceItems';
 END
 GO
 
 IF EXISTS (SELECT 1 FROM sys.objects WHERE name = 'Invoices' AND type = 'U')
 BEGIN
     DROP TABLE dbo.Invoices;
-    PRINT '✅ Dropped table Invoices';
+    PRINT 'âœ… Dropped table Invoices';
 END
 GO
 
@@ -75,7 +75,7 @@ CREATE TABLE dbo.Invoices (
     CreatedAt DATETIME NOT NULL DEFAULT(GETDATE()),
     UpdatedAt DATETIME NOT NULL DEFAULT(GETDATE())
 );
-PRINT '✅ Created table Invoices with Id as INT IDENTITY.';
+PRINT 'âœ… Created table Invoices with Id as INT IDENTITY.';
 GO
 
 CREATE TABLE dbo.InvoiceItems (
@@ -94,7 +94,7 @@ CREATE TABLE dbo.InvoiceItems (
         REFERENCES dbo.Invoices(Id)
         ON DELETE CASCADE
 );
-PRINT '✅ Created table InvoiceItems with Id as INT IDENTITY and FK to Invoices.Id.';
+PRINT 'âœ… Created table InvoiceItems with Id as INT IDENTITY and FK to Invoices.Id.';
 GO
 
 -- ========================
@@ -145,7 +145,7 @@ BEGIN
     SELECT Id, InvoiceNumber FROM @OutputTable;
 END
 GO
-PRINT '✅ Created procedure sp_CreateInvoiceFromFrontend.';
+PRINT 'âœ… Created procedure sp_CreateInvoiceFromFrontend.';
 
 -- Create Invoice Item
 CREATE PROCEDURE sp_CreateInvoiceItem
@@ -177,7 +177,7 @@ BEGIN
     SELECT @@IDENTITY AS NewInvoiceItemId;
 END
 GO
-PRINT '✅ Created procedure sp_CreateInvoiceItem.';
+PRINT 'âœ… Created procedure sp_CreateInvoiceItem.';
 
 -- Get Invoices (List)
 CREATE PROCEDURE sp_GetInvoicesForFrontend
@@ -241,7 +241,7 @@ BEGIN
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 END
 GO
-PRINT '✅ Created procedure sp_GetInvoicesForFrontend.';
+PRINT 'âœ… Created procedure sp_GetInvoicesForFrontend.';
 
 -- Delete Invoice (soft delete)
 CREATE PROCEDURE sp_DeleteInvoiceFromFrontend
@@ -261,7 +261,8 @@ BEGIN
     SELECT @Id AS DeletedId;
 END
 GO
-PRINT '✅ Created procedure sp_DeleteInvoiceFromFrontend.';
+PRINT 'âœ… Created procedure sp_DeleteInvoiceFromFrontend.';
 
 
-PRINT '✅ v2 Invoices schema & procedures update completed successfully.';
+PRINT 'âœ… v2 Invoices schema & procedures update completed successfully.';
+

@@ -1,4 +1,4 @@
-USE zen50558_ManagementStore;
+﻿USE ManagementStore;
 GO
 
 -- Create a SP that creates invoice header + items + recalculates totals
@@ -30,7 +30,7 @@ BEGIN
         IF @OrderDate IS NULL SET @OrderDate = GETDATE();
         DECLARE @NewId NVARCHAR(50) = 'inv-' + REPLACE(CAST(NEWID() AS NVARCHAR(36)), '-', '');
 
-        INSERT INTO zen50558_ManagementStore.dbo.Invoices (
+        INSERT INTO ManagementStore.dbo.Invoices (
             Id, InvoiceNumber, BillFrom, BillFromEmail, BillFromAddress, BillFromPhone, BillFromFax,
             BillTo, BillToEmail, BillToAddress, BillToPhone, BillToFax, OrderDate, SubTotal, VAT, GrandTotal, Status, Notes, IsActive, CreatedAt, UpdatedAt
         ) VALUES (
@@ -41,7 +41,7 @@ BEGIN
         -- Insert items from JSON
         IF (@Items IS NOT NULL AND LEN(@Items) > 0)
         BEGIN
-            INSERT INTO zen50558_ManagementStore.dbo.InvoiceItems (Id, InvoiceId, ItemName, UnitPrice, Units, UnitTotalPrice, IsActive, CreatedAt, UpdatedAt)
+            INSERT INTO ManagementStore.dbo.InvoiceItems (Id, InvoiceId, ItemName, UnitPrice, Units, UnitTotalPrice, IsActive, CreatedAt, UpdatedAt)
             SELECT 
                 'item-' + REPLACE(CAST(NEWID() AS NVARCHAR(36)), '-', ''),
                 @NewId,
@@ -58,13 +58,13 @@ BEGIN
         -- Recalculate totals from items
         DECLARE @SubTotal DECIMAL(18,2) = 0, @VAT DECIMAL(18,2) = 0, @GrandTotal DECIMAL(18,2) = 0;
         SELECT @SubTotal = ISNULL(SUM(UnitTotalPrice), 0)
-        FROM zen50558_ManagementStore.dbo.InvoiceItems WHERE InvoiceId = @NewId AND IsActive = 1;
+        FROM ManagementStore.dbo.InvoiceItems WHERE InvoiceId = @NewId AND IsActive = 1;
 
         -- VAT default 10%
         SET @VAT = @SubTotal * 0.1;
         SET @GrandTotal = @SubTotal + @VAT;
 
-        UPDATE zen50558_ManagementStore.dbo.Invoices
+        UPDATE ManagementStore.dbo.Invoices
         SET SubTotal = @SubTotal,
             VAT = @VAT,
             GrandTotal = @GrandTotal,
@@ -72,7 +72,7 @@ BEGIN
         WHERE Id = @NewId;
 
         -- Return created invoice
-        SELECT * FROM zen50558_ManagementStore.dbo.Invoices WHERE Id = @NewId;
+        SELECT * FROM ManagementStore.dbo.Invoices WHERE Id = @NewId;
 
         COMMIT TRANSACTION;
     END TRY
@@ -82,4 +82,5 @@ BEGIN
     END CATCH
 END
 GO
+
 

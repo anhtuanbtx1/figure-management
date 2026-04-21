@@ -1,9 +1,9 @@
--- =====================================================
+﻿-- =====================================================
 -- CREATE MISSING STORED PROCEDURES
 -- This script creates any missing stored procedures for the toy management system
 -- =====================================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '==============================================';
@@ -17,7 +17,7 @@ PRINT '';
 
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_GetCategoriesForFrontend')
 BEGIN
-    PRINT '📂 Creating sp_GetCategoriesForFrontend...';
+    PRINT 'ðŸ“‚ Creating sp_GetCategoriesForFrontend...';
     
     EXEC('
     CREATE PROCEDURE sp_GetCategoriesForFrontend
@@ -32,17 +32,17 @@ BEGIN
             Description as description,
             Icon as icon,
             Color as color
-        FROM zen50558_ManagementStore.dbo.ToyCategories 
+        FROM ManagementStore.dbo.ToyCategories 
         WHERE IsActive = 1
         ORDER BY Name;
     END
     ');
     
-    PRINT '✅ sp_GetCategoriesForFrontend created successfully';
+    PRINT 'âœ… sp_GetCategoriesForFrontend created successfully';
 END
 ELSE
 BEGIN
-    PRINT '✅ sp_GetCategoriesForFrontend already exists';
+    PRINT 'âœ… sp_GetCategoriesForFrontend already exists';
 END
 
 -- =====================================================
@@ -51,7 +51,7 @@ END
 
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_GetBrandsForFrontend')
 BEGIN
-    PRINT '🏷️ Creating sp_GetBrandsForFrontend...';
+    PRINT 'ðŸ·ï¸ Creating sp_GetBrandsForFrontend...';
     
     EXEC('
     CREATE PROCEDURE sp_GetBrandsForFrontend
@@ -60,17 +60,17 @@ BEGIN
         SET NOCOUNT ON;
         
         SELECT DISTINCT Name as brand
-        FROM zen50558_ManagementStore.dbo.ToyBrands 
+        FROM ManagementStore.dbo.ToyBrands 
         WHERE IsActive = 1
         ORDER BY Name;
     END
     ');
     
-    PRINT '✅ sp_GetBrandsForFrontend created successfully';
+    PRINT 'âœ… sp_GetBrandsForFrontend created successfully';
 END
 ELSE
 BEGIN
-    PRINT '✅ sp_GetBrandsForFrontend already exists';
+    PRINT 'âœ… sp_GetBrandsForFrontend already exists';
 END
 
 -- =====================================================
@@ -79,7 +79,7 @@ END
 
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_GetToysForFrontend')
 BEGIN
-    PRINT '🧸 Creating sp_GetToysForFrontend...';
+    PRINT 'ðŸ§¸ Creating sp_GetToysForFrontend...';
     
     EXEC('
     CREATE PROCEDURE sp_GetToysForFrontend
@@ -141,9 +141,9 @@ BEGIN
                 c.Icon as CategoryIcon,
                 c.Color as CategoryColor,
                 b.Name as BrandName
-            FROM zen50558_ManagementStore.dbo.Toys t
-            INNER JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
-            INNER JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
+            FROM ManagementStore.dbo.Toys t
+            INNER JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
+            INNER JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
             WHERE t.IsActive = 1
                 -- Search filter
                 AND (@Search IS NULL OR @Search = '''' OR 
@@ -220,11 +220,11 @@ BEGIN
     END
     ');
     
-    PRINT '✅ sp_GetToysForFrontend created successfully';
+    PRINT 'âœ… sp_GetToysForFrontend created successfully';
 END
 ELSE
 BEGIN
-    PRINT '✅ sp_GetToysForFrontend already exists';
+    PRINT 'âœ… sp_GetToysForFrontend already exists';
 END
 
 -- =====================================================
@@ -232,33 +232,33 @@ END
 -- =====================================================
 
 PRINT '';
-PRINT '🧪 Testing all procedures...';
+PRINT 'ðŸ§ª Testing all procedures...';
 
 -- Test categories
 BEGIN TRY
     EXEC sp_GetCategoriesForFrontend;
-    PRINT '✅ sp_GetCategoriesForFrontend: Working';
+    PRINT 'âœ… sp_GetCategoriesForFrontend: Working';
 END TRY
 BEGIN CATCH
-    PRINT '❌ sp_GetCategoriesForFrontend: Error - ' + ERROR_MESSAGE();
+    PRINT 'âŒ sp_GetCategoriesForFrontend: Error - ' + ERROR_MESSAGE();
 END CATCH
 
 -- Test brands
 BEGIN TRY
     EXEC sp_GetBrandsForFrontend;
-    PRINT '✅ sp_GetBrandsForFrontend: Working';
+    PRINT 'âœ… sp_GetBrandsForFrontend: Working';
 END TRY
 BEGIN CATCH
-    PRINT '❌ sp_GetBrandsForFrontend: Error - ' + ERROR_MESSAGE();
+    PRINT 'âŒ sp_GetBrandsForFrontend: Error - ' + ERROR_MESSAGE();
 END CATCH
 
 -- Test toys
 BEGIN TRY
     EXEC sp_GetToysForFrontend @Page = 1, @PageSize = 5;
-    PRINT '✅ sp_GetToysForFrontend: Working';
+    PRINT 'âœ… sp_GetToysForFrontend: Working';
 END TRY
 BEGIN CATCH
-    PRINT '❌ sp_GetToysForFrontend: Error - ' + ERROR_MESSAGE();
+    PRINT 'âŒ sp_GetToysForFrontend: Error - ' + ERROR_MESSAGE();
 END CATCH
 
 PRINT '';
@@ -266,3 +266,4 @@ PRINT '==============================================';
 PRINT 'MISSING PROCEDURES CREATION COMPLETED';
 PRINT '==============================================';
 GO
+

@@ -1,10 +1,10 @@
-import sql from 'mssql';
+﻿import sql from 'mssql';
 
 // Database configuration
 const config: sql.config = {
   server: process.env.DB_SERVER || '112.78.2.70',
-  database: process.env.DB_DATABASE || 'zen50558_ManagementStore',
-  user: process.env.DB_USER || 'zen50558_ManagementStore',
+  database: process.env.DB_DATABASE || 'ManagementStore',
+  user: process.env.DB_USER || 'ManagementStore',
   password: process.env.DB_PASSWORD || 'Passwordla@123',
   options: {
     encrypt: true,
@@ -32,10 +32,10 @@ export async function getDbPool(): Promise<sql.ConnectionPool> {
   }
   try {
     pool = await new sql.ConnectionPool(config).connect();
-    console.log('✅ Connected to SQL Server database');
+    console.log('âœ… Connected to SQL Server database');
     return pool;
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    console.error('âŒ Database connection failed:', error);
     throw new Error(`Database connection failed: ${error}`);
   }
 }
@@ -46,10 +46,10 @@ export async function closeConnection(): Promise<void> {
     if (pool) {
       await pool.close();
       pool = null;
-      console.log('✅ Database connection closed');
+      console.log('âœ… Database connection closed');
     }
   } catch (error) {
-    console.error('❌ Error closing database connection:', error);
+    console.error('âŒ Error closing database connection:', error);
   }
 }
 
@@ -112,18 +112,18 @@ export async function executeTransaction<T>(
 
   try {
     await transaction.begin();
-    console.log('✅ Transaction started');
+    console.log('âœ… Transaction started');
     const result = await callback(transaction);
     await transaction.commit();
-    console.log('✅ Transaction committed successfully');
+    console.log('âœ… Transaction committed successfully');
     return result;
   } catch (error) {
-    console.error('❌ Transaction failed, rolling back:', error);
+    console.error('âŒ Transaction failed, rolling back:', error);
     try {
       await transaction.rollback();
-      console.log('✅ Transaction rolled back successfully');
+      console.log('âœ… Transaction rolled back successfully');
     } catch (rollbackError) {
-      console.error('❌ Failed to roll back transaction:', rollbackError);
+      console.error('âŒ Failed to roll back transaction:', rollbackError);
     }
     // Re-throw the original error to be caught by the calling function
     throw error;
@@ -139,3 +139,4 @@ process.on('SIGTERM', async () => {
   await closeConnection();
   process.exit(0);
 });
+

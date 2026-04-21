@@ -1,11 +1,11 @@
--- =====================================================
+﻿-- =====================================================
 -- ENHANCED TOY MANAGEMENT DATABASE SCHEMA
 -- Extended SQL Server Database Schema for Toy Management System
 -- Includes additional tables for complete business operations
 -- =====================================================
 
 -- Use the existing database
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 -- =====================================================
@@ -296,9 +296,9 @@ GO
 IF NOT EXISTS (SELECT 1 FROM Suppliers)
 BEGIN
     INSERT INTO Suppliers (Id, Name, ContactPerson, Email, Phone, Address, City, Country, Website, Rating) VALUES
-    ('sup-001', N'Công ty TNHH Đồ chơi Việt Nam', N'Nguyễn Văn A', 'contact@toyvietnam.com', '0901234567', N'123 Đường ABC, Quận 1', N'Hồ Chí Minh', N'Việt Nam', 'https://toyvietnam.com', 4.5),
+    ('sup-001', N'CÃ´ng ty TNHH Äá»“ chÆ¡i Viá»‡t Nam', N'Nguyá»…n VÄƒn A', 'contact@toyvietnam.com', '0901234567', N'123 ÄÆ°á»ng ABC, Quáº­n 1', N'Há»“ ChÃ­ Minh', N'Viá»‡t Nam', 'https://toyvietnam.com', 4.5),
     ('sup-002', N'Global Toys Import Co.', N'John Smith', 'sales@globaltoys.com', '+1-555-0123', N'456 Main Street', N'New York', N'USA', 'https://globaltoys.com', 4.8),
-    ('sup-003', N'Asian Toy Manufacturing', N'李小明', 'info@asiantoys.cn', '+86-138-0013-8000', N'789 Industrial Road', N'Guangzhou', N'China', 'https://asiantoys.cn', 4.2),
+    ('sup-003', N'Asian Toy Manufacturing', N'æŽå°æ˜Ž', 'info@asiantoys.cn', '+86-138-0013-8000', N'789 Industrial Road', N'Guangzhou', N'China', 'https://asiantoys.cn', 4.2),
     ('sup-004', N'European Toy Distributors', N'Hans Mueller', 'orders@eurotoys.de', '+49-30-12345678', N'Berliner Str. 100', N'Berlin', N'Germany', 'https://eurotoys.de', 4.6),
     ('sup-005', N'Eco-Friendly Toys Ltd', N'Sarah Johnson', 'hello@ecotoys.co.uk', '+44-20-7946-0958', N'Green Park Lane 25', N'London', N'UK', 'https://ecotoys.co.uk', 4.9);
 
@@ -312,11 +312,11 @@ GO
 IF NOT EXISTS (SELECT 1 FROM Customers)
 BEGIN
     INSERT INTO Customers (Id, FirstName, LastName, Email, Phone, Address, City, Country, CustomerType, TotalSpent, TotalOrders) VALUES
-    ('cust-001', N'Nguyễn', N'Thị Lan', 'lan.nguyen@email.com', '0987654321', N'456 Đường XYZ, Quận 3', N'Hồ Chí Minh', N'Việt Nam', 'VIP', 5500000, 8),
-    ('cust-002', N'Trần', N'Văn Minh', 'minh.tran@email.com', '0912345678', N'789 Đường DEF, Quận 7', N'Hồ Chí Minh', N'Việt Nam', 'Regular', 2300000, 3),
-    ('cust-003', N'Lê', N'Thị Hoa', 'hoa.le@email.com', '0923456789', N'321 Đường GHI, Ba Đình', N'Hà Nội', N'Việt Nam', 'Regular', 1800000, 2),
-    ('cust-004', N'Phạm', N'Văn Đức', 'duc.pham@email.com', '0934567890', N'654 Đường JKL, Hải Châu', N'Đà Nẵng', N'Việt Nam', 'Wholesale', 12500000, 15),
-    ('cust-005', N'Hoàng', N'Thị Mai', 'mai.hoang@email.com', '0945678901', N'987 Đường MNO, Ninh Kiều', N'Cần Thơ', N'Việt Nam', 'Regular', 950000, 1);
+    ('cust-001', N'Nguyá»…n', N'Thá»‹ Lan', 'lan.nguyen@email.com', '0987654321', N'456 ÄÆ°á»ng XYZ, Quáº­n 3', N'Há»“ ChÃ­ Minh', N'Viá»‡t Nam', 'VIP', 5500000, 8),
+    ('cust-002', N'Tráº§n', N'VÄƒn Minh', 'minh.tran@email.com', '0912345678', N'789 ÄÆ°á»ng DEF, Quáº­n 7', N'Há»“ ChÃ­ Minh', N'Viá»‡t Nam', 'Regular', 2300000, 3),
+    ('cust-003', N'LÃª', N'Thá»‹ Hoa', 'hoa.le@email.com', '0923456789', N'321 ÄÆ°á»ng GHI, Ba ÄÃ¬nh', N'HÃ  Ná»™i', N'Viá»‡t Nam', 'Regular', 1800000, 2),
+    ('cust-004', N'Pháº¡m', N'VÄƒn Äá»©c', 'duc.pham@email.com', '0934567890', N'654 ÄÆ°á»ng JKL, Háº£i ChÃ¢u', N'ÄÃ  Náºµng', N'Viá»‡t Nam', 'Wholesale', 12500000, 15),
+    ('cust-005', N'HoÃ ng', N'Thá»‹ Mai', 'mai.hoang@email.com', '0945678901', N'987 ÄÆ°á»ng MNO, Ninh Kiá»u', N'Cáº§n ThÆ¡', N'Viá»‡t Nam', 'Regular', 950000, 1);
 
     PRINT 'Sample customers inserted successfully';
 END
@@ -686,17 +686,18 @@ PRINT 'Views:';
 PRINT '- vw_ProductPerformance (product analytics)';
 PRINT '';
 PRINT 'Features Added:';
-PRINT '✅ Complete Order Management System';
-PRINT '✅ Customer Relationship Management';
-PRINT '✅ Supplier Management';
-PRINT '✅ Purchase Order System';
-PRINT '✅ Inventory Tracking & Transactions';
-PRINT '✅ Promotion & Discount Management';
-PRINT '✅ Customer Wishlist';
-PRINT '✅ Advanced Reporting & Analytics';
-PRINT '✅ Automated Stock Updates';
-PRINT '✅ Dashboard Statistics';
+PRINT 'âœ… Complete Order Management System';
+PRINT 'âœ… Customer Relationship Management';
+PRINT 'âœ… Supplier Management';
+PRINT 'âœ… Purchase Order System';
+PRINT 'âœ… Inventory Tracking & Transactions';
+PRINT 'âœ… Promotion & Discount Management';
+PRINT 'âœ… Customer Wishlist';
+PRINT 'âœ… Advanced Reporting & Analytics';
+PRINT 'âœ… Automated Stock Updates';
+PRINT 'âœ… Dashboard Statistics';
 PRINT '';
 PRINT 'Ready for complete toy management operations!';
 PRINT '==============================================';
 GO
+

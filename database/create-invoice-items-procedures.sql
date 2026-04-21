@@ -1,4 +1,4 @@
-USE zen50558_ManagementStore;
+﻿USE ManagementStore;
 GO
 
 -- =====================================================
@@ -18,7 +18,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    INSERT INTO zen50558_ManagementStore.dbo.InvoiceItems (
+    INSERT INTO ManagementStore.dbo.InvoiceItems (
         Id, InvoiceId, ItemName, UnitPrice, Units, UnitTotalPrice, IsActive, CreatedAt, UpdatedAt
     ) VALUES (
         'item-' + REPLACE(CAST(NEWID() AS NVARCHAR(36)), '-', ''),
@@ -53,7 +53,7 @@ BEGIN
         i.BillTo, i.BillToEmail, i.BillToAddress, i.BillToPhone, i.BillToFax,
         i.OrderDate, i.SubTotal, i.VAT, i.GrandTotal, i.Status, i.Notes,
         i.IsActive, i.CreatedAt, i.UpdatedAt
-    FROM zen50558_ManagementStore.dbo.Invoices i
+    FROM ManagementStore.dbo.Invoices i
     WHERE i.Id = @Id AND i.IsActive = 1;
 END
 GO
@@ -78,9 +78,10 @@ BEGIN
         it.IsActive,
         it.CreatedAt,
         it.UpdatedAt
-    FROM zen50558_ManagementStore.dbo.InvoiceItems it
+    FROM ManagementStore.dbo.InvoiceItems it
     WHERE it.InvoiceId = @InvoiceId AND it.IsActive = 1
     ORDER BY it.CreatedAt ASC;
 END
 GO
+
 

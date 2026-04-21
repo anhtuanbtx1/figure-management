@@ -1,12 +1,12 @@
--- ========================================
+﻿-- ========================================
 -- REMINDER SYSTEM DATABASE SCHEMA (DBO)
 -- ========================================
 -- Script to create all tables for Reminder System
--- Database: zen50558_ManagementStore
+-- Database: ManagementStore
 -- Schema: dbo
 -- ========================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '=== CREATING REMINDER SYSTEM TABLES IN DBO SCHEMA ===';
@@ -273,53 +273,53 @@ PRINT 'Inserting sample data...';
 
 -- Insert sample categories
 INSERT INTO [dbo].[ReminderCategories] ([name], [description], [icon], [color]) VALUES
-(N'Công việc', N'Nhắc nhở liên quan đến công việc', 'work', '#2196F3'),
-(N'Cá nhân', N'Nhắc nhở cá nhân', 'person', '#4CAF50'),
-(N'Gia đình', N'Nhắc nhở về gia đình', 'family', '#FF9800'),
-(N'Sức khỏe', N'Nhắc nhở về sức khỏe', 'health', '#F44336'),
-(N'Tài chính', N'Nhắc nhở về tài chính', 'money', '#9C27B0'),
-(N'Học tập', N'Nhắc nhở về học tập', 'book', '#00BCD4'),
-(N'Sự kiện', N'Nhắc nhở về sự kiện', 'event', '#FF5722'),
-(N'Khác', N'Nhắc nhở khác', 'other', '#607D8B');
+(N'CÃ´ng viá»‡c', N'Nháº¯c nhá»Ÿ liÃªn quan Ä‘áº¿n cÃ´ng viá»‡c', 'work', '#2196F3'),
+(N'CÃ¡ nhÃ¢n', N'Nháº¯c nhá»Ÿ cÃ¡ nhÃ¢n', 'person', '#4CAF50'),
+(N'Gia Ä‘Ã¬nh', N'Nháº¯c nhá»Ÿ vá» gia Ä‘Ã¬nh', 'family', '#FF9800'),
+(N'Sá»©c khá»e', N'Nháº¯c nhá»Ÿ vá» sá»©c khá»e', 'health', '#F44336'),
+(N'TÃ i chÃ­nh', N'Nháº¯c nhá»Ÿ vá» tÃ i chÃ­nh', 'money', '#9C27B0'),
+(N'Há»c táº­p', N'Nháº¯c nhá»Ÿ vá» há»c táº­p', 'book', '#00BCD4'),
+(N'Sá»± kiá»‡n', N'Nháº¯c nhá»Ÿ vá» sá»± kiá»‡n', 'event', '#FF5722'),
+(N'KhÃ¡c', N'Nháº¯c nhá»Ÿ khÃ¡c', 'other', '#607D8B');
 
 PRINT 'Inserted 8 categories';
 
 -- Insert sample notification templates
 INSERT INTO [dbo].[NotificationTemplates] ([name], [description], [templateType], [content], [parseMode]) VALUES
-(N'Template mặc định Telegram', N'Template mặc định cho thông báo Telegram', 'telegram', 
-N'<b>🔔 Nhắc nhở: {{title}}</b>
+(N'Template máº·c Ä‘á»‹nh Telegram', N'Template máº·c Ä‘á»‹nh cho thÃ´ng bÃ¡o Telegram', 'telegram', 
+N'<b>ðŸ”” Nháº¯c nhá»Ÿ: {{title}}</b>
 
-📅 Thời gian: {{date}} lúc {{time}}
-📝 Nội dung: {{description}}
+ðŸ“… Thá»i gian: {{date}} lÃºc {{time}}
+ðŸ“ Ná»™i dung: {{description}}
 
-🏷️ Danh mục: {{category}}
-⚡ Độ ưu tiên: {{priority}}', 'HTML'),
+ðŸ·ï¸ Danh má»¥c: {{category}}
+âš¡ Äá»™ Æ°u tiÃªn: {{priority}}', 'HTML'),
 
-(N'Template ngắn gọn', N'Template ngắn gọn cho thông báo nhanh', 'telegram',
-N'⏰ <b>{{title}}</b>
-🕐 {{time}} - {{date}}
+(N'Template ngáº¯n gá»n', N'Template ngáº¯n gá»n cho thÃ´ng bÃ¡o nhanh', 'telegram',
+N'â° <b>{{title}}</b>
+ðŸ• {{time}} - {{date}}
 {{description}}', 'HTML'),
 
-(N'Template chi tiết', N'Template chi tiết với đầy đủ thông tin', 'telegram',
-N'<b>📢 THÔNG BÁO QUAN TRỌNG</b>
-━━━━━━━━━━━━━━━━━━
-<b>Tiêu đề:</b> {{title}}
-<b>Thời gian:</b> {{date}} lúc {{time}}
-<b>Địa điểm:</b> {{location}}
+(N'Template chi tiáº¿t', N'Template chi tiáº¿t vá»›i Ä‘áº§y Ä‘á»§ thÃ´ng tin', 'telegram',
+N'<b>ðŸ“¢ THÃ”NG BÃO QUAN TRá»ŒNG</b>
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+<b>TiÃªu Ä‘á»:</b> {{title}}
+<b>Thá»i gian:</b> {{date}} lÃºc {{time}}
+<b>Äá»‹a Ä‘iá»ƒm:</b> {{location}}
 
-<b>📋 Chi tiết:</b>
+<b>ðŸ“‹ Chi tiáº¿t:</b>
 {{description}}
 
-<b>📎 Ghi chú:</b>
+<b>ðŸ“Ž Ghi chÃº:</b>
 {{notes}}', 'HTML');
 
 PRINT 'Inserted 3 notification templates';
 
 -- Insert sample reminders
 INSERT INTO [dbo].[Reminders] ([title], [description], [categoryId], [reminderType], [reminderTime], [startDate], [priority]) VALUES
-(N'Họp team hàng tuần', N'Họp team để review công việc tuần', 1, 'weekly', '09:00:00', CAST(GETDATE() AS DATE), 'high'),
-(N'Uống thuốc hàng ngày', N'Nhắc nhở uống thuốc sau bữa sáng', 4, 'daily', '08:00:00', CAST(GETDATE() AS DATE), 'urgent'),
-(N'Thanh toán hóa đơn', N'Thanh toán hóa đơn điện nước', 5, 'monthly', '10:00:00', CAST(GETDATE() AS DATE), 'high');
+(N'Há»p team hÃ ng tuáº§n', N'Há»p team Ä‘á»ƒ review cÃ´ng viá»‡c tuáº§n', 1, 'weekly', '09:00:00', CAST(GETDATE() AS DATE), 'high'),
+(N'Uá»‘ng thuá»‘c hÃ ng ngÃ y', N'Nháº¯c nhá»Ÿ uá»‘ng thuá»‘c sau bá»¯a sÃ¡ng', 4, 'daily', '08:00:00', CAST(GETDATE() AS DATE), 'urgent'),
+(N'Thanh toÃ¡n hÃ³a Ä‘Æ¡n', N'Thanh toÃ¡n hÃ³a Ä‘Æ¡n Ä‘iá»‡n nÆ°á»›c', 5, 'monthly', '10:00:00', CAST(GETDATE() AS DATE), 'high');
 
 PRINT 'Inserted 3 sample reminders';
 GO

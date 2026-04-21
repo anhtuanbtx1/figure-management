@@ -1,9 +1,9 @@
--- =====================================================
+﻿-- =====================================================
 -- CREATE SIMPLE TOYS PROCEDURE FOR TESTING
 -- This creates a very basic procedure to isolate the issue
 -- =====================================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '==============================================';
@@ -15,18 +15,18 @@ PRINT '';
 IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_GetToysForFrontend')
 BEGIN
     DROP PROCEDURE sp_GetToysForFrontend;
-    PRINT '🗑️ Dropped existing sp_GetToysForFrontend';
+    PRINT 'ðŸ—‘ï¸ Dropped existing sp_GetToysForFrontend';
 END
 
 IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_GetToysSimple')
 BEGIN
     DROP PROCEDURE sp_GetToysSimple;
-    PRINT '🗑️ Dropped existing sp_GetToysSimple';
+    PRINT 'ðŸ—‘ï¸ Dropped existing sp_GetToysSimple';
 END
 
 -- Create super simple procedure first
 PRINT '';
-PRINT '🔧 Creating sp_GetToysSimple (no joins, no filters)...';
+PRINT 'ðŸ”§ Creating sp_GetToysSimple (no joins, no filters)...';
 
 CREATE PROCEDURE sp_GetToysSimple
 AS
@@ -56,27 +56,27 @@ BEGIN
         ISNULL(IsNew, 0) as isNew,
         ISNULL(IsFeatured, 0) as isFeatured,
         ISNULL(Discount, 0) as discount
-    FROM zen50558_ManagementStore.dbo.Toys
+    FROM ManagementStore.dbo.Toys
     WHERE IsActive = 1;
 END
 GO
 
-PRINT '✅ sp_GetToysSimple created successfully';
+PRINT 'âœ… sp_GetToysSimple created successfully';
 
 -- Test simple procedure
 PRINT '';
-PRINT '🧪 Testing sp_GetToysSimple...';
+PRINT 'ðŸ§ª Testing sp_GetToysSimple...';
 BEGIN TRY
     EXEC sp_GetToysSimple;
-    PRINT '✅ sp_GetToysSimple test: SUCCESS';
+    PRINT 'âœ… sp_GetToysSimple test: SUCCESS';
 END TRY
 BEGIN CATCH
-    PRINT '❌ sp_GetToysSimple test: ERROR - ' + ERROR_MESSAGE();
+    PRINT 'âŒ sp_GetToysSimple test: ERROR - ' + ERROR_MESSAGE();
 END CATCH
 
 -- Create procedure with LEFT JOINs (more forgiving)
 PRINT '';
-PRINT '🔧 Creating sp_GetToysForFrontend with LEFT JOINs...';
+PRINT 'ðŸ”§ Creating sp_GetToysForFrontend with LEFT JOINs...';
 
 CREATE PROCEDURE sp_GetToysForFrontend
     @Search NVARCHAR(255) = NULL,
@@ -134,9 +134,9 @@ BEGIN
         ISNULL(t.IsNew, 0) as isNew,
         ISNULL(t.IsFeatured, 0) as isFeatured,
         ISNULL(t.Discount, 0) as discount
-    FROM zen50558_ManagementStore.dbo.Toys t
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-    LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+    FROM ManagementStore.dbo.Toys t
+    LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+    LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
     WHERE t.IsActive = 1
         -- Apply filters only if provided and valid
         AND (@Search IS NULL OR @Search = '' OR t.Name LIKE '%' + @Search + '%')
@@ -160,28 +160,28 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_GetToysForFrontend created successfully';
+PRINT 'âœ… sp_GetToysForFrontend created successfully';
 
 -- Test new procedure
 PRINT '';
-PRINT '🧪 Testing sp_GetToysForFrontend...';
+PRINT 'ðŸ§ª Testing sp_GetToysForFrontend...';
 BEGIN TRY
     EXEC sp_GetToysForFrontend @Page = 1, @PageSize = 5;
-    PRINT '✅ sp_GetToysForFrontend test: SUCCESS';
+    PRINT 'âœ… sp_GetToysForFrontend test: SUCCESS';
 END TRY
 BEGIN CATCH
-    PRINT '❌ sp_GetToysForFrontend test: ERROR - ' + ERROR_MESSAGE();
+    PRINT 'âŒ sp_GetToysForFrontend test: ERROR - ' + ERROR_MESSAGE();
 END CATCH
 
 -- Test with no parameters
 PRINT '';
-PRINT '🧪 Testing sp_GetToysForFrontend with no parameters...';
+PRINT 'ðŸ§ª Testing sp_GetToysForFrontend with no parameters...';
 BEGIN TRY
     EXEC sp_GetToysForFrontend;
-    PRINT '✅ sp_GetToysForFrontend (no params) test: SUCCESS';
+    PRINT 'âœ… sp_GetToysForFrontend (no params) test: SUCCESS';
 END TRY
 BEGIN CATCH
-    PRINT '❌ sp_GetToysForFrontend (no params) test: ERROR - ' + ERROR_MESSAGE();
+    PRINT 'âŒ sp_GetToysForFrontend (no params) test: ERROR - ' + ERROR_MESSAGE();
 END CATCH
 
 PRINT '';
@@ -189,3 +189,4 @@ PRINT '==============================================';
 PRINT 'SIMPLE TOYS PROCEDURE CREATION COMPLETED';
 PRINT '==============================================';
 GO
+

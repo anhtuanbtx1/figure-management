@@ -1,10 +1,10 @@
--- =====================================================
+﻿-- =====================================================
 -- TOY MANAGEMENT DATABASE SCHEMA
 -- SQL Server Database Schema for Toy Management System
 -- =====================================================
 
 -- Use the existing database
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 -- =====================================================
@@ -12,7 +12,7 @@ GO
 -- =====================================================
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ToyCategories' AND xtype='U')
 BEGIN
-    CREATE TABLE zen50558_ManagementStore.dbo.ToyCategories (
+    CREATE TABLE ManagementStore.dbo.ToyCategories (
         Id NVARCHAR(50) PRIMARY KEY,
         Name NVARCHAR(255) NOT NULL,
         Slug NVARCHAR(255) NOT NULL UNIQUE,
@@ -42,7 +42,7 @@ GO
 -- =====================================================
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='ToyBrands' AND xtype='U')
 BEGIN
-    CREATE TABLE zen50558_ManagementStore.dbo.ToyBrands (
+    CREATE TABLE ManagementStore.dbo.ToyBrands (
         Id NVARCHAR(50) PRIMARY KEY,
         Name NVARCHAR(255) NOT NULL UNIQUE,
         Description NVARCHAR(MAX),
@@ -70,7 +70,7 @@ GO
 -- =====================================================
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Toys' AND xtype='U')
 BEGIN
-    CREATE TABLE zen50558_ManagementStore.dbo.Toys (
+    CREATE TABLE ManagementStore.dbo.Toys (
         Id NVARCHAR(50) PRIMARY KEY,
         Name NVARCHAR(255) NOT NULL,
         Description NVARCHAR(MAX) NOT NULL,
@@ -230,17 +230,17 @@ GO
 -- =====================================================
 -- 6. INSERT SAMPLE CATEGORIES
 -- =====================================================
-IF NOT EXISTS (SELECT 1 FROM zen50558_ManagementStore.dbo.ToyCategories)
+IF NOT EXISTS (SELECT 1 FROM ManagementStore.dbo.ToyCategories)
 BEGIN
-    INSERT INTO zen50558_ManagementStore.dbo.ToyCategories (Id, Name, Slug, Description, Icon, Color) VALUES
-    ('cat-001', N'Đồ chơi giáo dục', 'educational-toys', N'Đồ chơi phát triển trí tuệ và kỹ năng học tập', 'school', '#4CAF50'),
-    ('cat-002', N'Đồ chơi xây dựng', 'building-toys', N'Lego, khối xây dựng và đồ chơi lắp ráp', 'build', '#2196F3'),
-    ('cat-003', N'Búp bê & Nhân vật', 'dolls-figures', N'Búp bê, nhân vật hoạt hình và phụ kiện', 'person', '#E91E63'),
-    ('cat-004', N'Xe đồ chơi', 'toy-vehicles', N'Ô tô, máy bay, tàu thuyền đồ chơi', 'car', '#FF9800'),
-    ('cat-005', N'Đồ chơi thể thao', 'sports-toys', N'Bóng, vợt, đồ chơi hoạt động ngoài trời', 'ball', '#9C27B0'),
-    ('cat-006', N'Đồ chơi điện tử', 'electronic-toys', N'Robot, đồ chơi điều khiển từ xa', 'robot', '#607D8B'),
-    ('cat-007', N'Đồ chơi nghệ thuật', 'art-craft', N'Bút màu, đất nặn, đồ chơi sáng tạo', 'palette', '#795548'),
-    ('cat-008', N'Đồ chơi âm nhạc', 'musical-toys', N'Đàn piano, trống, nhạc cụ đồ chơi', 'music', '#FF5722');
+    INSERT INTO ManagementStore.dbo.ToyCategories (Id, Name, Slug, Description, Icon, Color) VALUES
+    ('cat-001', N'Äá»“ chÆ¡i giÃ¡o dá»¥c', 'educational-toys', N'Äá»“ chÆ¡i phÃ¡t triá»ƒn trÃ­ tuá»‡ vÃ  ká»¹ nÄƒng há»c táº­p', 'school', '#4CAF50'),
+    ('cat-002', N'Äá»“ chÆ¡i xÃ¢y dá»±ng', 'building-toys', N'Lego, khá»‘i xÃ¢y dá»±ng vÃ  Ä‘á»“ chÆ¡i láº¯p rÃ¡p', 'build', '#2196F3'),
+    ('cat-003', N'BÃºp bÃª & NhÃ¢n váº­t', 'dolls-figures', N'BÃºp bÃª, nhÃ¢n váº­t hoáº¡t hÃ¬nh vÃ  phá»¥ kiá»‡n', 'person', '#E91E63'),
+    ('cat-004', N'Xe Ä‘á»“ chÆ¡i', 'toy-vehicles', N'Ã” tÃ´, mÃ¡y bay, tÃ u thuyá»n Ä‘á»“ chÆ¡i', 'car', '#FF9800'),
+    ('cat-005', N'Äá»“ chÆ¡i thá»ƒ thao', 'sports-toys', N'BÃ³ng, vá»£t, Ä‘á»“ chÆ¡i hoáº¡t Ä‘á»™ng ngoÃ i trá»i', 'ball', '#9C27B0'),
+    ('cat-006', N'Äá»“ chÆ¡i Ä‘iá»‡n tá»­', 'electronic-toys', N'Robot, Ä‘á»“ chÆ¡i Ä‘iá»u khiá»ƒn tá»« xa', 'robot', '#607D8B'),
+    ('cat-007', N'Äá»“ chÆ¡i nghá»‡ thuáº­t', 'art-craft', N'BÃºt mÃ u, Ä‘áº¥t náº·n, Ä‘á»“ chÆ¡i sÃ¡ng táº¡o', 'palette', '#795548'),
+    ('cat-008', N'Äá»“ chÆ¡i Ã¢m nháº¡c', 'musical-toys', N'ÄÃ n piano, trá»‘ng, nháº¡c cá»¥ Ä‘á»“ chÆ¡i', 'music', '#FF5722');
 
     PRINT 'Sample categories inserted successfully';
 END
@@ -253,19 +253,19 @@ GO
 -- =====================================================
 -- 7. INSERT SAMPLE BRANDS
 -- =====================================================
-IF NOT EXISTS (SELECT 1 FROM zen50558_ManagementStore.dbo.ToyBrands)
+IF NOT EXISTS (SELECT 1 FROM ManagementStore.dbo.ToyBrands)
 BEGIN
-    INSERT INTO zen50558_ManagementStore.dbo.ToyBrands (Id, Name, Description, Website) VALUES
-    ('brand-001', 'LEGO', N'Thương hiệu đồ chơi xây dựng nổi tiếng thế giới', 'https://www.lego.com'),
-    ('brand-002', 'Mattel', N'Công ty đồ chơi đa quốc gia, sản xuất Barbie, Hot Wheels', 'https://www.mattel.com'),
-    ('brand-003', 'Hasbro', N'Nhà sản xuất đồ chơi và trò chơi hàng đầu', 'https://www.hasbro.com'),
-    ('brand-004', 'Fisher-Price', N'Chuyên về đồ chơi giáo dục cho trẻ em', 'https://www.fisher-price.com'),
-    ('brand-005', 'Playmobil', N'Đồ chơi nhân vật và bộ sưu tập', 'https://www.playmobil.com'),
-    ('brand-006', 'VTech', N'Đồ chơi điện tử giáo dục', 'https://www.vtech.com'),
-    ('brand-007', 'Melissa & Doug', N'Đồ chơi gỗ và giáo dục sáng tạo', 'https://www.melissaanddoug.com'),
-    ('brand-008', 'Bandai', N'Đồ chơi nhân vật anime và mô hình', 'https://www.bandai.com'),
-    ('brand-009', 'Disney', N'Đồ chơi nhân vật Disney', 'https://www.disney.com'),
-    ('brand-010', 'Nerf', N'Đồ chơi súng bắn đạn xốp', 'https://www.nerf.com');
+    INSERT INTO ManagementStore.dbo.ToyBrands (Id, Name, Description, Website) VALUES
+    ('brand-001', 'LEGO', N'ThÆ°Æ¡ng hiá»‡u Ä‘á»“ chÆ¡i xÃ¢y dá»±ng ná»•i tiáº¿ng tháº¿ giá»›i', 'https://www.lego.com'),
+    ('brand-002', 'Mattel', N'CÃ´ng ty Ä‘á»“ chÆ¡i Ä‘a quá»‘c gia, sáº£n xuáº¥t Barbie, Hot Wheels', 'https://www.mattel.com'),
+    ('brand-003', 'Hasbro', N'NhÃ  sáº£n xuáº¥t Ä‘á»“ chÆ¡i vÃ  trÃ² chÆ¡i hÃ ng Ä‘áº§u', 'https://www.hasbro.com'),
+    ('brand-004', 'Fisher-Price', N'ChuyÃªn vá» Ä‘á»“ chÆ¡i giÃ¡o dá»¥c cho tráº» em', 'https://www.fisher-price.com'),
+    ('brand-005', 'Playmobil', N'Äá»“ chÆ¡i nhÃ¢n váº­t vÃ  bá»™ sÆ°u táº­p', 'https://www.playmobil.com'),
+    ('brand-006', 'VTech', N'Äá»“ chÆ¡i Ä‘iá»‡n tá»­ giÃ¡o dá»¥c', 'https://www.vtech.com'),
+    ('brand-007', 'Melissa & Doug', N'Äá»“ chÆ¡i gá»— vÃ  giÃ¡o dá»¥c sÃ¡ng táº¡o', 'https://www.melissaanddoug.com'),
+    ('brand-008', 'Bandai', N'Äá»“ chÆ¡i nhÃ¢n váº­t anime vÃ  mÃ´ hÃ¬nh', 'https://www.bandai.com'),
+    ('brand-009', 'Disney', N'Äá»“ chÆ¡i nhÃ¢n váº­t Disney', 'https://www.disney.com'),
+    ('brand-010', 'Nerf', N'Äá»“ chÆ¡i sÃºng báº¯n Ä‘áº¡n xá»‘p', 'https://www.nerf.com');
 
     PRINT 'Sample brands inserted successfully';
 END
@@ -278,64 +278,64 @@ GO
 -- =====================================================
 -- 8. INSERT SAMPLE TOYS
 -- =====================================================
-IF NOT EXISTS (SELECT 1 FROM zen50558_ManagementStore.dbo.Toys)
+IF NOT EXISTS (SELECT 1 FROM ManagementStore.dbo.Toys)
 BEGIN
-    INSERT INTO zen50558_ManagementStore.dbo.Toys (
+    INSERT INTO ManagementStore.dbo.Toys (
         Id, Name, Description, Image, CategoryId, BrandId, Price, OriginalPrice, Stock, Status,
         AgeRange, Material, DimensionLength, DimensionWidth, DimensionHeight, Weight,
         Colors, Tags, Rating, ReviewCount, IsNew, IsFeatured, Discount
     ) VALUES
     -- Educational Toys
-    ('toy-001', N'Bộ Lego Creator 3-in-1', N'Bộ đồ chơi xây dựng đa năng, có thể tạo ra 3 mô hình khác nhau. Phát triển tư duy logic và khả năng sáng tạo cho trẻ.',
+    ('toy-001', N'Bá»™ Lego Creator 3-in-1', N'Bá»™ Ä‘á»“ chÆ¡i xÃ¢y dá»±ng Ä‘a nÄƒng, cÃ³ thá»ƒ táº¡o ra 3 mÃ´ hÃ¬nh khÃ¡c nhau. PhÃ¡t triá»ƒn tÆ° duy logic vÃ  kháº£ nÄƒng sÃ¡ng táº¡o cho tráº».',
      '/images/toys/lego-creator-001.jpg', 'cat-002', 'brand-001', 1299000, 1499000, 25, 'active',
-     '6-12 tuổi', 'Nhựa ABS', 35.0, 25.0, 15.0, 0.8,
-     '["Đỏ", "Xanh", "Vàng", "Trắng"]', '["Lego", "Xây dựng", "Sáng tạo", "3-in-1"]', 4.5, 128, 1, 1, 13.33),
+     '6-12 tuá»•i', 'Nhá»±a ABS', 35.0, 25.0, 15.0, 0.8,
+     '["Äá»", "Xanh", "VÃ ng", "Tráº¯ng"]', '["Lego", "XÃ¢y dá»±ng", "SÃ¡ng táº¡o", "3-in-1"]', 4.5, 128, 1, 1, 13.33),
 
-    ('toy-002', N'Búp bê Barbie Dreamhouse', N'Ngôi nhà mơ ước của Barbie với 3 tầng, 8 phòng và hơn 70 phụ kiện. Kích thích trí tưởng tượng và kỹ năng xã hội.',
+    ('toy-002', N'BÃºp bÃª Barbie Dreamhouse', N'NgÃ´i nhÃ  mÆ¡ Æ°á»›c cá»§a Barbie vá»›i 3 táº§ng, 8 phÃ²ng vÃ  hÆ¡n 70 phá»¥ kiá»‡n. KÃ­ch thÃ­ch trÃ­ tÆ°á»Ÿng tÆ°á»£ng vÃ  ká»¹ nÄƒng xÃ£ há»™i.',
      '/images/toys/barbie-dreamhouse-001.jpg', 'cat-003', 'brand-002', 2899000, 3299000, 15, 'active',
-     '3-9 tuổi', 'Nhựa', 90.0, 60.0, 120.0, 4.5,
-     '["Hồng", "Tím", "Trắng", "Vàng"]', '["Barbie", "Nhà búp bê", "Phụ kiện", "Dreamhouse"]', 4.7, 89, 0, 1, 12.12),
+     '3-9 tuá»•i', 'Nhá»±a', 90.0, 60.0, 120.0, 4.5,
+     '["Há»“ng", "TÃ­m", "Tráº¯ng", "VÃ ng"]', '["Barbie", "NhÃ  bÃºp bÃª", "Phá»¥ kiá»‡n", "Dreamhouse"]', 4.7, 89, 0, 1, 12.12),
 
-    ('toy-003', N'Robot Transformer Optimus Prime', N'Robot biến hình từ xe tải thành robot chiến đấu. Chất liệu cao cấp, chi tiết tinh xảo.',
+    ('toy-003', N'Robot Transformer Optimus Prime', N'Robot biáº¿n hÃ¬nh tá»« xe táº£i thÃ nh robot chiáº¿n Ä‘áº¥u. Cháº¥t liá»‡u cao cáº¥p, chi tiáº¿t tinh xáº£o.',
      '/images/toys/transformer-optimus-001.jpg', 'cat-006', 'brand-003', 899000, 999000, 30, 'active',
-     '8+ tuổi', 'Nhựa ABS + Kim loại', 25.0, 15.0, 30.0, 1.2,
-     '["Đỏ", "Xanh", "Vàng", "Xám"]', '["Transformer", "Robot", "Biến hình", "Optimus Prime"]', 4.3, 156, 0, 0, 10.01),
+     '8+ tuá»•i', 'Nhá»±a ABS + Kim loáº¡i', 25.0, 15.0, 30.0, 1.2,
+     '["Äá»", "Xanh", "VÃ ng", "XÃ¡m"]', '["Transformer", "Robot", "Biáº¿n hÃ¬nh", "Optimus Prime"]', 4.3, 156, 0, 0, 10.01),
 
-    ('toy-004', N'Xe điều khiển từ xa Racing Car', N'Xe đua tốc độ cao với điều khiển từ xa, pin sạc, đèn LED. Tốc độ tối đa 25km/h.',
+    ('toy-004', N'Xe Ä‘iá»u khiá»ƒn tá»« xa Racing Car', N'Xe Ä‘ua tá»‘c Ä‘á»™ cao vá»›i Ä‘iá»u khiá»ƒn tá»« xa, pin sáº¡c, Ä‘Ã¨n LED. Tá»‘c Ä‘á»™ tá»‘i Ä‘a 25km/h.',
      '/images/toys/rc-racing-car-001.jpg', 'cat-004', 'brand-004', 1599000, 1799000, 20, 'active',
-     '6+ tuổi', 'Nhựa + Kim loại', 40.0, 20.0, 15.0, 1.8,
-     '["Đỏ", "Xanh", "Đen"]', '["RC", "Xe đua", "Điều khiển", "Tốc độ"]', 4.4, 203, 1, 0, 11.11),
+     '6+ tuá»•i', 'Nhá»±a + Kim loáº¡i', 40.0, 20.0, 15.0, 1.8,
+     '["Äá»", "Xanh", "Äen"]', '["RC", "Xe Ä‘ua", "Äiá»u khiá»ƒn", "Tá»‘c Ä‘á»™"]', 4.4, 203, 1, 0, 11.11),
 
-    ('toy-005', N'Bộ đồ chơi bác sĩ Fisher-Price', N'Bộ đồ chơi y tế hoàn chỉnh với 20 dụng cụ bác sĩ. Giúp trẻ làm quen với nghề y và giảm sợ hãi khi khám bệnh.',
+    ('toy-005', N'Bá»™ Ä‘á»“ chÆ¡i bÃ¡c sÄ© Fisher-Price', N'Bá»™ Ä‘á»“ chÆ¡i y táº¿ hoÃ n chá»‰nh vá»›i 20 dá»¥ng cá»¥ bÃ¡c sÄ©. GiÃºp tráº» lÃ m quen vá»›i nghá» y vÃ  giáº£m sá»£ hÃ£i khi khÃ¡m bá»‡nh.',
      '/images/toys/doctor-kit-001.jpg', 'cat-001', 'brand-004', 699000, 799000, 40, 'active',
-     '3-7 tuổi', 'Nhựa an toàn', 30.0, 25.0, 10.0, 0.9,
-     '["Trắng", "Đỏ", "Xanh"]', '["Bác sĩ", "Y tế", "Giáo dục", "Nhập vai"]', 4.6, 174, 0, 1, 12.52),
+     '3-7 tuá»•i', 'Nhá»±a an toÃ n', 30.0, 25.0, 10.0, 0.9,
+     '["Tráº¯ng", "Äá»", "Xanh"]', '["BÃ¡c sÄ©", "Y táº¿", "GiÃ¡o dá»¥c", "Nháº­p vai"]', 4.6, 174, 0, 1, 12.52),
 
     -- More toys
-    ('toy-006', N'Đàn Piano điện tử VTech', N'Đàn piano 37 phím với 100 giai điệu, hiệu ứng âm thanh và đèn LED. Phát triển năng khiếu âm nhạc.',
+    ('toy-006', N'ÄÃ n Piano Ä‘iá»‡n tá»­ VTech', N'ÄÃ n piano 37 phÃ­m vá»›i 100 giai Ä‘iá»‡u, hiá»‡u á»©ng Ã¢m thanh vÃ  Ä‘Ã¨n LED. PhÃ¡t triá»ƒn nÄƒng khiáº¿u Ã¢m nháº¡c.',
      '/images/toys/vtech-piano-001.jpg', 'cat-008', 'brand-006', 1199000, 1399000, 18, 'active',
-     '2-6 tuổi', 'Nhựa', 50.0, 25.0, 8.0, 1.5,
-     '["Đen", "Trắng", "Đỏ"]', '["Piano", "Âm nhạc", "Điện tử", "Giáo dục"]', 4.2, 92, 0, 0, 14.30),
+     '2-6 tuá»•i', 'Nhá»±a', 50.0, 25.0, 8.0, 1.5,
+     '["Äen", "Tráº¯ng", "Äá»"]', '["Piano", "Ã‚m nháº¡c", "Äiá»‡n tá»­", "GiÃ¡o dá»¥c"]', 4.2, 92, 0, 0, 14.30),
 
-    ('toy-007', N'Bộ xếp hình gỗ Melissa & Doug', N'100 khối gỗ tự nhiên với nhiều hình dạng và màu sắc. An toàn, thân thiện môi trường.',
+    ('toy-007', N'Bá»™ xáº¿p hÃ¬nh gá»— Melissa & Doug', N'100 khá»‘i gá»— tá»± nhiÃªn vá»›i nhiá»u hÃ¬nh dáº¡ng vÃ  mÃ u sáº¯c. An toÃ n, thÃ¢n thiá»‡n mÃ´i trÆ°á»ng.',
      '/images/toys/wooden-blocks-001.jpg', 'cat-001', 'brand-007', 899000, 0, 35, 'active',
-     '1-5 tuổi', 'Gỗ tự nhiên', 30.0, 20.0, 20.0, 2.0,
-     '["Gỗ tự nhiên", "Đỏ", "Xanh", "Vàng"]', '["Gỗ", "Xếp hình", "Tự nhiên", "An toàn"]', 4.8, 267, 0, 1, 0),
+     '1-5 tuá»•i', 'Gá»— tá»± nhiÃªn', 30.0, 20.0, 20.0, 2.0,
+     '["Gá»— tá»± nhiÃªn", "Äá»", "Xanh", "VÃ ng"]', '["Gá»—", "Xáº¿p hÃ¬nh", "Tá»± nhiÃªn", "An toÃ n"]', 4.8, 267, 0, 1, 0),
 
-    ('toy-008', N'Mô hình Gundam Bandai RG', N'Mô hình Gundam tỷ lệ 1/144 với khớp cử động linh hoạt. Dành cho người sưu tập và lắp ráp.',
+    ('toy-008', N'MÃ´ hÃ¬nh Gundam Bandai RG', N'MÃ´ hÃ¬nh Gundam tá»· lá»‡ 1/144 vá»›i khá»›p cá»­ Ä‘á»™ng linh hoáº¡t. DÃ nh cho ngÆ°á»i sÆ°u táº­p vÃ  láº¯p rÃ¡p.',
      '/images/toys/gundam-rg-001.jpg', 'cat-006', 'brand-008', 1899000, 2199000, 12, 'active',
-     '14+ tuổi', 'Nhựa PS', 18.0, 12.0, 25.0, 0.4,
-     '["Trắng", "Xanh", "Đỏ", "Vàng"]', '["Gundam", "Mô hình", "Lắp ráp", "Sưu tập"]', 4.9, 45, 1, 1, 13.64),
+     '14+ tuá»•i', 'Nhá»±a PS', 18.0, 12.0, 25.0, 0.4,
+     '["Tráº¯ng", "Xanh", "Äá»", "VÃ ng"]', '["Gundam", "MÃ´ hÃ¬nh", "Láº¯p rÃ¡p", "SÆ°u táº­p"]', 4.9, 45, 1, 1, 13.64),
 
-    ('toy-009', N'Búp bê Elsa Frozen Disney', N'Búp bê công chúa Elsa với váy áo lộng lẫy, tóc dài và phụ kiện. Nhân vật từ phim hoạt hình nổi tiếng.',
+    ('toy-009', N'BÃºp bÃª Elsa Frozen Disney', N'BÃºp bÃª cÃ´ng chÃºa Elsa vá»›i vÃ¡y Ã¡o lá»™ng láº«y, tÃ³c dÃ i vÃ  phá»¥ kiá»‡n. NhÃ¢n váº­t tá»« phim hoáº¡t hÃ¬nh ná»•i tiáº¿ng.',
      '/images/toys/elsa-frozen-001.jpg', 'cat-003', 'brand-009', 599000, 699000, 28, 'active',
-     '3-8 tuổi', 'Nhựa + Vải', 15.0, 8.0, 30.0, 0.3,
-     '["Xanh", "Trắng", "Bạc"]', '["Elsa", "Frozen", "Disney", "Công chúa"]', 4.4, 312, 0, 0, 14.31),
+     '3-8 tuá»•i', 'Nhá»±a + Váº£i', 15.0, 8.0, 30.0, 0.3,
+     '["Xanh", "Tráº¯ng", "Báº¡c"]', '["Elsa", "Frozen", "Disney", "CÃ´ng chÃºa"]', 4.4, 312, 0, 0, 14.31),
 
-    ('toy-010', N'Súng Nerf Elite 2.0', N'Súng bắn đạn xốp tầm xa 27m với băng đạn 10 viên. An toàn, thú vị cho trò chơi ngoài trời.',
+    ('toy-010', N'SÃºng Nerf Elite 2.0', N'SÃºng báº¯n Ä‘áº¡n xá»‘p táº§m xa 27m vá»›i bÄƒng Ä‘áº¡n 10 viÃªn. An toÃ n, thÃº vá»‹ cho trÃ² chÆ¡i ngoÃ i trá»i.',
      '/images/toys/nerf-elite-001.jpg', 'cat-005', 'brand-010', 799000, 899000, 22, 'active',
-     '8+ tuổi', 'Nhựa', 60.0, 25.0, 8.0, 1.1,
-     '["Xanh", "Cam", "Trắng"]', '["Nerf", "Súng", "Ngoài trời", "Thể thao"]', 4.1, 188, 0, 0, 11.12);
+     '8+ tuá»•i', 'Nhá»±a', 60.0, 25.0, 8.0, 1.1,
+     '["Xanh", "Cam", "Tráº¯ng"]', '["Nerf", "SÃºng", "NgoÃ i trá»i", "Thá»ƒ thao"]', 4.1, 188, 0, 0, 11.12);
 
     PRINT 'Sample toys inserted successfully';
 END
@@ -400,9 +400,9 @@ BEGIN
     -- Count query
     SET @CountSQL = '
         SELECT COUNT(*) as TotalCount
-        FROM zen50558_ManagementStore.dbo.Toys t
-        INNER JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-        INNER JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+        FROM ManagementStore.dbo.Toys t
+        INNER JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+        INNER JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
         ' + @WhereClause;
 
     -- Main query
@@ -435,9 +435,9 @@ BEGIN
             t.Discount,
             t.CreatedAt,
             t.UpdatedAt
-        FROM zen50558_ManagementStore.dbo.Toys t
-        INNER JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
-        INNER JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+        FROM ManagementStore.dbo.Toys t
+        INNER JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+        INNER JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
         ' + @WhereClause + '
         ORDER BY t.' + @SortField + ' ' + @SortDirection + '
         OFFSET ' + CAST(@Offset AS NVARCHAR(10)) + ' ROWS
@@ -469,9 +469,9 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    UPDATE zen50558_ManagementStore.dbo.Toys
+    UPDATE ManagementStore.dbo.Toys
     SET UpdatedAt = GETDATE()
-    FROM zen50558_ManagementStore.dbo.Toys t
+    FROM ManagementStore.dbo.Toys t
     INNER JOIN inserted i ON t.Id = i.Id;
 END
 GO
@@ -503,7 +503,7 @@ BEGIN
         Rating = COALESCE(rs.AvgRating, 0),
         ReviewCount = COALESCE(rs.ReviewCount, 0),
         UpdatedAt = GETDATE()
-    FROM zen50558_ManagementStore.dbo.Toys t
+    FROM ManagementStore.dbo.Toys t
     LEFT JOIN RatingStats rs ON t.Id = rs.ToyId
     WHERE t.Id IN (
         SELECT DISTINCT ToyId FROM inserted
@@ -538,3 +538,4 @@ PRINT '';
 PRINT 'Ready to use with the Toy Management application!';
 PRINT '==============================================';
 GO
+

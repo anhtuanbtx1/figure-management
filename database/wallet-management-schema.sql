@@ -1,10 +1,10 @@
--- =====================================================
+﻿-- =====================================================
 -- ULTRA SIMPLE WALLET SCHEMA (MOCKUP BASED)
 -- Minimal database schema matching the UI mockup exactly
 -- =====================================================
 
 -- Use the existing database
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '==============================================';
@@ -17,7 +17,7 @@ PRINT '';
 -- =====================================================
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='WalletCategories' AND xtype='U')
 BEGIN
-    CREATE TABLE zen50558_ManagementStore.dbo.WalletCategories (
+    CREATE TABLE ManagementStore.dbo.WalletCategories (
         Id NVARCHAR(50) PRIMARY KEY,
         Name NVARCHAR(255) NOT NULL,
         Type NVARCHAR(20) NOT NULL, -- 'income', 'expense', 'transfer'
@@ -25,11 +25,11 @@ BEGIN
         IsActive BIT NOT NULL DEFAULT 1
     );
 
-    PRINT '✅ WalletCategories table created (ultra simple)';
+    PRINT 'âœ… WalletCategories table created (ultra simple)';
 END
 ELSE
 BEGIN
-    PRINT '✅ WalletCategories table already exists';
+    PRINT 'âœ… WalletCategories table already exists';
 END
 GO
 
@@ -38,14 +38,14 @@ GO
 -- =====================================================
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='WalletTransactions' AND xtype='U')
 BEGIN
-    CREATE TABLE zen50558_ManagementStore.dbo.WalletTransactions (
+    CREATE TABLE ManagementStore.dbo.WalletTransactions (
         Id NVARCHAR(50) PRIMARY KEY,
-        Type NVARCHAR(20) NOT NULL, -- 'Thu nhập', 'Chi tiêu', 'Chuyển khoản'
-        Amount DECIMAL(18,2) NOT NULL, -- Số tiền
-        Description NVARCHAR(500) NOT NULL, -- Mô tả
-        CategoryId NVARCHAR(50) NOT NULL, -- Danh mục
-        TransactionDate DATETIME2 NOT NULL DEFAULT GETDATE(), -- Ngày
-        Status NVARCHAR(20) NOT NULL DEFAULT 'Hoàn thành', -- Trạng thái
+        Type NVARCHAR(20) NOT NULL, -- 'Thu nháº­p', 'Chi tiÃªu', 'Chuyá»ƒn khoáº£n'
+        Amount DECIMAL(18,2) NOT NULL, -- Sá»‘ tiá»n
+        Description NVARCHAR(500) NOT NULL, -- MÃ´ táº£
+        CategoryId NVARCHAR(50) NOT NULL, -- Danh má»¥c
+        TransactionDate DATETIME2 NOT NULL DEFAULT GETDATE(), -- NgÃ y
+        Status NVARCHAR(20) NOT NULL DEFAULT 'HoÃ n thÃ nh', -- Tráº¡ng thÃ¡i
         CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
         IsActive BIT NOT NULL DEFAULT 1,
 
@@ -53,11 +53,11 @@ BEGIN
         CONSTRAINT FK_WalletTransactions_Category FOREIGN KEY (CategoryId) REFERENCES WalletCategories(Id)
     );
 
-    PRINT '✅ WalletTransactions table created (ultra simple - matches mockup)';
+    PRINT 'âœ… WalletTransactions table created (ultra simple - matches mockup)';
 END
 ELSE
 BEGIN
-    PRINT '✅ WalletTransactions table already exists';
+    PRINT 'âœ… WalletTransactions table already exists';
 END
 GO
 
@@ -68,11 +68,12 @@ PRINT '==============================================';
 PRINT '';
 
 -- Display summary
-PRINT '📊 ULTRA SIMPLE SCHEMA (MOCKUP BASED):';
-PRINT '✅ WalletCategories - Danh mục giao dịch';
-PRINT '✅ WalletTransactions - Giao dịch (chỉ 7 fields cần thiết)';
+PRINT 'ðŸ“Š ULTRA SIMPLE SCHEMA (MOCKUP BASED):';
+PRINT 'âœ… WalletCategories - Danh má»¥c giao dá»‹ch';
+PRINT 'âœ… WalletTransactions - Giao dá»‹ch (chá»‰ 7 fields cáº§n thiáº¿t)';
 PRINT '';
-PRINT '🎯 Perfect match with UI mockup!';
-PRINT '💡 Removed: Accounts, Budgets, Goals, Complex relationships';
-PRINT '🚀 Only what the UI actually needs!';
+PRINT 'ðŸŽ¯ Perfect match with UI mockup!';
+PRINT 'ðŸ’¡ Removed: Accounts, Budgets, Goals, Complex relationships';
+PRINT 'ðŸš€ Only what the UI actually needs!';
 GO
+

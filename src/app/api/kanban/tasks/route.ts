@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
         t.NgayTao as createdAt,
         t.NgayCapNhat as updatedAt,
         t.IsActive as isActive
-      FROM zen50558_ManagementStore.dbo.KanbanTasks t
-      LEFT JOIN zen50558_ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId AND c.IsActive = 1
+      FROM ManagementStore.dbo.KanbanTasks t
+      LEFT JOIN ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId AND c.IsActive = 1
       WHERE t.IsActive = 1 AND t.BoardId = @boardId
       ORDER BY c.ThuTu ASC, t.ThuTu ASC
     `;
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     // Determine next order index in the column
     const nextOrderQuery = `
       SELECT ISNULL(MAX(ThuTu), 0) + 1 AS nextOrder
-      FROM zen50558_ManagementStore.dbo.KanbanTasks
+      FROM ManagementStore.dbo.KanbanTasks
       WHERE BoardId = @boardId AND ColumnId = @columnId AND IsActive = 1
     `;
     const [{ nextOrder }] = await executeQuery(nextOrderQuery, {
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     });
 
     const insertQuery = `
-      INSERT INTO zen50558_ManagementStore.dbo.KanbanTasks
+      INSERT INTO ManagementStore.dbo.KanbanTasks
       (Id, BoardId, ColumnId, TieuDe, MoTa, DoUuTien, ThuTu, NguoiDuocGan, NgayBatDau, NgayKetThuc, Metadata)
       VALUES (@id, @boardId, @columnId, @title, @description, @priority, @orderIndex, @assignee, @startDate, @endDate, @metadata)
     `;
@@ -103,8 +103,8 @@ export async function POST(request: Request) {
       SELECT t.Id as id, t.BoardId as boardId, t.ColumnId as columnId, c.TenCot as columnName, c.ThuTu as columnOrder,
              t.TieuDe as title, t.MoTa as description, t.DoUuTien as priority, t.ThuTu as orderIndex,
              t.NguoiDuocGan as assignee, t.NgayBatDau as startDate, t.NgayKetThuc as endDate, t.Metadata as metadata, t.NgayTao as createdAt, t.NgayCapNhat as updatedAt
-      FROM zen50558_ManagementStore.dbo.KanbanTasks t
-      LEFT JOIN zen50558_ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId
+      FROM ManagementStore.dbo.KanbanTasks t
+      LEFT JOIN ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId
       WHERE t.Id = @id
     `;
 
@@ -116,3 +116,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: 'Failed to create task', data: null }, { status: 500 });
   }
 }
+

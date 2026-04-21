@@ -1,11 +1,11 @@
--- =====================================================
+﻿-- =====================================================
 -- TOY MANAGEMENT FRONTEND-COMPATIBLE PROCEDURES
 -- Stored procedures that return data in the exact format expected by the frontend
 -- Compatible with /apps/toy-management page structure
 -- Optimized for performance and security
 -- =====================================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '==============================================';
@@ -76,9 +76,9 @@ BEGIN
             c.Icon as CategoryIcon,
             c.Color as CategoryColor,
             b.Name as BrandName
-        FROM zen50558_ManagementStore.dbo.Toys t
-        INNER JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
-        INNER JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
+        FROM ManagementStore.dbo.Toys t
+        INNER JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
+        INNER JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
         WHERE t.IsActive = 1
             -- Search filter
             AND (@Search IS NULL OR @Search = '' OR
@@ -155,7 +155,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_GetToysForFrontend created successfully';
+PRINT 'âœ… sp_GetToysForFrontend created successfully';
 
 -- =====================================================
 -- 2. PROCEDURE: GET SINGLE TOY BY ID
@@ -203,9 +203,9 @@ BEGIN
         ISNULL(t.IsNew, 0) as isNew,
         ISNULL(t.IsFeatured, 0) as isFeatured,
         ISNULL(t.Discount, 0) as discount
-    FROM zen50558_ManagementStore.dbo.Toys t
-    INNER JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
-    INNER JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
+    FROM ManagementStore.dbo.Toys t
+    INNER JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
+    INNER JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
     WHERE t.Id = @ToyId AND t.IsActive = 1;
 
     -- Check if toy was found
@@ -217,7 +217,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_GetToyByIdForFrontend created successfully';
+PRINT 'âœ… sp_GetToyByIdForFrontend created successfully';
 
 -- =====================================================
 -- 3. PROCEDURE: CREATE NEW TOY
@@ -278,7 +278,7 @@ BEGIN
         END
 
         -- Validate category exists
-        IF NOT EXISTS (SELECT 1 FROM zen50558_ManagementStore.dbo.ToyCategories WHERE Id = @CategoryId AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM ManagementStore.dbo.ToyCategories WHERE Id = @CategoryId AND IsActive = 1)
         BEGIN
             RAISERROR('Invalid CategoryId', 16, 1);
             RETURN;
@@ -286,12 +286,12 @@ BEGIN
 
         -- Get or create brand
         DECLARE @BrandId NVARCHAR(50);
-        SELECT @BrandId = Id FROM zen50558_ManagementStore.dbo.ToyBrands WHERE Name = @Brand AND IsActive = 1;
+        SELECT @BrandId = Id FROM ManagementStore.dbo.ToyBrands WHERE Name = @Brand AND IsActive = 1;
 
         IF @BrandId IS NULL
         BEGIN
             SET @BrandId = 'brand-' + REPLACE(CAST(NEWID() AS NVARCHAR(36)), '-', '');
-            INSERT INTO zen50558_ManagementStore.dbo.ToyBrands (Id, Name, IsActive, CreatedAt, UpdatedAt)
+            INSERT INTO ManagementStore.dbo.ToyBrands (Id, Name, IsActive, CreatedAt, UpdatedAt)
             VALUES (@BrandId, @Brand, 1, GETDATE(), GETDATE());
         END
 
@@ -311,7 +311,7 @@ BEGIN
         END
 
         -- Insert new toy
-        INSERT INTO zen50558_ManagementStore.dbo.Toys (
+        INSERT INTO ManagementStore.dbo.Toys (
             Id, Name, Description, Image, CategoryId, BrandId, Price, OriginalPrice, Stock,
             AgeRange, Material, DimensionLength, DimensionWidth, DimensionHeight, Weight,
             Colors, Tags, Status, IsActive, IsNew, IsFeatured, Discount, Rating, ReviewCount,
@@ -336,7 +336,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_CreateToyFromFrontend created successfully';
+PRINT 'âœ… sp_CreateToyFromFrontend created successfully';
 
 -- =====================================================
 -- 4. PROCEDURE: UPDATE EXISTING TOY
@@ -368,7 +368,7 @@ BEGIN
 
     BEGIN TRY
         -- Validate toy exists
-        IF NOT EXISTS (SELECT 1 FROM zen50558_ManagementStore.dbo.Toys WHERE Id = @ToyId AND IsActive = 1)
+        IF NOT EXISTS (SELECT 1 FROM ManagementStore.dbo.Toys WHERE Id = @ToyId AND IsActive = 1)
         BEGIN
             RAISERROR('Toy not found', 16, 1);
             RETURN;
@@ -390,7 +390,7 @@ BEGIN
 
         -- Validate category if provided
         IF @CategoryId IS NOT NULL AND @CategoryId != '' AND
-           NOT EXISTS (SELECT 1 FROM zen50558_ManagementStore.dbo.ToyCategories WHERE Id = @CategoryId AND IsActive = 1)
+           NOT EXISTS (SELECT 1 FROM ManagementStore.dbo.ToyCategories WHERE Id = @CategoryId AND IsActive = 1)
         BEGIN
             RAISERROR('Invalid CategoryId', 16, 1);
             RETURN;
@@ -400,18 +400,18 @@ BEGIN
         DECLARE @BrandId NVARCHAR(50) = NULL;
         IF @Brand IS NOT NULL AND @Brand != ''
         BEGIN
-            SELECT @BrandId = Id FROM zen50558_ManagementStore.dbo.ToyBrands WHERE Name = @Brand AND IsActive = 1;
+            SELECT @BrandId = Id FROM ManagementStore.dbo.ToyBrands WHERE Name = @Brand AND IsActive = 1;
 
             IF @BrandId IS NULL
             BEGIN
                 SET @BrandId = 'brand-' + REPLACE(CAST(NEWID() AS NVARCHAR(36)), '-', '');
-                INSERT INTO zen50558_ManagementStore.dbo.ToyBrands (Id, Name, IsActive, CreatedAt, UpdatedAt)
+                INSERT INTO ManagementStore.dbo.ToyBrands (Id, Name, IsActive, CreatedAt, UpdatedAt)
                 VALUES (@BrandId, @Brand, 1, GETDATE(), GETDATE());
             END
         END
 
         -- Build dynamic update query
-        DECLARE @UpdateSQL NVARCHAR(MAX) = 'UPDATE zen50558_ManagementStore.dbo.Toys SET UpdatedAt = GETDATE()';
+        DECLARE @UpdateSQL NVARCHAR(MAX) = 'UPDATE ManagementStore.dbo.Toys SET UpdatedAt = GETDATE()';
 
         IF @Name IS NOT NULL
             SET @UpdateSQL += ', Name = ''' + REPLACE(@Name, '''', '''''') + '''';
@@ -473,7 +473,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_UpdateToyFromFrontend created successfully';
+PRINT 'âœ… sp_UpdateToyFromFrontend created successfully';
 
 -- =====================================================
 -- 5. PROCEDURE: DELETE TOY (SOFT DELETE)
@@ -493,14 +493,14 @@ BEGIN
     END
 
     -- Check if toy exists
-    IF NOT EXISTS (SELECT 1 FROM zen50558_ManagementStore.dbo.Toys WHERE Id = @ToyId AND IsActive = 1)
+    IF NOT EXISTS (SELECT 1 FROM ManagementStore.dbo.Toys WHERE Id = @ToyId AND IsActive = 1)
     BEGIN
         RAISERROR('Toy not found', 16, 1);
         RETURN;
     END
 
     -- Soft delete - set IsActive to 0
-    UPDATE zen50558_ManagementStore.dbo.Toys
+    UPDATE ManagementStore.dbo.Toys
     SET IsActive = 0, UpdatedAt = GETDATE()
     WHERE Id = @ToyId;
 
@@ -508,7 +508,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_DeleteToyFromFrontend created successfully';
+PRINT 'âœ… sp_DeleteToyFromFrontend created successfully';
 
 -- =====================================================
 -- 6. PROCEDURE: GET CATEGORIES FOR FRONTEND
@@ -526,13 +526,13 @@ BEGIN
         Description as description,
         Icon as icon,
         Color as color
-    FROM zen50558_ManagementStore.dbo.ToyCategories
+    FROM ManagementStore.dbo.ToyCategories
     WHERE IsActive = 1
     ORDER BY Name;
 END
 GO
 
-PRINT '✅ sp_GetCategoriesForFrontend created successfully';
+PRINT 'âœ… sp_GetCategoriesForFrontend created successfully';
 
 -- =====================================================
 -- 7. PROCEDURE: GET BRANDS FOR FRONTEND
@@ -544,13 +544,13 @@ BEGIN
     SET NOCOUNT ON;
 
     SELECT DISTINCT Name as brand
-    FROM zen50558_ManagementStore.dbo.ToyBrands
+    FROM ManagementStore.dbo.ToyBrands
     WHERE IsActive = 1
     ORDER BY Name;
 END
 GO
 
-PRINT '✅ sp_GetBrandsForFrontend created successfully';
+PRINT 'âœ… sp_GetBrandsForFrontend created successfully';
 
 -- =====================================================
 -- 4. PROCEDURE: UPDATE EXISTING TOY
@@ -687,7 +687,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_UpdateToyFromFrontend created successfully';
+PRINT 'âœ… sp_UpdateToyFromFrontend created successfully';
 
 -- =====================================================
 -- 5. PROCEDURE TO GET SINGLE TOY FOR FRONTEND
@@ -916,3 +916,4 @@ PRINT '- sp_DeleteToyFromFrontend: Delete toy (soft delete)';
 PRINT '- vw_ToysForFrontend: Direct view access';
 PRINT '- vw_CategoriesForFrontend: Get categories';
 PRINT '- vw_BrandsForFrontend: Get brands list';
+

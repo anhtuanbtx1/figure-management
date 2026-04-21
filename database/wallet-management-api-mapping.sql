@@ -1,9 +1,9 @@
--- =====================================================
+﻿-- =====================================================
 -- WALLET MANAGEMENT API MAPPING
 -- Stored Procedures for Frontend API Integration
 -- =====================================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '==============================================';
@@ -35,14 +35,14 @@ BEGIN
         CreatedAt as createdAt,
         UpdatedAt as updatedAt,
         IsActive as isActive
-    FROM zen50558_ManagementStore.dbo.WalletCategories 
+    FROM ManagementStore.dbo.WalletCategories 
     WHERE IsActive = 1
         AND (@Type IS NULL OR Type = @Type)
     ORDER BY Type, Name;
 END
 GO
 
-PRINT '✅ sp_GetWalletCategoriesForFrontend created';
+PRINT 'âœ… sp_GetWalletCategoriesForFrontend created';
 
 -- =====================================================
 -- 2. GET WALLET ACCOUNTS FOR FRONTEND
@@ -72,14 +72,14 @@ BEGIN
         CreatedAt as createdAt,
         UpdatedAt as updatedAt,
         IsActive as isActive
-    FROM zen50558_ManagementStore.dbo.WalletAccounts 
+    FROM ManagementStore.dbo.WalletAccounts 
     WHERE IsActive = 1
         AND (@AccountType IS NULL OR AccountType = @AccountType)
     ORDER BY IsDefault DESC, AccountType, Name;
 END
 GO
 
-PRINT '✅ sp_GetWalletAccountsForFrontend created';
+PRINT 'âœ… sp_GetWalletAccountsForFrontend created';
 
 -- =====================================================
 -- 3. GET WALLET TRANSACTIONS FOR FRONTEND
@@ -134,7 +134,7 @@ BEGIN
     -- Get total count
     DECLARE @CountQuery NVARCHAR(MAX) = '
         SELECT @TotalCount = COUNT(*)
-        FROM zen50558_ManagementStore.dbo.WalletTransactions t ' + @WhereClause;
+        FROM ManagementStore.dbo.WalletTransactions t ' + @WhereClause;
     
     EXEC sp_executesql @CountQuery, N'@TotalCount INT OUTPUT', @TotalCount OUTPUT;
     
@@ -166,10 +166,10 @@ BEGIN
             t.RecurringType as recurringType,
             t.CreatedAt as createdAt,
             t.UpdatedAt as updatedAt
-        FROM zen50558_ManagementStore.dbo.WalletTransactions t
-        LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
-        LEFT JOIN zen50558_ManagementStore.dbo.WalletAccounts a ON t.AccountId = a.Id
-        LEFT JOIN zen50558_ManagementStore.dbo.WalletAccounts ta ON t.ToAccountId = ta.Id
+        FROM ManagementStore.dbo.WalletTransactions t
+        LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+        LEFT JOIN ManagementStore.dbo.WalletAccounts a ON t.AccountId = a.Id
+        LEFT JOIN ManagementStore.dbo.WalletAccounts ta ON t.ToAccountId = ta.Id
         ' + @WhereClause + '
         ORDER BY ' + @SortField + ' ' + @SortDirection + '
         OFFSET ' + CAST(@Offset AS NVARCHAR) + ' ROWS
@@ -186,7 +186,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_GetWalletTransactionsForFrontend created';
+PRINT 'âœ… sp_GetWalletTransactionsForFrontend created';
 
 -- =====================================================
 -- 4. GET WALLET BUDGETS FOR FRONTEND
@@ -225,15 +225,15 @@ BEGIN
         b.CreatedAt as createdAt,
         b.UpdatedAt as updatedAt,
         b.IsActive as isActive
-    FROM zen50558_ManagementStore.dbo.WalletBudgets b
-    LEFT JOIN zen50558_ManagementStore.dbo.WalletCategories c ON b.CategoryId = c.Id
+    FROM ManagementStore.dbo.WalletBudgets b
+    LEFT JOIN ManagementStore.dbo.WalletCategories c ON b.CategoryId = c.Id
     WHERE b.IsActive = 1
         AND (@Period IS NULL OR b.Period = @Period)
     ORDER BY b.Period, c.Name;
 END
 GO
 
-PRINT '✅ sp_GetWalletBudgetsForFrontend created';
+PRINT 'âœ… sp_GetWalletBudgetsForFrontend created';
 
 -- =====================================================
 -- 5. GET WALLET GOALS FOR FRONTEND
@@ -274,8 +274,8 @@ BEGIN
         g.CreatedAt as createdAt,
         g.UpdatedAt as updatedAt,
         g.IsActive as isActive
-    FROM zen50558_ManagementStore.dbo.WalletGoals g
-    LEFT JOIN zen50558_ManagementStore.dbo.WalletAccounts a ON g.AccountId = a.Id
+    FROM ManagementStore.dbo.WalletGoals g
+    LEFT JOIN ManagementStore.dbo.WalletAccounts a ON g.AccountId = a.Id
     WHERE g.IsActive = 1
         AND (@Status IS NULL OR g.Status = @Status)
     ORDER BY 
@@ -289,7 +289,7 @@ BEGIN
 END
 GO
 
-PRINT '✅ sp_GetWalletGoalsForFrontend created';
+PRINT 'âœ… sp_GetWalletGoalsForFrontend created';
 
 -- =====================================================
 -- 6. GET WALLET DASHBOARD SUMMARY
@@ -318,7 +318,7 @@ BEGIN
         AccountType as accountType,
         SUM(Balance) as totalBalance,
         COUNT(*) as accountCount
-    FROM zen50558_ManagementStore.dbo.WalletAccounts
+    FROM ManagementStore.dbo.WalletAccounts
     WHERE IsActive = 1
     GROUP BY AccountType;
     
@@ -329,7 +329,7 @@ BEGIN
         SUM(Amount) as totalAmount,
         COUNT(*) as transactionCount,
         AVG(Amount) as averageAmount
-    FROM zen50558_ManagementStore.dbo.WalletTransactions
+    FROM ManagementStore.dbo.WalletTransactions
     WHERE IsActive = 1 
         AND Status = 'completed'
         AND TransactionDate >= @DateFrom 
@@ -345,8 +345,8 @@ BEGIN
         c.Color as categoryColor,
         SUM(t.Amount) as totalAmount,
         COUNT(t.Id) as transactionCount
-    FROM zen50558_ManagementStore.dbo.WalletTransactions t
-    JOIN zen50558_ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
+    FROM ManagementStore.dbo.WalletTransactions t
+    JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
     WHERE t.IsActive = 1 
         AND t.Status = 'completed'
         AND t.Type = 'expense'
@@ -364,15 +364,15 @@ BEGIN
         b.SpentAmount as spentAmount,
         b.AlertThreshold as alertThreshold,
         ROUND((b.SpentAmount / b.Amount) * 100, 2) as usagePercentage
-    FROM zen50558_ManagementStore.dbo.WalletBudgets b
-    JOIN zen50558_ManagementStore.dbo.WalletCategories c ON b.CategoryId = c.Id
+    FROM ManagementStore.dbo.WalletBudgets b
+    JOIN ManagementStore.dbo.WalletCategories c ON b.CategoryId = c.Id
     WHERE b.IsActive = 1
         AND b.StartDate <= GETDATE()
         AND b.EndDate >= GETDATE();
 END
 GO
 
-PRINT '✅ sp_GetWalletDashboardSummary created';
+PRINT 'âœ… sp_GetWalletDashboardSummary created';
 
 PRINT '';
 PRINT '==============================================';
@@ -381,13 +381,14 @@ PRINT '==============================================';
 PRINT '';
 
 -- Display summary
-PRINT '📊 SUMMARY:';
-PRINT '✅ sp_GetWalletCategoriesForFrontend - Get categories with filtering';
-PRINT '✅ sp_GetWalletAccountsForFrontend - Get accounts with balances';
-PRINT '✅ sp_GetWalletTransactionsForFrontend - Get transactions with pagination';
-PRINT '✅ sp_GetWalletBudgetsForFrontend - Get budgets with usage tracking';
-PRINT '✅ sp_GetWalletGoalsForFrontend - Get goals with progress calculation';
-PRINT '✅ sp_GetWalletDashboardSummary - Get dashboard overview data';
+PRINT 'ðŸ“Š SUMMARY:';
+PRINT 'âœ… sp_GetWalletCategoriesForFrontend - Get categories with filtering';
+PRINT 'âœ… sp_GetWalletAccountsForFrontend - Get accounts with balances';
+PRINT 'âœ… sp_GetWalletTransactionsForFrontend - Get transactions with pagination';
+PRINT 'âœ… sp_GetWalletBudgetsForFrontend - Get budgets with usage tracking';
+PRINT 'âœ… sp_GetWalletGoalsForFrontend - Get goals with progress calculation';
+PRINT 'âœ… sp_GetWalletDashboardSummary - Get dashboard overview data';
 PRINT '';
-PRINT '🎯 Ready for frontend integration!';
+PRINT 'ðŸŽ¯ Ready for frontend integration!';
 GO
+

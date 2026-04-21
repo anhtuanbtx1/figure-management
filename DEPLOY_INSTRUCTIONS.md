@@ -1,51 +1,51 @@
-# 🚀 Hướng Dẫn Deploy Database Optimizations
+﻿# ðŸš€ HÆ°á»›ng Dáº«n Deploy Database Optimizations
 
-## ❌ Hiện Tại: Chưa Deploy
+## âŒ Hiá»‡n Táº¡i: ChÆ°a Deploy
 
-File `src/lib/optimized-stored-procedures.sql` **chưa được execute vào database**. Tôi đã tạo ra các optimization scripts nhưng cần bạn chạy để apply vào database.
+File `src/lib/optimized-stored-procedures.sql` **chÆ°a Ä‘Æ°á»£c execute vÃ o database**. TÃ´i Ä‘Ã£ táº¡o ra cÃ¡c optimization scripts nhÆ°ng cáº§n báº¡n cháº¡y Ä‘á»ƒ apply vÃ o database.
 
-## 🎯 Cách Deploy (3 phương pháp)
+## ðŸŽ¯ CÃ¡ch Deploy (3 phÆ°Æ¡ng phÃ¡p)
 
-### **Phương pháp 1: Sử dụng Script Tự Động (Khuyên dùng)**
+### **PhÆ°Æ¡ng phÃ¡p 1: Sá»­ dá»¥ng Script Tá»± Äá»™ng (KhuyÃªn dÃ¹ng)**
 
 ```bash
-# Chạy script deploy tự động
+# Cháº¡y script deploy tá»± Ä‘á»™ng
 npm run db:optimize
 ```
 
-Script này sẽ:
-- ✅ Connect tới database
-- ✅ Execute tất cả optimizations
-- ✅ Tạo indexes
-- ✅ Deploy stored procedures  
-- ✅ Test performance
-- ✅ Báo cáo kết quả
+Script nÃ y sáº½:
+- âœ… Connect tá»›i database
+- âœ… Execute táº¥t cáº£ optimizations
+- âœ… Táº¡o indexes
+- âœ… Deploy stored procedures  
+- âœ… Test performance
+- âœ… BÃ¡o cÃ¡o káº¿t quáº£
 
-### **Phương pháp 2: Manual SQL Server Management Studio**
+### **PhÆ°Æ¡ng phÃ¡p 2: Manual SQL Server Management Studio**
 
-1. **Mở SQL Server Management Studio**
-2. **Connect tới database**: `zen50558_ManagementStore`
+1. **Má»Ÿ SQL Server Management Studio**
+2. **Connect tá»›i database**: `ManagementStore`
 3. **Open file**: `src/lib/optimized-stored-procedures.sql`
 4. **Execute (F5)**
-5. **Kiểm tra Messages** để đảm bảo không có lỗi
+5. **Kiá»ƒm tra Messages** Ä‘á»ƒ Ä‘áº£m báº£o khÃ´ng cÃ³ lá»—i
 
-### **Phương pháp 3: Command Line**
+### **PhÆ°Æ¡ng phÃ¡p 3: Command Line**
 
 ```bash
-# Sử dụng sqlcmd
-sqlcmd -S 112.78.2.70 -d zen50558_ManagementStore -U zen50558_ManagementStore -P Passwordla@123 -i "src/lib/optimized-stored-procedures.sql"
+# Sá»­ dá»¥ng sqlcmd
+sqlcmd -S 112.78.2.70 -d ManagementStore -U ManagementStore -P Passwordla@123 -i "src/lib/optimized-stored-procedures.sql"
 ```
 
-## 📋 Checklist Deploy
+## ðŸ“‹ Checklist Deploy
 
-Sau khi chạy optimization, kiểm tra:
+Sau khi cháº¡y optimization, kiá»ƒm tra:
 
-- [ ] **Indexes được tạo**
+- [ ] **Indexes Ä‘Æ°á»£c táº¡o**
   ```sql
   SELECT name FROM sys.indexes WHERE name LIKE 'IX_Toys_%';
   ```
 
-- [ ] **Stored procedures mới**
+- [ ] **Stored procedures má»›i**
   ```sql
   SELECT name FROM sys.procedures WHERE name LIKE '%Optimized%';
   ```
@@ -55,11 +55,11 @@ Sau khi chạy optimization, kiểm tra:
   npm run db:test
   ```
 
-## ⚡ Kiểm Tra Kết Quả
+## âš¡ Kiá»ƒm Tra Káº¿t Quáº£
 
-### **Trước khi deploy:**
+### **TrÆ°á»›c khi deploy:**
 ```sql
--- Query sẽ chậm (2-5 seconds)
+-- Query sáº½ cháº­m (2-5 seconds)
 SELECT COUNT(*) FROM Toys t 
 LEFT JOIN ToyCategories c ON t.CategoryId = c.Id
 WHERE t.IsActive = 1 AND t.Price BETWEEN 100000 AND 500000;
@@ -67,11 +67,11 @@ WHERE t.IsActive = 1 AND t.Price BETWEEN 100000 AND 500000;
 
 ### **Sau khi deploy:**
 ```sql
--- Query sẽ nhanh (200-800ms)
--- Với indexes và NOLOCK hints
+-- Query sáº½ nhanh (200-800ms)
+-- Vá»›i indexes vÃ  NOLOCK hints
 ```
 
-## 🔧 Test Deployment
+## ðŸ”§ Test Deployment
 
 Sau khi deploy xong, test ngay:
 
@@ -83,38 +83,38 @@ npm run db:test
 curl "http://localhost:3000/api/performance?action=health"
 ```
 
-## 📊 Monitor Results
+## ðŸ“Š Monitor Results
 
-Truy cập performance dashboard:
+Truy cáº­p performance dashboard:
 
 - **Health Check**: `http://localhost:3000/api/performance?action=health`
 - **Performance Stats**: `http://localhost:3000/api/performance?action=stats`
 - **Detailed Report**: `http://localhost:3000/api/performance?action=report`
 
-## 🚨 Nếu Có Lỗi
+## ðŸš¨ Náº¿u CÃ³ Lá»—i
 
 ### **Connection Error:**
 ```bash
-# Kiểm tra connection string
+# Kiá»ƒm tra connection string
 node -e "console.log(process.env.DB_SERVER || '112.78.2.70')"
 ```
 
 ### **Permission Error:**
 ```sql
--- Đảm bảo user có quyền CREATE INDEX và ALTER
-GRANT CREATE PROCEDURE TO zen50558_ManagementStore;
-GRANT ALTER TO zen50558_ManagementStore;
+-- Äáº£m báº£o user cÃ³ quyá»n CREATE INDEX vÃ  ALTER
+GRANT CREATE PROCEDURE TO ManagementStore;
+GRANT ALTER TO ManagementStore;
 ```
 
 ### **Index Already Exists:**
 ```sql
--- Script tự động check EXISTS, nhưng có thể manual drop nếu cần
+-- Script tá»± Ä‘á»™ng check EXISTS, nhÆ°ng cÃ³ thá»ƒ manual drop náº¿u cáº§n
 DROP INDEX IF EXISTS IX_Toys_IsActive_CreatedAt ON Toys;
 ```
 
-## 📈 Expected Performance Gains
+## ðŸ“ˆ Expected Performance Gains
 
-Sau khi deploy thành công:
+Sau khi deploy thÃ nh cÃ´ng:
 
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
@@ -123,21 +123,21 @@ Sau khi deploy thành công:
 | Concurrent Users | 5 | 50+ | **10x** |
 | Database Load | High | 40-60% less | **Major** |
 
-## ✅ Success Indicators
+## âœ… Success Indicators
 
-Khi deploy thành công, bạn sẽ thấy:
+Khi deploy thÃ nh cÃ´ng, báº¡n sáº½ tháº¥y:
 
 1. **Console output:**
    ```
-   ✅ Created index: IX_Toys_IsActive_CreatedAt
-   ✅ Created index: IX_Toys_CategoryId_IsActive
-   🚀 All optimized indexes created successfully!
+   âœ… Created index: IX_Toys_IsActive_CreatedAt
+   âœ… Created index: IX_Toys_CategoryId_IsActive
+   ðŸš€ All optimized indexes created successfully!
    ```
 
 2. **Performance test:**
    ```
-   ⚡ Query response time: 245ms
-   🎯 Excellent performance! (<100ms)
+   âš¡ Query response time: 245ms
+   ðŸŽ¯ Excellent performance! (<100ms)
    ```
 
 3. **API health check:**
@@ -145,24 +145,24 @@ Khi deploy thành công, bạn sẽ thấy:
    {
      "status": "healthy",
      "responseTime": 89,
-     "recommendations": ["Performance is excellent ✅"]
+     "recommendations": ["Performance is excellent âœ…"]
    }
    ```
 
 ---
 
-## 🎉 Ready to Deploy?
+## ðŸŽ‰ Ready to Deploy?
 
-**Chạy command này để bắt đầu:**
+**Cháº¡y command nÃ y Ä‘á»ƒ báº¯t Ä‘áº§u:**
 
 ```bash
 npm run db:optimize
 ```
 
-**Sau đó kiểm tra kết quả:**
+**Sau Ä‘Ã³ kiá»ƒm tra káº¿t quáº£:**
 
 ```bash
 npm run db:test
 ```
 
-**Happy Optimizing! 🚀**
+**Happy Optimizing! ðŸš€**

@@ -1,9 +1,9 @@
--- =====================================================
+﻿-- =====================================================
 -- CHECK STORED PROCEDURES FOR TOY MANAGEMENT
 -- Script to verify if all required stored procedures exist
 -- =====================================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '==============================================';
@@ -14,7 +14,7 @@ PRINT '==============================================';
 -- 1. LIST ALL EXISTING STORED PROCEDURES
 -- =====================================================
 PRINT '';
-PRINT '📋 ALL STORED PROCEDURES IN DATABASE:';
+PRINT 'ðŸ“‹ ALL STORED PROCEDURES IN DATABASE:';
 PRINT '----------------------------------------';
 
 SELECT 
@@ -30,7 +30,7 @@ ORDER BY ROUTINE_NAME;
 -- 2. CHECK REQUIRED TOY MANAGEMENT PROCEDURES
 -- =====================================================
 PRINT '';
-PRINT '🔍 REQUIRED TOY MANAGEMENT PROCEDURES:';
+PRINT 'ðŸ” REQUIRED TOY MANAGEMENT PROCEDURES:';
 PRINT '----------------------------------------';
 
 DECLARE @RequiredProcedures TABLE (
@@ -50,8 +50,8 @@ SELECT
     rp.ProcedureName,
     rp.Description,
     CASE 
-        WHEN r.ROUTINE_NAME IS NOT NULL THEN '✅ EXISTS'
-        ELSE '❌ MISSING'
+        WHEN r.ROUTINE_NAME IS NOT NULL THEN 'âœ… EXISTS'
+        ELSE 'âŒ MISSING'
     END as Status,
     r.CREATED as CreatedDate
 FROM @RequiredProcedures rp
@@ -62,7 +62,7 @@ ORDER BY rp.ProcedureName;
 -- 3. CHECK MISSING PROCEDURES
 -- =====================================================
 PRINT '';
-PRINT '⚠️ MISSING PROCEDURES:';
+PRINT 'âš ï¸ MISSING PROCEDURES:';
 PRINT '----------------------------------------';
 
 SELECT rp.ProcedureName + ' - ' + rp.Description as MissingProcedure
@@ -74,7 +74,7 @@ WHERE r.ROUTINE_NAME IS NULL;
 -- 4. CHECK TABLES EXIST
 -- =====================================================
 PRINT '';
-PRINT '📊 CHECKING REQUIRED TABLES:';
+PRINT 'ðŸ“Š CHECKING REQUIRED TABLES:';
 PRINT '----------------------------------------';
 
 DECLARE @RequiredTables TABLE (
@@ -87,8 +87,8 @@ INSERT INTO @RequiredTables VALUES
 SELECT 
     rt.TableName,
     CASE 
-        WHEN t.TABLE_NAME IS NOT NULL THEN '✅ EXISTS'
-        ELSE '❌ MISSING'
+        WHEN t.TABLE_NAME IS NOT NULL THEN 'âœ… EXISTS'
+        ELSE 'âŒ MISSING'
     END as Status,
     CASE 
         WHEN t.TABLE_NAME IS NOT NULL THEN 
@@ -103,24 +103,24 @@ ORDER BY rt.TableName;
 -- 5. TEST BASIC QUERIES
 -- =====================================================
 PRINT '';
-PRINT '🧪 TESTING BASIC QUERIES:';
+PRINT 'ðŸ§ª TESTING BASIC QUERIES:';
 PRINT '----------------------------------------';
 
 -- Test if we can query basic tables
 BEGIN TRY
     DECLARE @ToyCount INT, @CategoryCount INT, @BrandCount INT;
     
-    SELECT @ToyCount = COUNT(*) FROM zen50558_ManagementStore.dbo.Toys WHERE IsActive = 1;
-    SELECT @CategoryCount = COUNT(*) FROM zen50558_ManagementStore.dbo.ToyCategories WHERE IsActive = 1;
-    SELECT @BrandCount = COUNT(*) FROM zen50558_ManagementStore.dbo.ToyBrands WHERE IsActive = 1;
+    SELECT @ToyCount = COUNT(*) FROM ManagementStore.dbo.Toys WHERE IsActive = 1;
+    SELECT @CategoryCount = COUNT(*) FROM ManagementStore.dbo.ToyCategories WHERE IsActive = 1;
+    SELECT @BrandCount = COUNT(*) FROM ManagementStore.dbo.ToyBrands WHERE IsActive = 1;
     
-    PRINT 'Basic table queries: ✅ SUCCESS';
+    PRINT 'Basic table queries: âœ… SUCCESS';
     PRINT 'Toys: ' + CAST(@ToyCount AS NVARCHAR(10));
     PRINT 'Categories: ' + CAST(@CategoryCount AS NVARCHAR(10));
     PRINT 'Brands: ' + CAST(@BrandCount AS NVARCHAR(10));
 END TRY
 BEGIN CATCH
-    PRINT 'Basic table queries: ❌ FAILED';
+    PRINT 'Basic table queries: âŒ FAILED';
     PRINT 'Error: ' + ERROR_MESSAGE();
 END CATCH
 
@@ -128,7 +128,7 @@ END CATCH
 -- 6. TEST EXISTING PROCEDURES
 -- =====================================================
 PRINT '';
-PRINT '🧪 TESTING EXISTING PROCEDURES:';
+PRINT 'ðŸ§ª TESTING EXISTING PROCEDURES:';
 PRINT '----------------------------------------';
 
 -- Test sp_GetToys if it exists
@@ -136,15 +136,15 @@ IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_Ge
 BEGIN
     BEGIN TRY
         EXEC sp_GetToys @Page = 1, @PageSize = 1;
-        PRINT 'sp_GetToys: ✅ SUCCESS';
+        PRINT 'sp_GetToys: âœ… SUCCESS';
     END TRY
     BEGIN CATCH
-        PRINT 'sp_GetToys: ❌ FAILED - ' + ERROR_MESSAGE();
+        PRINT 'sp_GetToys: âŒ FAILED - ' + ERROR_MESSAGE();
     END CATCH
 END
 ELSE
 BEGIN
-    PRINT 'sp_GetToys: ❌ NOT FOUND';
+    PRINT 'sp_GetToys: âŒ NOT FOUND';
 END
 
 -- Test sp_GetToysForFrontend if it exists
@@ -152,22 +152,22 @@ IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_NAME = 'sp_Ge
 BEGIN
     BEGIN TRY
         EXEC sp_GetToysForFrontend @Page = 1, @PageSize = 1;
-        PRINT 'sp_GetToysForFrontend: ✅ SUCCESS';
+        PRINT 'sp_GetToysForFrontend: âœ… SUCCESS';
     END TRY
     BEGIN CATCH
-        PRINT 'sp_GetToysForFrontend: ❌ FAILED - ' + ERROR_MESSAGE();
+        PRINT 'sp_GetToysForFrontend: âŒ FAILED - ' + ERROR_MESSAGE();
     END CATCH
 END
 ELSE
 BEGIN
-    PRINT 'sp_GetToysForFrontend: ❌ NOT FOUND';
+    PRINT 'sp_GetToysForFrontend: âŒ NOT FOUND';
 END
 
 -- =====================================================
 -- 7. RECOMMENDATIONS
 -- =====================================================
 PRINT '';
-PRINT '💡 RECOMMENDATIONS:';
+PRINT 'ðŸ’¡ RECOMMENDATIONS:';
 PRINT '----------------------------------------';
 
 DECLARE @MissingCount INT;
@@ -178,24 +178,24 @@ WHERE r.ROUTINE_NAME IS NULL;
 
 IF @MissingCount > 0
 BEGIN
-    PRINT '⚠️ ' + CAST(@MissingCount AS NVARCHAR(10)) + ' stored procedures are missing.';
+    PRINT 'âš ï¸ ' + CAST(@MissingCount AS NVARCHAR(10)) + ' stored procedures are missing.';
     PRINT '';
     PRINT 'TO FIX THIS ISSUE:';
     PRINT '1. Execute the schema file first (if not done):';
-    PRINT '   sqlcmd -S your-server -d zen50558_ManagementStore -i database/toy-management-schema.sql';
+    PRINT '   sqlcmd -S your-server -d ManagementStore -i database/toy-management-schema.sql';
     PRINT '';
     PRINT '2. Execute the API mapping file:';
-    PRINT '   sqlcmd -S your-server -d zen50558_ManagementStore -i database/toy-management-api-mapping.sql';
+    PRINT '   sqlcmd -S your-server -d ManagementStore -i database/toy-management-api-mapping.sql';
     PRINT '';
     PRINT '3. Execute the sample data file:';
-    PRINT '   sqlcmd -S your-server -d zen50558_ManagementStore -i database/toy-management-sample-data.sql';
+    PRINT '   sqlcmd -S your-server -d ManagementStore -i database/toy-management-sample-data.sql';
     PRINT '';
     PRINT '4. Test the API endpoints:';
     PRINT '   node test-api.js';
 END
 ELSE
 BEGIN
-    PRINT '✅ All required stored procedures exist!';
+    PRINT 'âœ… All required stored procedures exist!';
     PRINT 'You can now test the API endpoints.';
 END
 
@@ -204,3 +204,4 @@ PRINT '==============================================';
 PRINT 'STORED PROCEDURES CHECK COMPLETED';
 PRINT '==============================================';
 GO
+

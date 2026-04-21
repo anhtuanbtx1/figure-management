@@ -1,4 +1,4 @@
-USE zen50558_ManagementStore;
+﻿USE ManagementStore;
 GO
 
 -- Update sp_CreateInvoiceFromFrontend to accept SubTotal & GrandTotal
@@ -33,7 +33,7 @@ BEGIN
 
         DECLARE @NewId NVARCHAR(50) = 'inv-' + REPLACE(CAST(NEWID() AS NVARCHAR(36)), '-', '');
 
-        INSERT INTO zen50558_ManagementStore.dbo.Invoices (
+        INSERT INTO ManagementStore.dbo.Invoices (
             Id, InvoiceNumber, BillFrom, BillFromEmail, BillFromAddress, BillFromPhone, BillFromFax,
             BillTo, BillToEmail, BillToAddress, BillToPhone, BillToFax, OrderDate, SubTotal, VAT, GrandTotal, Status, Notes, IsActive, CreatedAt, UpdatedAt
         ) VALUES (
@@ -41,7 +41,7 @@ BEGIN
             @BillTo, @BillToEmail, @BillToAddress, @BillToPhone, @BillToFax, @OrderDate, @SubTotal, @VAT, @GrandTotal, @Status, @Notes, 1, GETDATE(), GETDATE()
         );
 
-        SELECT * FROM zen50558_ManagementStore.dbo.Invoices WHERE Id = @NewId;
+        SELECT * FROM ManagementStore.dbo.Invoices WHERE Id = @NewId;
 
         COMMIT TRANSACTION;
     END TRY
@@ -51,4 +51,5 @@ BEGIN
     END CATCH
 END
 GO
+
 

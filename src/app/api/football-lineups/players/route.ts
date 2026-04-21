@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     const res = await executeQuery(`
-      INSERT INTO zen50558_ManagementStore.players (team_id, full_name, short_name, position, rating, jersey_number, avatar_url)
+      INSERT INTO ManagementStore.players (team_id, full_name, short_name, position, rating, jersey_number, avatar_url)
       OUTPUT INSERTED.id
       VALUES (@team_id, @full_name, @short_name, @position, @rating, @jersey_number, @avatar_url)
     `, {
@@ -43,7 +43,7 @@ export async function PUT(req: Request) {
     }
 
     await executeQuery(`
-      UPDATE zen50558_ManagementStore.players 
+      UPDATE ManagementStore.players 
       SET full_name = @full_name, 
           short_name = @short_name, 
           position = @position, 
@@ -79,13 +79,13 @@ export async function DELETE(req: Request) {
 
     // Gỡ cầu thủ khỏi các vị trí trong line-up trước khi xóa để tránh lỗi ràng buộc (Foreign Key)
     await executeQuery(`
-      UPDATE zen50558_ManagementStore.lineup_slots SET player_id = NULL WHERE player_id = @id
+      UPDATE ManagementStore.lineup_slots SET player_id = NULL WHERE player_id = @id
     `, {
       id: { type: sql.Int, value: parseInt(id) }
     });
 
     await executeQuery(`
-      DELETE FROM zen50558_ManagementStore.players WHERE id = @id
+      DELETE FROM ManagementStore.players WHERE id = @id
     `, {
       id: { type: sql.Int, value: parseInt(id) }
     });
@@ -95,3 +95,4 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

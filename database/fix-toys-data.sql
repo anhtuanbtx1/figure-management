@@ -1,9 +1,9 @@
--- =====================================================
+﻿-- =====================================================
 -- FIX TOYS DATA ISSUES
 -- This script fixes common issues that prevent toys from showing up
 -- =====================================================
 
-USE zen50558_ManagementStore;
+USE ManagementStore;
 GO
 
 PRINT '==============================================';
@@ -13,8 +13,8 @@ PRINT '';
 
 -- 1. Check current state
 DECLARE @TotalToys INT, @ActiveToys INT;
-SELECT @TotalToys = COUNT(*) FROM zen50558_ManagementStore.dbo.Toys;
-SELECT @ActiveToys = COUNT(*) FROM zen50558_ManagementStore.dbo.Toys WHERE IsActive = 1;
+SELECT @TotalToys = COUNT(*) FROM ManagementStore.dbo.Toys;
+SELECT @ActiveToys = COUNT(*) FROM ManagementStore.dbo.Toys WHERE IsActive = 1;
 
 PRINT 'Current state:';
 PRINT 'Total toys: ' + CAST(@TotalToys AS NVARCHAR(10));
@@ -24,27 +24,27 @@ PRINT '';
 -- 2. Fix IsActive = 0 issue
 IF @TotalToys > 0 AND @ActiveToys = 0
 BEGIN
-    PRINT '🔧 Fixing IsActive = 0 issue...';
-    UPDATE zen50558_ManagementStore.dbo.Toys SET IsActive = 1 WHERE IsActive = 0;
-    PRINT '✅ Set all toys to IsActive = 1';
+    PRINT 'ðŸ”§ Fixing IsActive = 0 issue...';
+    UPDATE ManagementStore.dbo.Toys SET IsActive = 1 WHERE IsActive = 0;
+    PRINT 'âœ… Set all toys to IsActive = 1';
     PRINT '';
 END
 
 -- 3. Check and fix orphaned toys (invalid foreign keys)
-PRINT '🔧 Checking for orphaned toys...';
+PRINT 'ðŸ”§ Checking for orphaned toys...';
 
 -- Find toys with invalid CategoryId
 DECLARE @OrphanedByCategory INT;
 SELECT @OrphanedByCategory = COUNT(*)
-FROM zen50558_ManagementStore.dbo.Toys t
-LEFT JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
+FROM ManagementStore.dbo.Toys t
+LEFT JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id
 WHERE c.Id IS NULL AND t.IsActive = 1;
 
 -- Find toys with invalid BrandId
 DECLARE @OrphanedByBrand INT;
 SELECT @OrphanedByBrand = COUNT(*)
-FROM zen50558_ManagementStore.dbo.Toys t
-LEFT JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
+FROM ManagementStore.dbo.Toys t
+LEFT JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id
 WHERE b.Id IS NULL AND t.IsActive = 1;
 
 PRINT 'Toys with invalid CategoryId: ' + CAST(@OrphanedByCategory AS NVARCHAR(10));
@@ -53,55 +53,55 @@ PRINT 'Toys with invalid BrandId: ' + CAST(@OrphanedByBrand AS NVARCHAR(10));
 -- Fix orphaned toys by assigning them to existing categories/brands
 IF @OrphanedByCategory > 0
 BEGIN
-    PRINT '🔧 Fixing toys with invalid CategoryId...';
+    PRINT 'ðŸ”§ Fixing toys with invalid CategoryId...';
     
     -- Get first available category
     DECLARE @FirstCategoryId NVARCHAR(50);
-    SELECT TOP 1 @FirstCategoryId = Id FROM zen50558_ManagementStore.dbo.ToyCategories WHERE IsActive = 1 ORDER BY Name;
+    SELECT TOP 1 @FirstCategoryId = Id FROM ManagementStore.dbo.ToyCategories WHERE IsActive = 1 ORDER BY Name;
     
     IF @FirstCategoryId IS NOT NULL
     BEGIN
-        UPDATE zen50558_ManagementStore.dbo.Toys 
+        UPDATE ManagementStore.dbo.Toys 
         SET CategoryId = @FirstCategoryId
-        WHERE CategoryId NOT IN (SELECT Id FROM zen50558_ManagementStore.dbo.ToyCategories WHERE IsActive = 1)
+        WHERE CategoryId NOT IN (SELECT Id FROM ManagementStore.dbo.ToyCategories WHERE IsActive = 1)
         AND IsActive = 1;
         
-        PRINT '✅ Fixed toys with invalid CategoryId, assigned to: ' + @FirstCategoryId;
+        PRINT 'âœ… Fixed toys with invalid CategoryId, assigned to: ' + @FirstCategoryId;
     END
     ELSE
     BEGIN
-        PRINT '❌ No active categories found to assign orphaned toys';
+        PRINT 'âŒ No active categories found to assign orphaned toys';
     END
 END
 
 IF @OrphanedByBrand > 0
 BEGIN
-    PRINT '🔧 Fixing toys with invalid BrandId...';
+    PRINT 'ðŸ”§ Fixing toys with invalid BrandId...';
     
     -- Get first available brand
     DECLARE @FirstBrandId NVARCHAR(50);
-    SELECT TOP 1 @FirstBrandId = Id FROM zen50558_ManagementStore.dbo.ToyBrands WHERE IsActive = 1 ORDER BY Name;
+    SELECT TOP 1 @FirstBrandId = Id FROM ManagementStore.dbo.ToyBrands WHERE IsActive = 1 ORDER BY Name;
     
     IF @FirstBrandId IS NOT NULL
     BEGIN
-        UPDATE zen50558_ManagementStore.dbo.Toys 
+        UPDATE ManagementStore.dbo.Toys 
         SET BrandId = @FirstBrandId
-        WHERE BrandId NOT IN (SELECT Id FROM zen50558_ManagementStore.dbo.ToyBrands WHERE IsActive = 1)
+        WHERE BrandId NOT IN (SELECT Id FROM ManagementStore.dbo.ToyBrands WHERE IsActive = 1)
         AND IsActive = 1;
         
-        PRINT '✅ Fixed toys with invalid BrandId, assigned to: ' + @FirstBrandId;
+        PRINT 'âœ… Fixed toys with invalid BrandId, assigned to: ' + @FirstBrandId;
     END
     ELSE
     BEGIN
-        PRINT '❌ No active brands found to assign orphaned toys';
+        PRINT 'âŒ No active brands found to assign orphaned toys';
     END
 END
 
 -- 4. Ensure required fields are not NULL
 PRINT '';
-PRINT '🔧 Fixing NULL values in required fields...';
+PRINT 'ðŸ”§ Fixing NULL values in required fields...';
 
-UPDATE zen50558_ManagementStore.dbo.Toys 
+UPDATE ManagementStore.dbo.Toys 
 SET 
     Name = ISNULL(Name, 'Unnamed Toy'),
     Description = ISNULL(Description, 'No description available'),
@@ -122,32 +122,32 @@ SET
     Weight = ISNULL(Weight, 0)
 WHERE IsActive = 1;
 
-PRINT '✅ Fixed NULL values in required fields';
+PRINT 'âœ… Fixed NULL values in required fields';
 
 -- 5. Add sample toy if no toys exist
-SELECT @ActiveToys = COUNT(*) FROM zen50558_ManagementStore.dbo.Toys WHERE IsActive = 1;
+SELECT @ActiveToys = COUNT(*) FROM ManagementStore.dbo.Toys WHERE IsActive = 1;
 
 IF @ActiveToys = 0
 BEGIN
     PRINT '';
-    PRINT '🔧 No active toys found. Adding sample toy...';
+    PRINT 'ðŸ”§ No active toys found. Adding sample toy...';
     
     -- Get first category and brand
     DECLARE @SampleCategoryId NVARCHAR(50), @SampleBrandId NVARCHAR(50);
-    SELECT TOP 1 @SampleCategoryId = Id FROM zen50558_ManagementStore.dbo.ToyCategories WHERE IsActive = 1;
-    SELECT TOP 1 @SampleBrandId = Id FROM zen50558_ManagementStore.dbo.ToyBrands WHERE IsActive = 1;
+    SELECT TOP 1 @SampleCategoryId = Id FROM ManagementStore.dbo.ToyCategories WHERE IsActive = 1;
+    SELECT TOP 1 @SampleBrandId = Id FROM ManagementStore.dbo.ToyBrands WHERE IsActive = 1;
     
     IF @SampleCategoryId IS NOT NULL AND @SampleBrandId IS NOT NULL
     BEGIN
-        INSERT INTO zen50558_ManagementStore.dbo.Toys (
+        INSERT INTO ManagementStore.dbo.Toys (
             Id, Name, Description, Image, CategoryId, BrandId, Price, OriginalPrice, Stock,
             Status, AgeRange, Material, DimensionLength, DimensionWidth, DimensionHeight, Weight,
             Colors, Tags, Rating, ReviewCount, IsActive, IsNew, IsFeatured, Discount,
             CreatedAt, UpdatedAt
         ) VALUES (
             'toy-sample-001',
-            N'Đồ chơi mẫu',
-            N'Đây là đồ chơi mẫu để test hệ thống',
+            N'Äá»“ chÆ¡i máº«u',
+            N'ÄÃ¢y lÃ  Ä‘á»“ chÆ¡i máº«u Ä‘á»ƒ test há»‡ thá»‘ng',
             '/images/toys/sample.jpg',
             @SampleCategoryId,
             @SampleBrandId,
@@ -155,14 +155,14 @@ BEGIN
             399000,
             10,
             'active',
-            N'3-8 tuổi',
-            N'Nhựa ABS',
+            N'3-8 tuá»•i',
+            N'Nhá»±a ABS',
             20.5,
             15.0,
             10.0,
             300.0,
-            '["Đỏ", "Xanh"]',
-            '["Mẫu", "Test"]',
+            '["Äá»", "Xanh"]',
+            '["Máº«u", "Test"]',
             4.5,
             12,
             1,
@@ -173,11 +173,11 @@ BEGIN
             GETDATE()
         );
         
-        PRINT '✅ Added sample toy successfully';
+        PRINT 'âœ… Added sample toy successfully';
     END
     ELSE
     BEGIN
-        PRINT '❌ Cannot add sample toy - no categories or brands available';
+        PRINT 'âŒ Cannot add sample toy - no categories or brands available';
     END
 END
 
@@ -187,8 +187,8 @@ PRINT '==============================================';
 PRINT 'FINAL VERIFICATION';
 PRINT '==============================================';
 
-SELECT @TotalToys = COUNT(*) FROM zen50558_ManagementStore.dbo.Toys;
-SELECT @ActiveToys = COUNT(*) FROM zen50558_ManagementStore.dbo.Toys WHERE IsActive = 1;
+SELECT @TotalToys = COUNT(*) FROM ManagementStore.dbo.Toys;
+SELECT @ActiveToys = COUNT(*) FROM ManagementStore.dbo.Toys WHERE IsActive = 1;
 
 PRINT 'After fixes:';
 PRINT 'Total toys: ' + CAST(@TotalToys AS NVARCHAR(10));
@@ -205,9 +205,9 @@ SELECT
     t.Price,
     t.Stock,
     t.IsActive
-FROM zen50558_ManagementStore.dbo.Toys t
-INNER JOIN zen50558_ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
-INNER JOIN zen50558_ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
+FROM ManagementStore.dbo.Toys t
+INNER JOIN ManagementStore.dbo.ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
+INNER JOIN ManagementStore.dbo.ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
 WHERE t.IsActive = 1;
 
 -- Test stored procedure
@@ -215,10 +215,10 @@ PRINT '';
 PRINT 'Testing stored procedure:';
 BEGIN TRY
     EXEC sp_GetToysForFrontend @Page = 1, @PageSize = 5;
-    PRINT '✅ Stored procedure test: SUCCESS';
+    PRINT 'âœ… Stored procedure test: SUCCESS';
 END TRY
 BEGIN CATCH
-    PRINT '❌ Stored procedure test: ERROR - ' + ERROR_MESSAGE();
+    PRINT 'âŒ Stored procedure test: ERROR - ' + ERROR_MESSAGE();
 END CATCH
 
 PRINT '';
@@ -226,3 +226,4 @@ PRINT '==============================================';
 PRINT 'TOYS DATA FIX COMPLETED';
 PRINT '==============================================';
 GO
+

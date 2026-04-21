@@ -1,4 +1,4 @@
-USE zen50558_ManagementStore;
+﻿USE ManagementStore;
 GO
 
 -- Ensure Id is not the one being set to inv-... externally in create-with-items SP
@@ -9,4 +9,5 @@ GO
 -- SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME='Invoices';
 
 -- No structural change needed for Id; fix FE to always send unique invoiceNumber.
+
 

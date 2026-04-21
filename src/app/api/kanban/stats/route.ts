@@ -44,8 +44,8 @@ export async function GET(request: NextRequest) {
         SUM(CASE WHEN t.NguoiDuocGan IS NOT NULL AND t.NguoiDuocGan != '' AND t.IsActive = 1 THEN 1 ELSE 0 END) as assignedTasks,
         SUM(CASE WHEN (t.NguoiDuocGan IS NULL OR t.NguoiDuocGan = '') AND t.IsActive = 1 THEN 1 ELSE 0 END) as unassignedTasks
         
-      FROM zen50558_ManagementStore.dbo.KanbanTasks t
-      LEFT JOIN zen50558_ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId
+      FROM ManagementStore.dbo.KanbanTasks t
+      LEFT JOIN ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId
       WHERE t.BoardId = @boardId
     `;
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         COUNT(*) as recentlyCreated,
         SUM(CASE WHEN t.NgayCapNhat > t.NgayTao THEN 1 ELSE 0 END) as recentlyUpdated,
         MAX(t.NgayCapNhat) as lastActivity
-      FROM zen50558_ManagementStore.dbo.KanbanTasks t
+      FROM ManagementStore.dbo.KanbanTasks t
       WHERE t.BoardId = @boardId 
         AND t.IsActive = 1
         AND (t.NgayTao >= @startDate OR t.NgayCapNhat >= @startDate)
@@ -65,8 +65,8 @@ export async function GET(request: NextRequest) {
     const completionQuery = `
       SELECT
         COUNT(*) as tasksCompletedInPeriod
-      FROM zen50558_ManagementStore.dbo.KanbanTasks t
-      LEFT JOIN zen50558_ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId
+      FROM ManagementStore.dbo.KanbanTasks t
+      LEFT JOIN ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId
       WHERE t.BoardId = @boardId 
         AND c.MaCot = 'done'
         AND t.NgayCapNhat >= @startDate
@@ -79,8 +79,8 @@ export async function GET(request: NextRequest) {
         t.NguoiDuocGan as assignee,
         COUNT(*) as taskCount,
         SUM(CASE WHEN c.MaCot = 'done' THEN 1 ELSE 0 END) as completedCount
-      FROM zen50558_ManagementStore.dbo.KanbanTasks t
-      LEFT JOIN zen50558_ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId
+      FROM ManagementStore.dbo.KanbanTasks t
+      LEFT JOIN ManagementStore.dbo.KanbanColumns c ON c.Id = t.ColumnId
       WHERE t.BoardId = @boardId 
         AND t.IsActive = 1
         AND t.NguoiDuocGan IS NOT NULL 
@@ -211,3 +211,4 @@ export async function GET(request: NextRequest) {
     }, { status: 500 });
   }
 }
+

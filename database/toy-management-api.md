@@ -1,4 +1,4 @@
-# Toy Management API Documentation
+﻿# Toy Management API Documentation
 
 ## Database Schema Overview
 
@@ -10,13 +10,13 @@
 - **ToyReviews** - Customer reviews and ratings
 
 ### Key Features:
-- ✅ **Full CRUD Operations** - Create, Read, Update, Delete
-- ✅ **Advanced Filtering** - Search, category, brand, price range
-- ✅ **Pagination Support** - Efficient data loading
-- ✅ **Rating System** - Auto-calculated from reviews
-- ✅ **Stock Management** - Inventory tracking
-- ✅ **Audit Trail** - Created/Updated timestamps
-- ✅ **Soft Delete** - Data preservation
+- âœ… **Full CRUD Operations** - Create, Read, Update, Delete
+- âœ… **Advanced Filtering** - Search, category, brand, price range
+- âœ… **Pagination Support** - Efficient data loading
+- âœ… **Rating System** - Auto-calculated from reviews
+- âœ… **Stock Management** - Inventory tracking
+- âœ… **Audit Trail** - Created/Updated timestamps
+- âœ… **Soft Delete** - Data preservation
 
 ## API Endpoints
 
@@ -54,14 +54,14 @@ INSERT INTO Toys (
     Colors, Tags, IsNew, IsFeatured, Discount
 ) VALUES (
     NEWID(), 
-    N'Tên đồ chơi', 
-    N'Mô tả chi tiết',
+    N'TÃªn Ä‘á»“ chÆ¡i', 
+    N'MÃ´ táº£ chi tiáº¿t',
     '/images/toys/new-toy.jpg',
     'cat-001', 'brand-001',
     999000, 1199000, 50, 'active',
-    '3-8 tuổi', 'Nhựa ABS',
+    '3-8 tuá»•i', 'Nhá»±a ABS',
     30.0, 25.0, 15.0, 1.0,
-    '["Đỏ", "Xanh"]', '["Tag1", "Tag2"]',
+    '["Äá»", "Xanh"]', '["Tag1", "Tag2"]',
     1, 0, 16.68
 );
 ```
@@ -70,7 +70,7 @@ INSERT INTO Toys (
 ```sql
 UPDATE Toys 
 SET 
-    Name = N'Tên cập nhật',
+    Name = N'TÃªn cáº­p nháº­t',
     Price = 899000,
     Stock = 45,
     UpdatedAt = GETDATE()
@@ -87,38 +87,38 @@ WHERE Id = 'toy-001';
 ## Sample Data Included
 
 ### Categories (8 items):
-1. **Đồ chơi giáo dục** - Educational toys
-2. **Đồ chơi xây dựng** - Building toys (Lego, blocks)
-3. **Búp bê & Nhân vật** - Dolls & Figures
-4. **Xe đồ chơi** - Toy vehicles
-5. **Đồ chơi thể thao** - Sports toys
-6. **Đồ chơi điện tử** - Electronic toys
-7. **Đồ chơi nghệ thuật** - Art & Craft
-8. **Đồ chơi âm nhạc** - Musical toys
+1. **Äá»“ chÆ¡i giÃ¡o dá»¥c** - Educational toys
+2. **Äá»“ chÆ¡i xÃ¢y dá»±ng** - Building toys (Lego, blocks)
+3. **BÃºp bÃª & NhÃ¢n váº­t** - Dolls & Figures
+4. **Xe Ä‘á»“ chÆ¡i** - Toy vehicles
+5. **Äá»“ chÆ¡i thá»ƒ thao** - Sports toys
+6. **Äá»“ chÆ¡i Ä‘iá»‡n tá»­** - Electronic toys
+7. **Äá»“ chÆ¡i nghá»‡ thuáº­t** - Art & Craft
+8. **Äá»“ chÆ¡i Ã¢m nháº¡c** - Musical toys
 
 ### Brands (10 items):
 - LEGO, Mattel, Hasbro, Fisher-Price, Playmobil
 - VTech, Melissa & Doug, Bandai, Disney, Nerf
 
 ### Sample Toys (10 items):
-1. **Bộ Lego Creator 3-in-1** - ₫1,299,000 (was ₫1,499,000)
-2. **Búp bê Barbie Dreamhouse** - ₫2,899,000 (was ₫3,299,000)
-3. **Robot Transformer Optimus Prime** - ₫899,000
-4. **Xe điều khiển từ xa Racing Car** - ₫1,599,000
-5. **Bộ đồ chơi bác sĩ Fisher-Price** - ₫699,000
-6. **Đàn Piano điện tử VTech** - ₫1,199,000
-7. **Bộ xếp hình gỗ Melissa & Doug** - ₫899,000
-8. **Mô hình Gundam Bandai RG** - ₫1,899,000
-9. **Búp bê Elsa Frozen Disney** - ₫599,000
-10. **Súng Nerf Elite 2.0** - ₫799,000
+1. **Bá»™ Lego Creator 3-in-1** - â‚«1,299,000 (was â‚«1,499,000)
+2. **BÃºp bÃª Barbie Dreamhouse** - â‚«2,899,000 (was â‚«3,299,000)
+3. **Robot Transformer Optimus Prime** - â‚«899,000
+4. **Xe Ä‘iá»u khiá»ƒn tá»« xa Racing Car** - â‚«1,599,000
+5. **Bá»™ Ä‘á»“ chÆ¡i bÃ¡c sÄ© Fisher-Price** - â‚«699,000
+6. **ÄÃ n Piano Ä‘iá»‡n tá»­ VTech** - â‚«1,199,000
+7. **Bá»™ xáº¿p hÃ¬nh gá»— Melissa & Doug** - â‚«899,000
+8. **MÃ´ hÃ¬nh Gundam Bandai RG** - â‚«1,899,000
+9. **BÃºp bÃª Elsa Frozen Disney** - â‚«599,000
+10. **SÃºng Nerf Elite 2.0** - â‚«799,000
 
 ## Database Connection
 
 ### Connection String:
 ```
 Server=zen50558.mssql.somee.com;
-Database=zen50558_ManagementStore;
-User Id=zen50558_ManagementStore;
+Database=ManagementStore;
+User Id=ManagementStore;
 Password=[your_password];
 ```
 
@@ -127,13 +127,13 @@ Password=[your_password];
 ### 1. Run Schema Script:
 ```bash
 # Execute the main schema file
-sqlcmd -S zen50558.mssql.somee.com -d zen50558_ManagementStore -i toy-management-schema.sql
+sqlcmd -S zen50558.mssql.somee.com -d ManagementStore -i toy-management-schema.sql
 ```
 
 ### 2. Test with Sample Queries:
 ```bash
 # Run sample queries
-sqlcmd -S zen50558.mssql.somee.com -d zen50558_ManagementStore -i toy-management-queries.sql
+sqlcmd -S zen50558.mssql.somee.com -d ManagementStore -i toy-management-queries.sql
 ```
 
 ### 3. Integration with Next.js:
@@ -161,7 +161,7 @@ export async function GET(request: Request) {
 
 ## Key Features Implemented
 
-### ✅ Advanced Filtering:
+### âœ… Advanced Filtering:
 - Text search (name, description)
 - Category filtering
 - Brand filtering  
@@ -169,24 +169,24 @@ export async function GET(request: Request) {
 - Stock availability
 - Status filtering (active, inactive, etc.)
 
-### ✅ Sorting & Pagination:
+### âœ… Sorting & Pagination:
 - Sort by any field (name, price, rating, date)
 - Ascending/Descending order
 - Page-based pagination
 - Configurable page sizes
 
-### ✅ Data Integrity:
+### âœ… Data Integrity:
 - Foreign key constraints
 - Check constraints for valid data
 - Automatic timestamp updates
 - Soft delete functionality
 
-### ✅ Performance Optimization:
+### âœ… Performance Optimization:
 - Strategic indexes on key fields
 - Efficient stored procedures
 - Optimized queries for large datasets
 
-### ✅ Business Logic:
+### âœ… Business Logic:
 - Automatic rating calculation from reviews
 - Stock level tracking
 - Discount calculations
@@ -197,10 +197,11 @@ export async function GET(request: Request) {
 The database schema is now ready for integration with your Toy Management application. All tables, sample data, stored procedures, and triggers are in place.
 
 ### Next Steps:
-1. ✅ Execute the schema script
-2. ✅ Test with sample queries  
-3. ✅ Integrate with your Next.js API routes
-4. ✅ Connect to your React components
-5. ✅ Add authentication and authorization as needed
+1. âœ… Execute the schema script
+2. âœ… Test with sample queries  
+3. âœ… Integrate with your Next.js API routes
+4. âœ… Connect to your React components
+5. âœ… Add authentication and authorization as needed
 
 The system supports all the features shown in your toy-management page including filtering, sorting, pagination, and CRUD operations.
+
