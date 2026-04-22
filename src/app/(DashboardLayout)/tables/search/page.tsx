@@ -1,7 +1,6 @@
-import { Box } from "@mui/material";
+import { Alert } from "@mui/material";
 import Breadcrumb from "@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb";
 import PageContainer from "@/app/components/container/PageContainer";
-import ProductTableList from "@/app/components/apps/ecommerce/ProductTableList/ProductTableList";
 
 const BCrumb = [
   {
@@ -19,9 +18,7 @@ const SearchTable = () => {
       {/* breadcrumb */}
       <Breadcrumb title="Search Table" items={BCrumb} />
       {/* end breadcrumb */}
-      <Box>
-        <ProductTableList />
-      </Box>
+      <Alert severity="info">Bang tim kiem da duoc go bo cung module thuong mai dien tu.</Alert>
     </PageContainer>
   );
 };
