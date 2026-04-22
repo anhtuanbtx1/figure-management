@@ -89,12 +89,9 @@ const config: sql.config = {
   user: process.env.DB_USER || 'ManagementStore',
   password: process.env.DB_PASSWORD || 'Passwordla@123',
   options: {
-    encrypt: true,
-    trustServerCertificate: true,
+    encrypt: false,
+    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
     enableArithAbort: true,
-    cryptoCredentialsDetails: {
-      minVersion: 'TLSv1'
-    }
   },
   pool: {
     max: 10, // Increased pool size for better concurrency

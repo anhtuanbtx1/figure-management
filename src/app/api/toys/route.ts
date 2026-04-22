@@ -178,6 +178,17 @@ export async function GET(request: NextRequest) {
 
       const whereClause = whereConditions.join(' AND ');
 
+      // Build ORDER BY dynamically - SQL Server doesn't accept CASE in ORDER BY
+      const sortColumn = sortField === 'name' ? 't.Name' 
+        : sortField === 'price' ? 't.Price' 
+        : sortField === 'stock' ? 't.Stock' 
+        : sortField === 'category' ? 'c.Name' 
+        : 't.CreatedAt';
+      // Only add createdAt as secondary if it's not already the sort column
+      const orderByClause = sortField === 'createdAt' 
+        ? `${sortColumn} ${sortDirection === 'asc' ? 'ASC' : 'DESC'}`
+        : `${sortColumn} ${sortDirection === 'asc' ? 'ASC' : 'DESC'}, t.CreatedAt DESC`;
+
       // Optimized queries with hints for better performance
       const queries = [
         {
@@ -192,7 +203,7 @@ export async function GET(request: NextRequest) {
         },
         {
           query: `
-            SELECT TOP (${pageSize})
+            SELECT
               t.Id as id,
               t.Name as name,
               t.Description as description,
@@ -219,19 +230,8 @@ export async function GET(request: NextRequest) {
             LEFT JOIN ManagementStore.dbo.ToyCategories c WITH (NOLOCK) ON t.CategoryId = c.Id
             LEFT JOIN ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
             WHERE ${whereClause}
-            ORDER BY
-              CASE WHEN '${sortField}' = 'name' AND '${sortDirection}' = 'ASC' THEN t.Name END ASC,
-              CASE WHEN '${sortField}' = 'name' AND '${sortDirection}' = 'DESC' THEN t.Name END DESC,
-              CASE WHEN '${sortField}' = 'price' AND '${sortDirection}' = 'ASC' THEN t.Price END ASC,
-              CASE WHEN '${sortField}' = 'price' AND '${sortDirection}' = 'DESC' THEN t.Price END DESC,
-              CASE WHEN '${sortField}' = 'stock' AND '${sortDirection}' = 'ASC' THEN t.Stock END ASC,
-              CASE WHEN '${sortField}' = 'stock' AND '${sortDirection}' = 'DESC' THEN t.Stock END DESC,
-              CASE WHEN '${sortField}' = 'category' AND '${sortDirection}' = 'ASC' THEN c.Name END ASC,
-              CASE WHEN '${sortField}' = 'category' AND '${sortDirection}' = 'DESC' THEN c.Name END DESC,
-              CASE WHEN '${sortField}' = 'createdAt' AND '${sortDirection}' = 'ASC' THEN t.CreatedAt END ASC,
-              CASE WHEN '${sortField}' = 'createdAt' AND '${sortDirection}' = 'DESC' THEN t.CreatedAt END DESC,
-              t.CreatedAt DESC
-            OFFSET ${(page - 1) * pageSize} ROWS
+            ORDER BY ${orderByClause}
+            OFFSET ${(page - 1) * pageSize} ROWS FETCH NEXT ${pageSize} ROWS ONLY
           `,
           params: queryParams
         }
