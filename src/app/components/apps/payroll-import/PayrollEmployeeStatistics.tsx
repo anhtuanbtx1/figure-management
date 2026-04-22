@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import type { ApexOptions } from "apexcharts";
 import {
   Alert,
   Box,
@@ -100,10 +101,10 @@ const PayrollEmployeeStatistics = () => {
     }
   };
 
-  const chartOptions = useMemo(() => {
+  const chartOptions = useMemo<ApexOptions>(() => {
     return {
       chart: {
-        type: "bar",
+        type: "bar" as const,
         fontFamily: "'Plus Jakarta Sans', sans-serif;",
         foreColor: "#adb0bb",
         toolbar: { show: false },
