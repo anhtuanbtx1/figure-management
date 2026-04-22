@@ -165,6 +165,32 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
+    title: "Ghi bảng lương nhân sự",
+    icon: IconCurrencyDollar,
+    href: "/apps/payroll",
+    children: [
+      {
+        id: uniqueId(),
+        title: "Import Excel",
+        icon: IconPoint,
+        href: "/apps/payroll/import",
+      },
+      {
+        id: uniqueId(),
+        title: "Danh sách bảng lương",
+        icon: IconPoint,
+        href: "/apps/payroll/list",
+      },
+      {
+        id: uniqueId(),
+        title: "Thống kê lương nhân viên",
+        icon: IconPoint,
+        href: "/apps/payroll/statistics",
+      },
+    ],
+  },
+  {
+    id: uniqueId(),
     title: "Quản lý giặt ủi",
     icon: IconShoppingCart,
     href: "/apps/laundry-orders",
