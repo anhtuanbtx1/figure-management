@@ -13,7 +13,7 @@ import {
 import { IconMenu2, IconMoon, IconSun } from "@tabler/icons-react";
 import Notifications from "./Notification";
 import Profile from "./Profile";
-import Cart from "./Cart";
+
 import Search from "./Search";
 import Language from "./Language";
 import { AppState } from "@/store/store";
@@ -73,13 +73,7 @@ const Header = () => {
         <Box flexGrow={1} />
         <Stack spacing={1} direction="row" alignItems="center">
           <Language />
-          {/* ------------------------------------------- */}
-          {/* Ecommerce Dropdown */}
-          {/* ------------------------------------------- */}
-          <Cart />
-          {/* ------------------------------------------- */}
-          {/* End Ecommerce Dropdown */}
-          {/* ------------------------------------------- */}
+          
 
           <IconButton size="large" color="inherit">
             {customizer.activeMode === "light" ? (

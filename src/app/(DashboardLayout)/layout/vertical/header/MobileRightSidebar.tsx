@@ -5,8 +5,6 @@ import {
   IconChevronDown,
   IconChevronUp,
   IconGridDots,
-  IconMail,
-  IconMessages,
 } from '@tabler/icons-react';
 import {
   Box,
@@ -44,16 +42,6 @@ const MobileRightSidebar = () => {
           component="nav"
           aria-labelledby="nested-list-subheader"
         >
-          <ListItemButton component={Link} href="/apps/chats">
-            <ListItemIcon sx={{ minWidth: 35 }}>
-              <IconMessages size="21" stroke="1.5" />
-            </ListItemIcon>
-            <ListItemText>
-              <Typography variant="subtitle2" fontWeight={600}>
-                Chats
-              </Typography>
-            </ListItemText>
-          </ListItemButton>
           <ListItemButton component={Link} href="/apps/calendar">
             <ListItemIcon sx={{ minWidth: 35 }}>
               <IconCalendarEvent size="21" stroke="1.5" />
@@ -61,16 +49,6 @@ const MobileRightSidebar = () => {
             <ListItemText>
               <Typography variant="subtitle2" fontWeight={600}>
                 Calendar
-              </Typography>
-            </ListItemText>
-          </ListItemButton>
-          <ListItemButton component={Link} href="/apps/email">
-            <ListItemIcon sx={{ minWidth: 35 }}>
-              <IconMail size="21" stroke="1.5" />
-            </ListItemIcon>
-            <ListItemText>
-              <Typography variant="subtitle2" fontWeight={600}>
-                Email
               </Typography>
             </ListItemText>
           </ListItemButton>
@@ -118,7 +96,7 @@ const MobileRightSidebar = () => {
         <IconGridDots size="21" stroke="1.5" />
       </IconButton>
       {/* ------------------------------------------- */}
-      {/* Cart Sidebar */}
+      {/* Navigation Sidebar */}
       {/* ------------------------------------------- */}
       <Drawer
         anchor="right"

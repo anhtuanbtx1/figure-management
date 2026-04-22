@@ -106,33 +106,7 @@ const AppDD = () => {
           </Grid>
         </Menu>
       </Box>
-      <Button
-        color="inherit"
-        sx={{ color: (theme) => theme.palette.text.secondary }}
-        variant="text"
-        href="/apps/chats"
-        component={Link}
-      >
-        Chat
-      </Button>
-      <Button
-        color="inherit"
-        sx={{ color: (theme) => theme.palette.text.secondary }}
-        variant="text"
-        href="/apps/wallet"
-        component={Link}
-      >
-        Ví
-      </Button>
-      <Button
-        color="inherit"
-        sx={{ color: (theme) => theme.palette.text.secondary }}
-        variant="text"
-        href="/apps/wallet"
-        component={Link}
-      >
-        Email
-      </Button>
+
     </>
   );
 };

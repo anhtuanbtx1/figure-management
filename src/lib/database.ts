@@ -7,19 +7,16 @@ const config: sql.config = {
   user: process.env.DB_USER || 'ManagementStore',
   password: process.env.DB_PASSWORD || 'Passwordla@123',
   options: {
-    encrypt: true,
-    trustServerCertificate: true, // Fix TLS warning
+    encrypt: false,
+    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
     enableArithAbort: true,
-    cryptoCredentialsDetails: {
-      minVersion: 'TLSv1'
-    }
   },
   pool: {
-    max: 10, 
+    max: 10,
     min: 0,
     idleTimeoutMillis: 30000,
   },
-  requestTimeout: 60000, 
+  requestTimeout: 60000,
   connectionTimeout: 60000,
 };
 

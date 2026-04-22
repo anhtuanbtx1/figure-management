@@ -5,7 +5,7 @@ import storage from "redux-persist/lib/storage";
 
 import counterReducer from "./counter/counterSlice";
 import CustomizerReducer from "./customizer/CustomizerSlice";
-import EcommerceReducer from "./apps/eCommerce/ECommerceSlice";
+
 import ChatsReducer from "./apps/chat/ChatSlice";
 import NotesReducer from "./apps/notes/NotesSlice";
 import EmailReducer from "./apps/email/EmailSlice";
@@ -24,7 +24,6 @@ export const store = configureStore({
   reducer: {
     counter: counterReducer,
     customizer: persistReducer<any>(persistConfig, CustomizerReducer),
-    ecommerceReducer: EcommerceReducer,
     chatReducer: ChatsReducer,
     emailReducer: EmailReducer,
     notesReducer: NotesReducer,
@@ -42,7 +41,6 @@ export const store = configureStore({
 const rootReducer = combineReducers({
   counter: counterReducer,
   customizer: CustomizerReducer,
-  ecommerceReducer: EcommerceReducer,
   chatReducer: ChatsReducer,
   emailReducer: EmailReducer,
   notesReducer: NotesReducer,
