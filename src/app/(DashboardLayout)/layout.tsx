@@ -43,7 +43,6 @@ export default function RootLayout({
 
   return (
     <MainWrapper className={customizer.activeMode === 'dark' ? 'darkbg mainwrapper' : 'mainwrapper'}>
-      <title>Modernize NextJs</title>
       {/* ------------------------------------------- */}
       {/* Sidebar */}
       {/* ------------------------------------------- */}
