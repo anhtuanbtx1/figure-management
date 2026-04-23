@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Box, Typography, Snackbar, Alert, Grid } from '@mui/material';
 import PageContainer from '@/app/components/container/PageContainer';
 import TeamManagement from './TeamManagement';
+import CategoryManagement from './CategoryManagement';
 
 // ─── Constants & Types ────────────────────────────────────────────────────────
 
@@ -242,7 +243,7 @@ const PlayerNode = ({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function FootballLineupPage() {
-  const [activeTab, setActiveTab] = useState<'Lineup'|'Tactics'|'Team'>('Lineup');
+  const [activeTab, setActiveTab] = useState<'Lineup'|'Tactics'|'Team'|'Danh mục'>('Lineup');
   const [dbTeams, setDbTeams] = useState<any[]>([]);
   const [mappedPlayers, setMappedPlayers] = useState<Player[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -513,7 +514,7 @@ export default function FootballLineupPage() {
               TACTICAL LENS
             </Typography>
             <Box display="flex">
-              {(['Lineup', 'Tactics', 'Team'] as const).map(tab => (
+              {(['Lineup', 'Tactics', 'Team', 'Danh mục'] as const).map(tab => (
                 <Box key={tab} onClick={() => setActiveTab(tab)} sx={{
                   px: 2, py: 1, fontSize: 13, fontWeight: 600, textTransform: 'uppercase', cursor: 'pointer',
                   color: activeTab === tab ? C.primary : C.onSurfaceVariant,
@@ -541,6 +542,10 @@ export default function FootballLineupPage() {
           
           {activeTab === 'Team' && (
             <TeamManagement teamId={selectedTeamId} players={mappedPlayers} onRefresh={() => setRefreshKey(k=>k+1)} C={C} />
+          )}
+
+          {activeTab === 'Danh mục' && (
+            <CategoryManagement C={C} onRefresh={() => setRefreshKey(k=>k+1)} />
           )}
 
           {activeTab === 'Lineup' && (
