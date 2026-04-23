@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Box,
   Menu,
@@ -10,19 +11,20 @@ import {
   IconButton,
 } from '@mui/material';
 import * as dropdownData from './data';
-
 import { IconMail } from '@tabler/icons-react';
 import { Stack } from '@mui/system';
 import Image from 'next/image';
 
-
 const Profile = () => {
+  const router = useRouter();
   const [anchorEl2, setAnchorEl2] = useState(null);
-  const handleClick2 = (event: any) => {
-    setAnchorEl2(event.currentTarget);
-  };
-  const handleClose2 = () => {
-    setAnchorEl2(null);
+  const handleClick2 = (event: any) => { setAnchorEl2(event.currentTarget); };
+  const handleClose2 = () => { setAnchorEl2(null); };
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+    router.refresh();
   };
 
   return (
@@ -146,18 +148,14 @@ const Profile = () => {
             <Box display="flex" justifyContent="space-between">
               <Box>
                 <Typography variant="h5" mb={2}>
-                  Unlimited <br />
-                  Access
+                  Admin<br />Dashboard
                 </Typography>
-                <Button variant="contained" color="primary">
-                  Upgrade
-                </Button>
               </Box>
               <Image src={"/images/backgrounds/unlimited-bg.png"} width={150} height={183} style={{ height: 'auto', width: 'auto' }} alt="unlimited" className="signup-bg" />
             </Box>
           </Box>
-          <Button href="/auth/auth1/login" variant="outlined" color="primary" component={Link} fullWidth>
-            Logout
+          <Button onClick={handleLogout} variant="outlined" color="primary" fullWidth>
+            Đăng xuất
           </Button>
         </Box>
       </Menu>
