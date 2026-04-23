@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box, Typography, TextField, Button, InputAdornment,
-  IconButton, CircularProgress, Alert, Fade, Divider,
+  IconButton, CircularProgress, Alert, Fade,
 } from '@mui/material';
 import { IconEye, IconEyeOff, IconLock, IconUser } from '@tabler/icons-react';
 
@@ -237,21 +237,7 @@ export default function LoginPage() {
               </Button>
             </Box>
 
-            <Divider sx={{ my: 3, borderColor: '#f1f5f9' }} />
 
-            {/* Hint */}
-            <Box sx={{
-              p: 2, borderRadius: '10px',
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-            }}>
-              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 0.5, fontWeight: 600 }}>
-                Tài khoản mặc định
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#475569' }}>
-                Username: <strong>admin</strong> &nbsp;·&nbsp; Password: <strong>123456</strong>
-              </Typography>
-            </Box>
           </Box>
         </Fade>
       </Box>
