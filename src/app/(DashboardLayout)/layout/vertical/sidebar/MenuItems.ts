@@ -28,6 +28,7 @@ import {
   IconFlask,
   IconBallFootball,
   IconBox,
+  IconDatabase,
 } from "@tabler/icons-react";
 
 const Menuitems: MenuitemsType[] = [
@@ -94,6 +95,14 @@ const Menuitems: MenuitemsType[] = [
         href: "/apps/laundry-orders/reports",
       },
     ],
+  },
+  {
+    id: uniqueId(),
+    title: "Quản lý Database",
+    icon: IconDatabase,
+    href: "/apps/db-manager",
+    chip: "New",
+    chipColor: "primary",
   },
   {
     id: uniqueId(),
