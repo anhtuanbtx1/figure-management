@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const EXTERNAL_API_URL = "https://biso24-gateway-api.biso24.net/v1/leaves";
+const EXTERNAL_API_URL = "https://iam.biso24.org/v1/requests";
 const DEFAULT_AUTHORIZATION = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODBhODI3Nzc1N2QxNTRlMmZhN2FlYiIsIm9yZ0lkIjoiNjc0MDUzZTVmM2JkYWZkMjQyODI2YTdiIiwiaWF0IjoxNzc2MDYyODg2LCJleHAiOjE3NzcyNzI0ODZ9.8fxOlKHYoqJeim13bdei-HFb1wnY3ia08huxWERQoJ8";
 const DEFAULT_ACCEPT = "application/json, text/plain, */*";
 const DEFAULT_ACCEPT_LANGUAGE = "vi,en-US;q=0.9,en;q=0.8";
@@ -17,30 +17,83 @@ const DEFAULT_SEC_FETCH_SITE = "same-site";
 const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0";
 const DEFAULT_QUERY = "leave";
 
+interface EmployeeDetail {
+  employeeId?: string;
+  avatar?: string | null;
+  staffCode?: string;
+  fullName?: string;
+  departmentId?: string;
+  departmentName?: string;
+  positionId?: string;
+  positionName?: string;
+  gender?: string | null;
+}
+
+interface ApprovalStepApprover {
+  employeeId?: string;
+  staffCode?: string;
+  fullName?: string;
+  avatar?: string;
+  companyEmail?: string;
+  departmentName?: string;
+  positionName?: string;
+  _id?: string;
+  id?: string;
+}
+
+interface ApprovalStep {
+  stepIndex?: number;
+  stepId?: string;
+  stepTitle?: string;
+  approvalConfig?: string | null;
+  approvers?: ApprovalStepApprover[];
+  status?: string;
+  approvedDate?: string;
+  approvedBy?: ApprovalStepApprover | null;
+  _id?: string;
+  id?: string;
+}
+
+interface WorkShiftItem {
+  workShiftItemId?: string;
+  name?: string;
+  code?: string;
+}
+
+interface RequestData {
+  workingDate?: string;
+  workShiftItem?: WorkShiftItem;
+  timeIn?: string;
+  timeOut?: string;
+}
+
 interface ExternalLeaveRequestItem {
   _id?: string;
   id?: string;
-  requestStatus?: string;
+  orgIds?: string[];
+  requestCategoryId?: string;
+  requestCategoryCode?: string;
+  registrationDate?: string;
+  employeeId?: string;
+  employeeDetail?: EmployeeDetail;
+  approvalSteps?: ApprovalStep[];
+  requestData?: RequestData;
+  notes?: string;
+  files?: unknown[];
+  createdBy?: EmployeeDetail;
+  status?: string;
+  priority?: number;
+  approvedBy?: ApprovalStepApprover | null;
+  approvalForNextStep?: ApprovalStepApprover | null;
+  modifiedBy?: EmployeeDetail;
+  _destroy?: boolean;
   createdAt?: string;
-  employeeId?: {
-    fullName?: string;
-    staffCode?: string;
-  };
-  approvedBy?: {
-    fullName?: string;
-  };
-  details?: {
-    date?: string;
-    toDate?: string;
-    notes?: string;
-    typeLeave?: {
-      name?: string;
-    };
-  };
+  updatedAt?: string;
 }
 
 interface ExternalLeaveResponse {
   success?: boolean;
+  statusCode?: string;
   message?: string;
   data?: {
     total?: number;
@@ -48,14 +101,6 @@ interface ExternalLeaveResponse {
     page?: number;
     totalPages?: number;
     data?: ExternalLeaveRequestItem[];
-    count?: {
-      countLeave?: number;
-      countTKRequest?: number;
-      countTKEmployee?: number;
-      countBusinessTrip?: number;
-      countWSRegistration?: number;
-      countPaycheckEmployee?: number;
-    };
   };
 }
 
@@ -100,9 +145,9 @@ async function extractBearerToken(request: NextRequest) {
         "sec-fetch-site": "cross-site",
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
       },
-      body: JSON.stringify({"email":"tuan.cna@ots.vn","password":"AnhTuan@123","orgId":null})
+      body: JSON.stringify({ "email": "tuan.cna@ots.vn", "password": "AnhTuan@123", "orgId": null })
     });
-    
+
     if (loginRes.ok) {
       const loginData = await loginRes.json();
       const fetchedToken = loginData?.data?.token;
@@ -150,6 +195,7 @@ function mapStatus(status?: string) {
       return "Approved";
     case "WAITING":
     case "WAITING_FOR_APPROVAL":
+    case "PROCESSING":
       return "Pending";
     case "REJECTED":
       return "Rejected";
@@ -160,32 +206,57 @@ function mapStatus(status?: string) {
   }
 }
 
-function mapLeaveRequest(item: any) {
-  const startDate = item.details?.date || item.fromDate;
-  const endDate = item.details?.toDate || item.toDate;
+function mapLeaveRequest(item: ExternalLeaveRequestItem) {
+  // Ngày làm việc từ requestData, fallback về registrationDate
+  const workingDate = item.requestData?.workingDate || item.registrationDate;
 
-  const typeName = item.details?.typeLeave?.name || item.leaveConfigurationId?.name || "Leave Request";
-  const fullName = item.employeeId?.fullName || item.employeeDetails?.fullName || "-";
-  const staffCode = item.employeeId?.staffCode || item.employeeDetails?.staffCode || "-";
-  const reqStatus = item.requestStatus || item.status;
+  // Loại đơn: tên ca hoặc requestCategoryCode
+  const typeName =
+    item.requestData?.workShiftItem?.name ||
+    item.requestCategoryCode ||
+    "Leave Request";
 
+  // Thông tin nhân viên từ employeeDetail
+  const fullName = item.employeeDetail?.fullName || "-";
+  const staffCode = item.employeeDetail?.staffCode || "-";
+  const departmentName = item.employeeDetail?.departmentName || "-";
+  const positionName = item.employeeDetail?.positionName || "-";
+
+  // Trạng thái
+  const reqStatus = item.status;
+
+  // Người duyệt: ưu tiên approvedBy root, sau đó tìm trong approvalSteps đã APPROVED
   let approvedByName = "-";
-  if (Array.isArray(item.approvedBy)) {
-    approvedByName = item.approvedBy.map((x: any) => x.fullName).join(", ") || "-";
-  } else if (item.approvedBy) {
-    approvedByName = item.approvedBy.fullName || "-";
+  if (item.approvedBy?.fullName) {
+    approvedByName = item.approvedBy.fullName;
+  } else if (Array.isArray(item.approvalSteps)) {
+    const approvedSteps = item.approvalSteps
+      .filter((s) => s.status === "APPROVED" || s.status === "SENT")
+      .map((s) => s.approvedBy?.fullName)
+      .filter(Boolean);
+    if (approvedSteps.length > 0) {
+      approvedByName = approvedSteps.join(", ");
+    }
   }
+
+  // Người sẽ duyệt tiếp theo
+  const nextApprover = item.approvalForNextStep?.fullName || null;
 
   return {
     id: item.id || item._id || crypto.randomUUID(),
     type: typeName,
-    fullName: fullName,
-    staffCode: staffCode,
-    start_date: formatDate(startDate),
-    end_date: formatDate(endDate),
+    fullName,
+    staffCode,
+    departmentName,
+    positionName,
+    start_date: formatDate(workingDate),
+    end_date: formatDate(workingDate), // đơn chỉ có 1 ngày
+    time_in: item.requestData?.timeIn || null,
+    time_out: item.requestData?.timeOut || null,
     status: mapStatus(reqStatus),
     approved_by: approvedByName,
-    notes: item.details?.notes || item.notes || "",
+    next_approver: nextApprover,
+    notes: item.notes || "",
     created_at: item.createdAt || null,
   };
 }
@@ -268,7 +339,6 @@ export async function GET(request: NextRequest) {
       success: true,
       message: payload.message || "OK",
       data: rawData.map(mapLeaveRequest),
-      counts: payload.data?.count || null,
       pagination: {
         page: currentPage,
         pageSize: currentLimit,
