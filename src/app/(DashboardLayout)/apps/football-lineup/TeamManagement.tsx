@@ -37,6 +37,8 @@ export default function TeamManagement({ teamId, players, onRefresh, C }: TeamMa
   const [editingPlayer, setEditingPlayer] = useState<Partial<Player> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchTerm, setActiveSearchTerm] = useState('');
 
   const handleOpenDialog = (player?: Player) => {
     if (player) setEditingPlayer({ ...player });
@@ -133,7 +135,21 @@ export default function TeamManagement({ teamId, players, onRefresh, C }: TeamMa
     setPage(0);
   };
 
-  const displayedPlayers = players.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const handleSearch = () => {
+    setActiveSearchTerm(searchQuery);
+    setPage(0);
+  };
+
+  const filteredPlayers = players.filter(p => {
+    if (!activeSearchTerm) return true;
+    const term = activeSearchTerm.toLowerCase();
+    return p.name.toLowerCase().includes(term) || 
+           p.shortName.toLowerCase().includes(term) ||
+           p.jerseyNumber.toString() === term ||
+           p.rating.toString() === term;
+  });
+
+  const displayedPlayers = filteredPlayers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Box sx={{ flex: 1, p: 4, overflowY: 'auto', background: C.background, position: 'relative' }}>
@@ -146,10 +162,46 @@ export default function TeamManagement({ teamId, players, onRefresh, C }: TeamMa
             Quản lý và điều chỉnh thông tin nhân sự của đội bóng
           </Typography>
         </Box>
-        <Button 
-          variant="contained" 
-          startIcon={<AddIcon />} 
-          onClick={() => handleOpenDialog()}
+        <Box display="flex" gap={2} alignItems="center">
+          <TextField
+            variant="outlined"
+            placeholder="Tên, số áo, chỉ số..."
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                color: 'white',
+                background: 'rgba(255,255,255,0.05)',
+                borderRadius: '12px',
+                height: '44px',
+                '& fieldset': { borderColor: 'rgba(255,255,255,0.1)' },
+                '&:hover fieldset': { borderColor: C.primary },
+                '&.Mui-focused fieldset': { borderColor: C.primary },
+              },
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleSearch}
+            sx={{
+              color: C.primary,
+              borderColor: C.primary,
+              borderRadius: '12px',
+              height: '44px',
+              px: 3,
+              fontFamily: '"Space Grotesk", sans-serif',
+              fontWeight: 700,
+              '&:hover': { background: `${C.primary}11`, borderColor: C.primary }
+            }}
+          >
+            TÌM KIẾM
+          </Button>
+          <Button 
+            variant="contained" 
+            startIcon={<AddIcon />} 
+            onClick={() => handleOpenDialog()}
           sx={{ 
             background: C.primary, color: C.onPrimary, fontWeight: 800, borderRadius: '14px', px: 4, py: 1.5,
             fontFamily: '"Space Grotesk", sans-serif',
@@ -160,6 +212,7 @@ export default function TeamManagement({ teamId, players, onRefresh, C }: TeamMa
         >
           THÊM CẦU THỦ
         </Button>
+        </Box>
       </Box>
 
       <TableContainer component={Paper} sx={{ 
@@ -228,10 +281,10 @@ export default function TeamManagement({ teamId, players, onRefresh, C }: TeamMa
                 </TableCell>
               </TableRow>
             ))}
-            {players.length === 0 && (
+            {filteredPlayers.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>Chưa có thực thể cầu thủ nào được khởi tạo</Typography>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>Không tìm thấy cầu thủ nào phù hợp</Typography>
                 </TableCell>
               </TableRow>
             )}
@@ -241,7 +294,7 @@ export default function TeamManagement({ teamId, players, onRefresh, C }: TeamMa
         <Box sx={{ borderTop: `1px solid rgba(255,255,255,0.08)`, p: 1 }}>
           <TablePagination
             component="div"
-            count={players.length}
+            count={filteredPlayers.length}
             page={page}
             onPageChange={(e, p) => setPage(p)}
             rowsPerPage={rowsPerPage}
