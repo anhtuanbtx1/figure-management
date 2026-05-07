@@ -212,10 +212,9 @@ export async function DELETE(
       }, { status: 404 });
     }
 
-    // Soft delete (set IsActive = 0)
+    // Hard delete
     const deleteQuery = `
-      UPDATE ManagementStore.dbo.WalletTransactions
-      SET IsActive = 0
+      DELETE FROM ManagementStore.dbo.WalletTransactions
       WHERE Id = @id
     `;
 

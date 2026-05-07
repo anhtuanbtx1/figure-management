@@ -59,7 +59,7 @@ interface ExternalLeaveResponse {
   };
 }
 
-function extractBearerToken(request: NextRequest) {
+async function extractBearerToken(request: NextRequest) {
   const headerToken = request.headers.get("authorization");
   if (headerToken?.trim()) {
     return headerToken.startsWith("Bearer ") ? headerToken : `Bearer ${headerToken}`;
@@ -76,6 +76,42 @@ function extractBearerToken(request: NextRequest) {
   const cookieToken = cookieCandidates.find(Boolean);
   if (cookieToken) {
     return cookieToken.startsWith("Bearer ") ? cookieToken : `Bearer ${cookieToken}`;
+  }
+
+  // Auto fetch token
+  try {
+    const loginRes = await fetch("https://iam.biso24.org/v1/auth/login", {
+      method: "POST",
+      headers: {
+        "accept": "application/json, text/plain, */*",
+        "accept-language": "vi,en-US;q=0.9,en;q=0.8",
+        "cache-control": "no-cache",
+        "content-type": "application/json",
+        "domain": "gtel-ots.biso24.net",
+        "origin": "https://gtel-ots.biso24.net",
+        "pragma": "no-cache",
+        "priority": "u=1, i",
+        "referer": "https://gtel-ots.biso24.net/",
+        "sec-ch-ua": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+      },
+      body: JSON.stringify({"email":"tuan.cna@ots.vn","password":"AnhTuan@123","orgId":null})
+    });
+    
+    if (loginRes.ok) {
+      const loginData = await loginRes.json();
+      const fetchedToken = loginData?.data?.token;
+      if (fetchedToken) {
+        return `Bearer ${fetchedToken}`;
+      }
+    }
+  } catch (err) {
+    console.error("Auto login failed:", err);
   }
 
   return DEFAULT_AUTHORIZATION;
@@ -156,7 +192,7 @@ function mapLeaveRequest(item: any) {
 
 export async function GET(request: NextRequest) {
   try {
-    const token = extractBearerToken(request);
+    const token = await extractBearerToken(request);
 
     const searchParams = request.nextUrl.searchParams;
     const page = Math.max(1, Number(searchParams.get("page") || "1"));

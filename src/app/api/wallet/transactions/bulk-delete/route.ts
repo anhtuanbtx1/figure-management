@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'ids must be a non-empty array' }, { status: 400 });
     }
 
-    // Soft delete: set IsActive = 0 for matching IDs
+    // Hard delete
     // Build parameterized IN clause safely
     const params: Record<string, any> = {};
     const placeholders = ids.map((id, idx) => {
@@ -22,8 +22,7 @@ export async function POST(request: NextRequest) {
     }).join(', ');
 
     const sql = `
-      UPDATE ManagementStore.dbo.WalletTransactions
-      SET IsActive = 0
+      DELETE FROM ManagementStore.dbo.WalletTransactions
       WHERE Id IN (${placeholders})
     `;
 
