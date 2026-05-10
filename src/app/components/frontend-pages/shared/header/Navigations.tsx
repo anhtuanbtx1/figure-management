@@ -15,10 +15,6 @@ export const NavLinks = [
     href: "/frontend-pages/about",
   },
   {
-    title: "Blog",
-    href: "/frontend-pages/blog",
-  },
-  {
     title: "Portfolio",
     new: true,
     href: "/frontend-pages/portfolio",

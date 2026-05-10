@@ -60,18 +60,6 @@ const Menuitems = [
       },
       {
         id: uniqueId(),
-        title: "Blog",
-        icon: IconPoint,
-        href: "/frontend-pages/blog",
-      },
-      {
-        id: uniqueId(),
-        title: "Blog Details",
-        icon: IconPoint,
-        href: "/frontend-pages/blog/Blog_1",
-      },
-      {
-        id: uniqueId(),
         title: "Contact",
         icon: IconPoint,
         href: "/frontend-pages/contact",
