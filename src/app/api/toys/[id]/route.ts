@@ -40,10 +40,51 @@ export async function GET(
     const toyId = context.params.id;
     console.log(`🔍 Fetching toy with ID: ${toyId}`);
 
-    // Execute stored procedure to get single toy
-    const result = await executeStoredProcedure('sp_GetToyByIdForFrontend', {
-      ToyId: { type: sql.NVarChar, value: toyId },
-    });
+    // Try stored procedure first, fallback to direct query
+    let result;
+    try {
+      result = await executeStoredProcedure('sp_GetToyByIdForFrontend', {
+        ToyId: { type: sql.NVarChar, value: toyId },
+      });
+    } catch (spError) {
+      console.warn('⚠️ Stored procedure not found, using direct query fallback');
+      // Fallback: Direct query matching stored procedure logic
+      const query = `
+        SELECT
+          t.Id as id,
+          t.Name as name,
+          t.Description as description,
+          t.Image as image,
+          CONCAT('{"id":"', c.Id, '","name":"', c.Name, '","slug":"', c.Slug,
+                 '","description":"', ISNULL(c.Description, ''), '","icon":"', ISNULL(c.Icon, ''),
+                 '","color":"', ISNULL(c.Color, ''), '"}') as category,
+          t.Price as price,
+          t.OriginalPrice as originalPrice,
+          t.Stock as stock,
+          t.Status as status,
+          t.AgeRange as ageRange,
+          b.Name as brand,
+          t.Material as material,
+          CONCAT('{"length":', ISNULL(t.DimensionLength, 0), ',"width":', ISNULL(t.DimensionWidth, 0),
+                 ',"height":', ISNULL(t.DimensionHeight, 0), ',"weight":', ISNULL(t.Weight, 0), '}') as dimensions,
+          t.Colors as colors,
+          t.Tags as tags,
+          t.Rating as rating,
+          t.ReviewCount as reviewCount,
+          t.CreatedAt as createdAt,
+          t.UpdatedAt as updatedAt,
+          ISNULL(t.IsNew, 0) as isNew,
+          ISNULL(t.IsFeatured, 0) as isFeatured,
+          ISNULL(t.Discount, 0) as discount
+        FROM Toys t
+        INNER JOIN ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
+        INNER JOIN ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
+        WHERE t.Id = @toyId AND t.IsActive = 1
+      `;
+      result = await executeQuery(query, {
+        toyId: { type: sql.NVarChar, value: toyId }
+      });
+    }
 
     if (!result || result.length === 0) {
       return NextResponse.json({
@@ -89,10 +130,11 @@ export async function PUT(
     
     console.log('📝 Update data received:', body);
 
-    // Check if toy exists
-    const existingToy = await executeStoredProcedure('sp_GetToyByIdForFrontend', {
-      ToyId: { type: sql.NVarChar, value: toyId },
-    });
+    // Check if toy exists - use simple query instead of stored procedure
+    const existingToy = await executeQuery(
+      'SELECT Id, Name FROM Toys WHERE Id = @id AND IsActive = 1',
+      { id: { type: sql.NVarChar, value: toyId } }
+    );
 
     if (!existingToy || existingToy.length === 0) {
       return NextResponse.json({
@@ -231,10 +273,50 @@ export async function PUT(
 
     await executeQuery(updateQuery, params);
 
-    // Fetch updated toy
-    const updatedResult = await executeStoredProcedure('sp_GetToyByIdForFrontend', {
-      ToyId: { type: sql.NVarChar, value: toyId },
-    });
+    // Fetch updated toy - try stored procedure first, fallback to direct query
+    let updatedResult;
+    try {
+      updatedResult = await executeStoredProcedure('sp_GetToyByIdForFrontend', {
+        ToyId: { type: sql.NVarChar, value: toyId },
+      });
+    } catch (spError) {
+      console.warn('⚠️ Stored procedure not found, using direct query fallback');
+      const query = `
+        SELECT
+          t.Id as id,
+          t.Name as name,
+          t.Description as description,
+          t.Image as image,
+          CONCAT('{"id":"', c.Id, '","name":"', c.Name, '","slug":"', c.Slug,
+                 '","description":"', ISNULL(c.Description, ''), '","icon":"', ISNULL(c.Icon, ''),
+                 '","color":"', ISNULL(c.Color, ''), '"}') as category,
+          t.Price as price,
+          t.OriginalPrice as originalPrice,
+          t.Stock as stock,
+          t.Status as status,
+          t.AgeRange as ageRange,
+          b.Name as brand,
+          t.Material as material,
+          CONCAT('{"length":', ISNULL(t.DimensionLength, 0), ',"width":', ISNULL(t.DimensionWidth, 0),
+                 ',"height":', ISNULL(t.DimensionHeight, 0), ',"weight":', ISNULL(t.Weight, 0), '}') as dimensions,
+          t.Colors as colors,
+          t.Tags as tags,
+          t.Rating as rating,
+          t.ReviewCount as reviewCount,
+          t.CreatedAt as createdAt,
+          t.UpdatedAt as updatedAt,
+          ISNULL(t.IsNew, 0) as isNew,
+          ISNULL(t.IsFeatured, 0) as isFeatured,
+          ISNULL(t.Discount, 0) as discount
+        FROM Toys t
+        INNER JOIN ToyCategories c ON t.CategoryId = c.Id AND c.IsActive = 1
+        INNER JOIN ToyBrands b ON t.BrandId = b.Id AND b.IsActive = 1
+        WHERE t.Id = @toyId AND t.IsActive = 1
+      `;
+      updatedResult = await executeQuery(query, {
+        toyId: { type: sql.NVarChar, value: toyId }
+      });
+    }
 
     const updatedToy = mapDatabaseRowToToy(updatedResult[0]);
     

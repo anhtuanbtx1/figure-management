@@ -411,10 +411,6 @@ const PayrollImportList = () => {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} / ${count !== -1 ? count : `hơn ${to}`}`}
         />
       </TableContainer>
-
-      <Typography variant="body2" color="text.secondary">
-        Dữ liệu hiện được đọc trực tiếp từ bảng `dbo.Payrolls` thông qua API payroll list có hỗ trợ lọc và phân trang.
-      </Typography>
     </Stack>
   );
 };
