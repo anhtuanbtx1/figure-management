@@ -101,16 +101,12 @@ const Menuitems: MenuitemsType[] = [
     title: "Quản lý Database",
     icon: IconDatabase,
     href: "/apps/db-manager",
-    chip: "New",
-    chipColor: "primary",
   },
   {
     id: uniqueId(),
     title: "Quản lý đội hình",
     icon: IconBallFootball,
     href: "/apps/football-lineup",
-    chip: "New",
-    chipColor: "success",
   },
   {
     id: uniqueId(),
