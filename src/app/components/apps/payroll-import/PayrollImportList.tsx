@@ -34,6 +34,8 @@ import PayrollService, {
   PayrollPeriodGroup,
 } from "@/app/(DashboardLayout)/apps/payroll/services/payrollService";
 
+const HIGH_SALARY_THRESHOLD = 20000000;
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN").format(amount);
 };
@@ -72,18 +74,42 @@ const GroupTableHeader = () => (
 
 const GroupTableRows = ({ items }: { items: PayrollListRow[] }) => (
   <TableBody>
-    {items.map((item) => (
-      <TableRow key={`${item.id}-${item.code}`} hover>
-        <TableCell>
-          <Typography variant="subtitle2" fontWeight={700}>
-            {item.code}
-          </Typography>
-        </TableCell>
-        <TableCell>{item.name}</TableCell>
-        <TableCell>{formatPayrollPeriod(item.payrollPeriod)}</TableCell>
-        <TableCell align="right">{formatCurrency(item.salary)}</TableCell>
-      </TableRow>
-    ))}
+    {items.map((item) => {
+      const isHighSalary = item.salary > HIGH_SALARY_THRESHOLD;
+
+      return (
+        <TableRow
+          key={`${item.id}-${item.code}`}
+          hover
+          sx={{
+            bgcolor: isHighSalary ? "warning.lighter" : "inherit",
+            "&:hover": {
+              bgcolor: isHighSalary ? "warning.light" : undefined,
+            },
+          }}
+        >
+          <TableCell>
+            <Typography variant="subtitle2" fontWeight={700}>
+              {item.code}
+            </Typography>
+          </TableCell>
+          <TableCell>{item.name}</TableCell>
+          <TableCell>{formatPayrollPeriod(item.payrollPeriod)}</TableCell>
+          <TableCell align="right">
+            {isHighSalary ? (
+              <Chip
+                label={formatCurrency(item.salary)}
+                color="warning"
+                size="small"
+                sx={{ fontWeight: 800 }}
+              />
+            ) : (
+              formatCurrency(item.salary)
+            )}
+          </TableCell>
+        </TableRow>
+      );
+    })}
   </TableBody>
 );
 
