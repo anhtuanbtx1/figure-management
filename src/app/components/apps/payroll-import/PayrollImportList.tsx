@@ -7,6 +7,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Collapse,
   InputAdornment,
   Stack,
   Table,
@@ -20,6 +21,7 @@ import {
 } from "@mui/material";
 import {
   IconArrowUpRight,
+  IconChevronDown,
   IconChecklist,
   IconCoin,
   IconRefresh,
@@ -51,6 +53,213 @@ const formatPayrollPeriod = (value: string) => {
   }).format(date);
 };
 
+const getPayrollPeriodGroupKey = (value: string) => {
+  if (!value) {
+    return "unknown";
+  }
+
+  const normalized = value.trim();
+  const directMatch = normalized.match(/^(\d{4})-(\d{2})/);
+  if (directMatch) {
+    return `${directMatch[1]}-${directMatch[2]}`;
+  }
+
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) {
+    return normalized;
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+};
+
+const formatGroupLabel = (groupKey: string) => {
+  if (groupKey === "unknown") {
+    return "Chưa xác định";
+  }
+
+  const [year, month] = groupKey.split("-");
+  if (year && month) {
+    return `Tháng ${month}/${year}`;
+  }
+
+  return groupKey;
+};
+
+interface PayrollGroup {
+  key: string;
+  label: string;
+  items: PayrollListRow[];
+  employeeCount: number;
+  totalSalary: number;
+}
+
+const buildPayrollGroups = (payrollRows: PayrollListRow[]): PayrollGroup[] => {
+  const groups: PayrollGroup[] = [];
+  const groupMap = new Map<string, PayrollGroup>();
+
+  payrollRows.forEach((item) => {
+    const key = getPayrollPeriodGroupKey(item.payrollPeriod);
+    const existing = groupMap.get(key);
+
+    if (existing) {
+      existing.items.push(item);
+      existing.employeeCount += 1;
+      existing.totalSalary += item.salary;
+      return;
+    }
+
+    const nextGroup: PayrollGroup = {
+      key,
+      label: formatGroupLabel(key),
+      items: [item],
+      employeeCount: 1,
+      totalSalary: item.salary,
+    };
+
+    groupMap.set(key, nextGroup);
+    groups.push(nextGroup);
+  });
+
+  return groups;
+};
+
+const getGroupSubtitle = (employeeCount: number, totalSalary: number) => {
+  return `${employeeCount} nhân sự • Tổng lương ${formatCurrency(totalSalary)}`;
+};
+
+const GroupTableHeader = () => (
+  <TableHead>
+    <TableRow sx={{ bgcolor: "grey.100" }}>
+      <TableCell>Mã nhân viên</TableCell>
+      <TableCell>Tên nhân viên</TableCell>
+      <TableCell>Kỳ lương</TableCell>
+      <TableCell align="right">Lương</TableCell>
+    </TableRow>
+  </TableHead>
+);
+
+const GroupTableRows = ({ items }: { items: PayrollListRow[] }) => (
+  <TableBody>
+    {items.map((item) => (
+      <TableRow key={`${item.id}-${item.code}`} hover>
+        <TableCell>
+          <Typography variant="subtitle2" fontWeight={700}>
+            {item.code}
+          </Typography>
+        </TableCell>
+        <TableCell>{item.name}</TableCell>
+        <TableCell>{formatPayrollPeriod(item.payrollPeriod)}</TableCell>
+        <TableCell align="right">{formatCurrency(item.salary)}</TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+);
+
+const PayrollGroupSection = ({
+  group,
+  expanded,
+  onToggle,
+}: {
+  group: PayrollGroup;
+  expanded: boolean;
+  onToggle: () => void;
+}) => {
+  return (
+    <TableBody>
+      <TableRow
+        hover
+        onClick={onToggle}
+        sx={{
+          cursor: "pointer",
+          bgcolor: expanded ? "primary.lighter" : "background.paper",
+          "& > td": {
+            borderBottom: expanded ? 0 : undefined,
+          },
+        }}
+      >
+        <TableCell colSpan={3}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: expanded ? "primary.main" : "grey.200",
+                color: expanded ? "primary.contrastText" : "text.secondary",
+                transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <IconChevronDown size={18} />
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={700}>
+                {group.label}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {getGroupSubtitle(group.employeeCount, group.totalSalary)}
+              </Typography>
+            </Box>
+          </Stack>
+        </TableCell>
+        <TableCell align="right">
+          <Chip
+            label={formatCurrency(group.totalSalary)}
+            color={expanded ? "primary" : "default"}
+            variant={expanded ? "filled" : "outlined"}
+            sx={{ fontWeight: 700 }}
+          />
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell colSpan={4} sx={{ p: 0, borderBottom: 0 }}>
+          <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <Table size="small">
+              <GroupTableHeader />
+              <GroupTableRows items={group.items} />
+            </Table>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </TableBody>
+  );
+};
+
+const EmptyStateRow = () => (
+  <TableBody>
+    <TableRow>
+      <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
+        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+          Không tìm thấy dữ liệu phù hợp
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Hãy thử đổi từ khóa tìm kiếm theo mã, tên, lương hoặc kỳ lương.
+        </Typography>
+      </TableCell>
+    </TableRow>
+  </TableBody>
+);
+
+const LoadingStateRow = () => (
+  <TableBody>
+    <TableRow>
+      <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
+        <Stack spacing={1.5} alignItems="center">
+          <CircularProgress size={28} />
+          <Typography variant="body2" color="text.secondary">
+            Đang tải dữ liệu bảng lương...
+          </Typography>
+        </Stack>
+      </TableCell>
+    </TableRow>
+  </TableBody>
+);
+
 const PayrollImportList = () => {
   const [codeKeyword, setCodeKeyword] = useState("");
   const [nameKeyword, setNameKeyword] = useState("");
@@ -63,6 +272,7 @@ const PayrollImportList = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [expandedPeriod, setExpandedPeriod] = useState<string | null>(null);
 
   const loadPayrolls = async (nextPage = page, nextRowsPerPage = rowsPerPage) => {
     setLoading(true);
@@ -100,6 +310,23 @@ const PayrollImportList = () => {
 
     return () => window.clearTimeout(timeout);
   }, [codeKeyword, nameKeyword, salaryKeyword, payrollPeriodKeyword, rowsPerPage]);
+
+  const groupedPayrolls = useMemo(() => buildPayrollGroups(rows), [rows]);
+
+  useEffect(() => {
+    if (groupedPayrolls.length === 0) {
+      setExpandedPeriod(null);
+      return;
+    }
+
+    setExpandedPeriod((current) => {
+      if (current && groupedPayrolls.some((group) => group.key === current)) {
+        return current;
+      }
+
+      return groupedPayrolls[0].key;
+    });
+  }, [groupedPayrolls]);
 
   const latestPayrollPeriod = useMemo(() => {
     if (rows.length === 0) {
@@ -352,52 +579,20 @@ const PayrollImportList = () => {
         }}
       >
         <Table>
-          <TableHead>
-            <TableRow sx={{ bgcolor: "grey.100" }}>
-              <TableCell>Mã nhân viên</TableCell>
-              <TableCell>Tên nhân viên</TableCell>
-              <TableCell>Kỳ lương</TableCell>
-              <TableCell align="right">Lương</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
-                  <Stack spacing={1.5} alignItems="center">
-                    <CircularProgress size={28} />
-                    <Typography variant="body2" color="text.secondary">
-                      Đang tải dữ liệu bảng lương...
-                    </Typography>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ) : rows.length > 0 ? (
-              rows.map((item) => (
-                <TableRow key={`${item.id}-${item.code}`} hover>
-                  <TableCell>
-                    <Typography variant="subtitle2" fontWeight={700}>
-                      {item.code}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>{formatPayrollPeriod(item.payrollPeriod)}</TableCell>
-                  <TableCell align="right">{formatCurrency(item.salary)}</TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
-                  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                    Không tìm thấy dữ liệu phù hợp
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Hãy thử đổi từ khóa tìm kiếm theo mã, tên, lương hoặc kỳ lương.
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+          {loading ? (
+            <LoadingStateRow />
+          ) : groupedPayrolls.length > 0 ? (
+            groupedPayrolls.map((group) => (
+              <PayrollGroupSection
+                key={group.key}
+                group={group}
+                expanded={expandedPeriod === group.key}
+                onToggle={() => setExpandedPeriod((current) => (current === group.key ? null : group.key))}
+              />
+            ))
+          ) : (
+            <EmptyStateRow />
+          )}
         </Table>
         <TablePagination
           component="div"

@@ -5,6 +5,7 @@ import { Box, Typography, Snackbar, Alert, Grid } from '@mui/material';
 import PageContainer from '@/app/components/container/PageContainer';
 import TeamManagement from './TeamManagement';
 import CategoryManagement from './CategoryManagement';
+import TacticsBoard from './TacticsBoard';
 
 // ─── Constants & Types ────────────────────────────────────────────────────────
 
@@ -546,6 +547,10 @@ export default function FootballLineupPage() {
 
           {activeTab === 'Danh mục' && (
             <CategoryManagement C={C} onRefresh={() => setRefreshKey(k=>k+1)} />
+          )}
+
+          {activeTab === 'Tactics' && (
+            <TacticsBoard />
           )}
 
           {activeTab === 'Lineup' && (

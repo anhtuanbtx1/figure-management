@@ -382,12 +382,15 @@ export async function POST(request: NextRequest) {
     let dbStatus = 'Pending';
     switch (status) {
       case 'CONFIRMED':
+      case 'Going':
         dbStatus = 'Going';
         break;
       case 'DECLINED':
+      case 'NotGoing':
         dbStatus = 'NotGoing';
         break;
       case 'PENDING':
+      case 'Pending':
       default:
         dbStatus = 'Pending';
         break;
@@ -521,12 +524,15 @@ export async function PUT(request: NextRequest) {
     let dbStatus = 'Pending';
     switch (status) {
       case 'CONFIRMED':
+      case 'Going':
         dbStatus = 'Going';
         break;
       case 'DECLINED':
+      case 'NotGoing':
         dbStatus = 'NotGoing';
         break;
       case 'PENDING':
+      case 'Pending':
       default:
         dbStatus = 'Pending';
         break;
