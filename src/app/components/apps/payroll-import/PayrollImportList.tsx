@@ -314,17 +314,12 @@ const PayrollImportList = () => {
   const groupedPayrolls = useMemo(() => buildPayrollGroups(rows), [rows]);
 
   useEffect(() => {
-    if (groupedPayrolls.length === 0) {
-      setExpandedPeriod(null);
-      return;
-    }
-
     setExpandedPeriod((current) => {
       if (current && groupedPayrolls.some((group) => group.key === current)) {
         return current;
       }
 
-      return groupedPayrolls[0].key;
+      return null;
     });
   }, [groupedPayrolls]);
 
