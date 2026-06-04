@@ -35,6 +35,7 @@ import PayrollService, {
 } from "@/app/(DashboardLayout)/apps/payroll/services/payrollService";
 
 const HIGH_SALARY_THRESHOLD = 20000000;
+const TOP_SALARY_THRESHOLD = 30000000;
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN").format(amount);
@@ -75,16 +76,18 @@ const GroupTableHeader = () => (
 const GroupTableRows = ({ items }: { items: PayrollListRow[] }) => (
   <TableBody>
     {items.map((item) => {
+      const isTopSalary = item.salary > TOP_SALARY_THRESHOLD;
       const isHighSalary = item.salary > HIGH_SALARY_THRESHOLD;
+      const highlightColor: "success" | "warning" | undefined = isTopSalary ? "success" : isHighSalary ? "warning" : undefined;
 
       return (
         <TableRow
           key={`${item.id}-${item.code}`}
           hover
           sx={{
-            bgcolor: isHighSalary ? "warning.lighter" : "inherit",
+            bgcolor: highlightColor ? `${highlightColor}.lighter` : "inherit",
             "&:hover": {
-              bgcolor: isHighSalary ? "warning.light" : undefined,
+              bgcolor: highlightColor ? `${highlightColor}.light` : undefined,
             },
           }}
         >
@@ -96,10 +99,10 @@ const GroupTableRows = ({ items }: { items: PayrollListRow[] }) => (
           <TableCell>{item.name}</TableCell>
           <TableCell>{formatPayrollPeriod(item.payrollPeriod)}</TableCell>
           <TableCell align="right">
-            {isHighSalary ? (
+            {highlightColor ? (
               <Chip
                 label={formatCurrency(item.salary)}
-                color="warning"
+                color={highlightColor}
                 size="small"
                 sx={{ fontWeight: 800 }}
               />
