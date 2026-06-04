@@ -31,6 +31,7 @@ import {
 import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
 import PayrollService, {
   PayrollListRow,
+  PayrollPeriodGroup,
 } from "@/app/(DashboardLayout)/apps/payroll/services/payrollService";
 
 const formatCurrency = (amount: number) => {
@@ -53,77 +54,6 @@ const formatPayrollPeriod = (value: string) => {
   }).format(date);
 };
 
-const getPayrollPeriodGroupKey = (value: string) => {
-  if (!value) {
-    return "unknown";
-  }
-
-  const normalized = value.trim();
-  const directMatch = normalized.match(/^(\d{4})-(\d{2})/);
-  if (directMatch) {
-    return `${directMatch[1]}-${directMatch[2]}`;
-  }
-
-  const date = new Date(normalized);
-  if (Number.isNaN(date.getTime())) {
-    return normalized;
-  }
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
-};
-
-const formatGroupLabel = (groupKey: string) => {
-  if (groupKey === "unknown") {
-    return "Chưa xác định";
-  }
-
-  const [year, month] = groupKey.split("-");
-  if (year && month) {
-    return `Tháng ${month}/${year}`;
-  }
-
-  return groupKey;
-};
-
-interface PayrollGroup {
-  key: string;
-  label: string;
-  items: PayrollListRow[];
-  employeeCount: number;
-  totalSalary: number;
-}
-
-const buildPayrollGroups = (payrollRows: PayrollListRow[]): PayrollGroup[] => {
-  const groups: PayrollGroup[] = [];
-  const groupMap = new Map<string, PayrollGroup>();
-
-  payrollRows.forEach((item) => {
-    const key = getPayrollPeriodGroupKey(item.payrollPeriod);
-    const existing = groupMap.get(key);
-
-    if (existing) {
-      existing.items.push(item);
-      existing.employeeCount += 1;
-      existing.totalSalary += item.salary;
-      return;
-    }
-
-    const nextGroup: PayrollGroup = {
-      key,
-      label: formatGroupLabel(key),
-      items: [item],
-      employeeCount: 1,
-      totalSalary: item.salary,
-    };
-
-    groupMap.set(key, nextGroup);
-    groups.push(nextGroup);
-  });
-
-  return groups;
-};
 
 const getGroupSubtitle = (employeeCount: number, totalSalary: number) => {
   return `${employeeCount} nhân sự • Tổng lương ${formatCurrency(totalSalary)}`;
@@ -160,10 +90,16 @@ const GroupTableRows = ({ items }: { items: PayrollListRow[] }) => (
 const PayrollGroupSection = ({
   group,
   expanded,
+  details,
+  loadingDetails,
+  detailError,
   onToggle,
 }: {
-  group: PayrollGroup;
+  group: PayrollPeriodGroup;
   expanded: boolean;
+  details: PayrollListRow[];
+  loadingDetails: boolean;
+  detailError: string;
   onToggle: () => void;
 }) => {
   return (
@@ -219,10 +155,29 @@ const PayrollGroupSection = ({
       <TableRow>
         <TableCell colSpan={4} sx={{ p: 0, borderBottom: 0 }}>
           <Collapse in={expanded} timeout="auto" unmountOnExit>
-            <Table size="small">
-              <GroupTableHeader />
-              <GroupTableRows items={group.items} />
-            </Table>
+            {loadingDetails ? (
+              <Stack spacing={1.5} alignItems="center" sx={{ py: 4 }}>
+                <CircularProgress size={24} />
+                <Typography variant="body2" color="text.secondary">
+                  Đang tải chi tiết bảng lương tháng này...
+                </Typography>
+              </Stack>
+            ) : detailError ? (
+              <Alert severity="error" sx={{ m: 2 }}>
+                {detailError}
+              </Alert>
+            ) : details.length > 0 ? (
+              <Table size="small">
+                <GroupTableHeader />
+                <GroupTableRows items={details} />
+              </Table>
+            ) : (
+              <Box sx={{ py: 4, textAlign: "center" }}>
+                <Typography variant="body2" color="text.secondary">
+                  Chưa có dữ liệu chi tiết cho tháng này.
+                </Typography>
+              </Box>
+            )}
           </Collapse>
         </TableCell>
       </TableRow>
@@ -265,8 +220,12 @@ const PayrollImportList = () => {
   const [nameKeyword, setNameKeyword] = useState("");
   const [salaryKeyword, setSalaryKeyword] = useState("");
   const [payrollPeriodKeyword, setPayrollPeriodKeyword] = useState("");
-  const [rows, setRows] = useState<PayrollListRow[]>([]);
-  const [totalRows, setTotalRows] = useState(0);
+  const [groups, setGroups] = useState<PayrollPeriodGroup[]>([]);
+  const [groupDetails, setGroupDetails] = useState<Record<string, PayrollListRow[]>>({});
+  const [detailLoading, setDetailLoading] = useState<Record<string, boolean>>({});
+  const [detailErrors, setDetailErrors] = useState<Record<string, string>>({});
+  const [totalGroups, setTotalGroups] = useState(0);
+  const [totalEmployees, setTotalEmployees] = useState(0);
   const [totalSalary, setTotalSalary] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -279,7 +238,7 @@ const PayrollImportList = () => {
     setErrorMessage("");
 
     try {
-      const result = await PayrollService.getPayrollList({
+      const result = await PayrollService.getPayrollGroups({
         code: codeKeyword,
         name: nameKeyword,
         salary: salaryKeyword,
@@ -288,16 +247,26 @@ const PayrollImportList = () => {
         pageSize: nextRowsPerPage,
       });
 
-      setRows(result.rows);
-      setTotalRows(result.totalRows);
+      setGroups(result.groups);
+      setGroupDetails({});
+      setDetailLoading({});
+      setDetailErrors({});
+      setExpandedPeriod(null);
+      setTotalGroups(result.totalGroups);
+      setTotalEmployees(result.totalEmployees);
       setTotalSalary(result.totalSalary);
       setPage(Math.max(0, result.page - 1));
       setRowsPerPage(result.pageSize);
     } catch (error: any) {
-      setRows([]);
-      setTotalRows(0);
+      setGroups([]);
+      setGroupDetails({});
+      setDetailLoading({});
+      setDetailErrors({});
+      setExpandedPeriod(null);
+      setTotalGroups(0);
+      setTotalEmployees(0);
       setTotalSalary(0);
-      setErrorMessage(error?.message || "Không thể tải danh sách bảng lương từ database.");
+      setErrorMessage(error?.message || "Không thể tải danh sách nhóm bảng lương từ database.");
     } finally {
       setLoading(false);
     }
@@ -311,25 +280,62 @@ const PayrollImportList = () => {
     return () => window.clearTimeout(timeout);
   }, [codeKeyword, nameKeyword, salaryKeyword, payrollPeriodKeyword, rowsPerPage]);
 
-  const groupedPayrolls = useMemo(() => buildPayrollGroups(rows), [rows]);
-
   useEffect(() => {
     setExpandedPeriod((current) => {
-      if (current && groupedPayrolls.some((group) => group.key === current)) {
+      if (current && groups.some((group) => group.key === current)) {
         return current;
       }
 
       return null;
     });
-  }, [groupedPayrolls]);
+  }, [groups]);
 
   const latestPayrollPeriod = useMemo(() => {
-    if (rows.length === 0) {
+    if (groups.length === 0) {
       return "Chưa có dữ liệu";
     }
 
-    return formatPayrollPeriod(rows[0]?.payrollPeriod);
-  }, [rows]);
+    return formatPayrollPeriod(groups[0]?.payrollPeriod);
+  }, [groups]);
+
+  const loadGroupDetails = async (group: PayrollPeriodGroup) => {
+    if (groupDetails[group.key] || detailLoading[group.key]) {
+      return;
+    }
+
+    setDetailLoading((prev) => ({ ...prev, [group.key]: true }));
+    setDetailErrors((prev) => ({ ...prev, [group.key]: "" }));
+
+    try {
+      const result = await PayrollService.getPayrollDetailsByPeriod({
+        payrollPeriod: group.key,
+        code: codeKeyword,
+        name: nameKeyword,
+        salary: salaryKeyword,
+        page: 1,
+        pageSize: Math.max(group.employeeCount, 1),
+      });
+
+      setGroupDetails((prev) => ({ ...prev, [group.key]: result.rows }));
+    } catch (error: any) {
+      setDetailErrors((prev) => ({
+        ...prev,
+        [group.key]: error?.message || "Không thể tải chi tiết bảng lương tháng này.",
+      }));
+    } finally {
+      setDetailLoading((prev) => ({ ...prev, [group.key]: false }));
+    }
+  };
+
+  const handleToggleGroup = (group: PayrollPeriodGroup) => {
+    if (expandedPeriod === group.key) {
+      setExpandedPeriod(null);
+      return;
+    }
+
+    setExpandedPeriod(group.key);
+    loadGroupDetails(group);
+  };
 
   const clearFilters = () => {
     setCodeKeyword("");
@@ -393,7 +399,7 @@ const PayrollImportList = () => {
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
             <Chip
               icon={<IconChecklist size={16} />}
-              label={`${totalRows} nhân sự phù hợp`}
+              label={`${totalEmployees} nhân sự phù hợp`}
               sx={{
                 bgcolor: "rgba(255,255,255,0.14)",
                 color: "common.white",
@@ -428,7 +434,7 @@ const PayrollImportList = () => {
             Tổng nhân sự
           </Typography>
           <Typography variant="h4" fontWeight={700}>
-            {totalRows}
+            {totalEmployees}
           </Typography>
         </Box>
         <Box
@@ -576,13 +582,16 @@ const PayrollImportList = () => {
         <Table>
           {loading ? (
             <LoadingStateRow />
-          ) : groupedPayrolls.length > 0 ? (
-            groupedPayrolls.map((group) => (
+          ) : groups.length > 0 ? (
+            groups.map((group) => (
               <PayrollGroupSection
                 key={group.key}
                 group={group}
                 expanded={expandedPeriod === group.key}
-                onToggle={() => setExpandedPeriod((current) => (current === group.key ? null : group.key))}
+                details={groupDetails[group.key] || []}
+                loadingDetails={!!detailLoading[group.key]}
+                detailError={detailErrors[group.key] || ""}
+                onToggle={() => handleToggleGroup(group)}
               />
             ))
           ) : (
@@ -591,7 +600,7 @@ const PayrollImportList = () => {
         </Table>
         <TablePagination
           component="div"
-          count={totalRows}
+          count={totalGroups}
           page={page}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}

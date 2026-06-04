@@ -30,6 +30,29 @@ export interface PayrollListRow {
   updatedAt: string;
 }
 
+export interface PayrollPeriodGroup {
+  key: string;
+  payrollPeriod: string;
+  year: number;
+  month: number;
+  label: string;
+  employeeCount: number;
+  totalSalary: number;
+  latestCreatedAt: string;
+  latestUpdatedAt: string;
+}
+
+export interface PayrollGroupsResult {
+  message: string;
+  groups: PayrollPeriodGroup[];
+  totalGroups: number;
+  totalEmployees: number;
+  totalSalary: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export interface PayrollListResult {
   message: string;
   rows: PayrollListRow[];
@@ -89,16 +112,17 @@ const PayrollService = {
     };
   },
 
-  async getPayrollList(filters?: {
+  async getPayrollGroups(filters?: {
     code?: string;
     name?: string;
     salary?: string;
     payrollPeriod?: string;
     page?: number;
     pageSize?: number;
-  }): Promise<PayrollListResult> {
+  }): Promise<PayrollGroupsResult> {
     const response = await axios.get("/api/payroll/list", {
       params: {
+        mode: "groups",
         code: filters?.code || "",
         name: filters?.name || "",
         salary: filters?.salary || "",
@@ -110,13 +134,63 @@ const PayrollService = {
 
     return {
       message: response.data.message,
-      rows: response.data.data || [],
-      totalRows: response.data.summary?.totalRows || 0,
+      groups: response.data.data || [],
+      totalGroups: response.data.summary?.totalGroups || 0,
+      totalEmployees: response.data.summary?.totalEmployees || 0,
       totalSalary: response.data.summary?.totalSalary || 0,
       page: response.data.summary?.page || 1,
       pageSize: response.data.summary?.pageSize || 10,
       totalPages: response.data.summary?.totalPages || 0,
     };
+  },
+
+  async getPayrollDetailsByPeriod(filters: {
+    payrollPeriod: string;
+    code?: string;
+    name?: string;
+    salary?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<PayrollListResult> {
+    const response = await axios.get("/api/payroll/list", {
+      params: {
+        mode: "details",
+        code: filters.code || "",
+        name: filters.name || "",
+        salary: filters.salary || "",
+        payrollPeriod: filters.payrollPeriod,
+        page: filters.page || 1,
+        pageSize: filters.pageSize || 500,
+      },
+    });
+
+    return {
+      message: response.data.message,
+      rows: response.data.data || [],
+      totalRows: response.data.summary?.totalRows || 0,
+      totalSalary: response.data.summary?.totalSalary || 0,
+      page: response.data.summary?.page || 1,
+      pageSize: response.data.summary?.pageSize || 500,
+      totalPages: response.data.summary?.totalPages || 0,
+    };
+  },
+
+  async getPayrollList(filters?: {
+    code?: string;
+    name?: string;
+    salary?: string;
+    payrollPeriod?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<PayrollListResult> {
+    return this.getPayrollDetailsByPeriod({
+      payrollPeriod: filters?.payrollPeriod || "",
+      code: filters?.code || "",
+      name: filters?.name || "",
+      salary: filters?.salary || "",
+      page: filters?.page || 1,
+      pageSize: filters?.pageSize || 10,
+    });
   },
 
   async getEmployeeSalaryStatistics(employeeCode: string): Promise<EmployeeSalaryStatisticsResult> {
