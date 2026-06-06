@@ -165,6 +165,19 @@ export default function LoginPage() {
                     '&:hover fieldset': { borderColor: '#cbd5e1' },
                     '&.Mui-focused fieldset': { borderColor: '#6366f1', borderWidth: 1.5 },
                   },
+                  '& .MuiInputBase-input': {
+                    color: '#0f172a',
+                    fontWeight: 500,
+                    '&::placeholder': {
+                      color: '#94a3b8',
+                      opacity: 1,
+                      fontWeight: 400,
+                    },
+                    '&:-webkit-autofill': {
+                      WebkitTextFillColor: '#0f172a',
+                      WebkitBoxShadow: '0 0 0 100px #fff inset',
+                    },
+                  },
                 }}
                 InputProps={{
                   startAdornment: (
@@ -194,6 +207,19 @@ export default function LoginPage() {
                     '& fieldset': { borderColor: '#e2e8f0' },
                     '&:hover fieldset': { borderColor: '#cbd5e1' },
                     '&.Mui-focused fieldset': { borderColor: '#6366f1', borderWidth: 1.5 },
+                  },
+                  '& .MuiInputBase-input': {
+                    color: '#0f172a',
+                    fontWeight: 500,
+                    '&::placeholder': {
+                      color: '#94a3b8',
+                      opacity: 1,
+                      fontWeight: 400,
+                    },
+                    '&:-webkit-autofill': {
+                      WebkitTextFillColor: '#0f172a',
+                      WebkitBoxShadow: '0 0 0 100px #fff inset',
+                    },
                   },
                 }}
                 InputProps={{

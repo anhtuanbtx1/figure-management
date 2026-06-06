@@ -25,7 +25,11 @@ import {
   WalletNotificationState
 } from '../../../../../types/apps/wallet';
 
-const TransactionForm: React.FC = () => {
+interface TransactionFormProps {
+  onCreated?: () => void;
+}
+
+const TransactionForm: React.FC<TransactionFormProps> = ({ onCreated }) => {
   // Categories state - simplified like working component
   const [categories, setCategories] = useState<WalletCategory[]>([]);
   const [loading, setLoading] = useState(false);
@@ -169,6 +173,7 @@ const TransactionForm: React.FC = () => {
 
       // Trigger refresh of transaction list (you can use context or props for this)
       window.dispatchEvent(new CustomEvent('walletTransactionCreated'));
+      onCreated?.();
 
     } catch (error) {
       console.error('❌ Error creating transaction:', error);

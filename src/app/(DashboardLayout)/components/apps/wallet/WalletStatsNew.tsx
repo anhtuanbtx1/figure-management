@@ -12,15 +12,12 @@ import {
   LinearProgress,
   Zoom,
   Skeleton,
-  Fade,
 } from '@mui/material';
 import {
   TrendingUp as IncomeIcon,
   TrendingDown as ExpenseIcon,
   AccountBalance as BalanceIcon,
   Receipt as TransactionIcon,
-  Pending as PendingIcon,
-  CheckCircle as CompletedIcon,
   TrendingFlat as TrendIcon,
   TrendingUp,
   TrendingDown,
@@ -312,122 +309,9 @@ const WalletStatsNew = () => {
         )}
       </Grid>
 
-      {/* Additional Statistics */}
-      {dashboardData && !loading && (
-        <Fade in timeout={600} style={{ transitionDelay: '300ms' }}>
-          <Box mt={3}>
-            <Grid container spacing={3}>
-              {/* Transaction Status Breakdown */}
-              <Grid item xs={12} md={6}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    borderRadius: 3,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-3px)',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
-                    },
-                  }}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    <Box display="flex" alignItems="center" gap={1} mb={2.5}>
-                      <Box sx={{ fontSize: 20 }}>📋</Box>
-                      <Typography variant="h6" fontWeight={700}>
-                        Trạng thái giao dịch
-                      </Typography>
-                    </Box>
-                    <Box display="flex" alignItems="center" gap={2} mb={2} p={1.5} borderRadius={2} sx={{ background: 'rgba(76,175,80,0.06)' }}>
-                      <CompletedIcon sx={{ color: '#4CAF50' }} />
-                      <Typography variant="body2" flex={1} fontWeight={500}>
-                        Hoàn thành: <strong>{dashboardData.summary.completedTransactions}</strong>
-                      </Typography>
-                      <Typography variant="body2" fontWeight={700} color="#4CAF50">
-                        {formatCurrency(dashboardData.summary.totalIncome + dashboardData.summary.totalExpense)}
-                      </Typography>
-                    </Box>
-                    <Box display="flex" alignItems="center" gap={2} p={1.5} borderRadius={2} sx={{ background: 'rgba(255,152,0,0.06)' }}>
-                      <PendingIcon sx={{ color: '#FF9800' }} />
-                      <Typography variant="body2" flex={1} fontWeight={500}>
-                        Đang chờ: <strong>{dashboardData.summary.pendingTransactions}</strong>
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              {/* Top Categories */}
-              <Grid item xs={12} md={6}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    borderRadius: 3,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-3px)',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
-                    },
-                  }}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    <Box display="flex" alignItems="center" gap={1} mb={2.5}>
-                      <Box sx={{ fontSize: 20 }}>🏷️</Box>
-                      <Typography variant="h6" fontWeight={700}>
-                        Danh mục hàng đầu
-                      </Typography>
-                    </Box>
-                    {dashboardData.topCategories.slice(0, 3).map((category, idx) => {
-                      const maxAmount = dashboardData.topCategories[0]?.completedAmount || 1;
-                      const pct = Math.round((category.completedAmount / maxAmount) * 100);
-                      return (
-                        <Box key={category.categoryId} mb={idx < 2 ? 2 : 0}>
-                          <Box display="flex" alignItems="center" gap={1.5} mb={0.5}>
-                            <Box
-                              sx={{
-                                width: 12,
-                                height: 12,
-                                borderRadius: '50%',
-                                backgroundColor: category.categoryColor,
-                                flexShrink: 0,
-                              }}
-                            />
-                            <Typography variant="body2" flex={1} fontWeight={600}>
-                              {category.categoryName}
-                            </Typography>
-                            <Typography variant="body2" fontWeight={700} color={category.categoryColor}>
-                              {formatCurrency(category.completedAmount)}
-                            </Typography>
-                          </Box>
-                          <LinearProgress
-                            variant="determinate"
-                            value={pct}
-                            sx={{
-                              height: 5,
-                              borderRadius: 3,
-                              ml: 3.5,
-                              backgroundColor: `${category.categoryColor}15`,
-                              '& .MuiLinearProgress-bar': {
-                                borderRadius: 3,
-                                backgroundColor: category.categoryColor,
-                              },
-                            }}
-                          />
-                        </Box>
-                      );
-                    })}
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
-        </Fade>
-      )}
     </Box>
   );
 };
 
 export default WalletStatsNew;
+
