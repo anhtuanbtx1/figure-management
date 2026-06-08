@@ -10,8 +10,6 @@ import {
 } from '@mui/material';
 import { IconPlus, IconRefresh } from '@tabler/icons-react';
 import PageContainer from '@/app/components/container/PageContainer';
-import Breadcrumb from '@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb';
-
 // Import types and services
 import { Toy, ToyFilters, ToyStatus, ToyCreateRequest, ToyUpdateRequest, ToyCategory, NotificationState } from '../../types/apps/toy';
 import ToyService from './services/toyService';
@@ -24,16 +22,6 @@ import BrandStatsCards from './components/BrandStatsCards';
 import ToyForm from './components/ToyForm';
 import ModernNotification from '@/app/components/shared/ModernNotification';
 import BulkActions from './components/BulkActions';
-
-const BCrumb = [
-  {
-    to: '/',
-    title: 'Trang chủ',
-  },
-  {
-    title: 'Quản lý đồ chơi',
-  },
-];
 
 const ToyManagementPage = () => {
   // State management
@@ -391,8 +379,7 @@ const ToyManagementPage = () => {
 
   return (
     <PageContainer title="Quản lý đồ chơi" description="Danh sách đồ chơi">
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Breadcrumb title="Quản lý đồ chơi" items={BCrumb} />
+      <Box display="flex" justifyContent="flex-end" alignItems="center" mb={3}>
         <Box display="flex" gap={2}>
           <Button
             variant="outlined"
