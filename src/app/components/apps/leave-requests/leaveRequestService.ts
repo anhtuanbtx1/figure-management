@@ -35,7 +35,17 @@ export interface LeaveRequestListResponse {
   };
 }
 
-export async function fetchLeaveRequests(page = 1, limit = 20, q = "leave", staffCode?: string) {
+export type RequestCategoryCode = "LEAVE" | "UPDATE_ATTENDANCE";
+
+export const REQUEST_CATEGORY_CODES: RequestCategoryCode[] = ["LEAVE", "UPDATE_ATTENDANCE"];
+
+export async function fetchLeaveRequests(
+  page = 1,
+  limit = 20,
+  q = "leave",
+  staffCode?: string,
+  requestCategoryCode?: RequestCategoryCode
+) {
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
@@ -44,6 +54,10 @@ export async function fetchLeaveRequests(page = 1, limit = 20, q = "leave", staf
 
   if (staffCode) {
     params.append("staffCode", staffCode);
+  }
+  // LEAVE = nghỉ phép, UPDATE_ATTENDANCE = cập nhật công
+  if (requestCategoryCode) {
+    params.append("requestCategoryCode", requestCategoryCode);
   }
 
   const response = await fetch(`/api/leave-requests?${params.toString()}`, {

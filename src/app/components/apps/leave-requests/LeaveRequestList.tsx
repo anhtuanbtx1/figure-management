@@ -15,9 +15,15 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 
 import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
+import MenuItem from "@mui/material/MenuItem";
 import BlankCard from "@/app/components/shared/BlankCard";
 import PaginationControls from "@/app/components/shared/PaginationControls";
-import { fetchLeaveRequests, LeaveRequestCounts, LeaveRequestRow } from "./leaveRequestService";
+import {
+  fetchLeaveRequests,
+  LeaveRequestCounts,
+  LeaveRequestRow,
+  RequestCategoryCode,
+} from "./leaveRequestService";
 
 interface LeaveRequestListProps {
   filter?: string;
@@ -96,6 +102,7 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
   const [itemsPerPage, setItemsPerPage] = React.useState(20);
   const [staffCodeInput, setStaffCodeInput] = React.useState("");
   const [debouncedStaffCode, setDebouncedStaffCode] = React.useState("");
+  const [requestCategoryCode, setRequestCategoryCode] = React.useState<RequestCategoryCode>("LEAVE");
 
   React.useEffect(() => {
     const handler = setTimeout(() => {
@@ -112,7 +119,13 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
       try {
         setDataState((prev) => ({ ...prev, loading: true, error: null }));
 
-        const response = await fetchLeaveRequests(currentPage, itemsPerPage, "leave", debouncedStaffCode || undefined);
+        const response = await fetchLeaveRequests(
+          currentPage,
+          itemsPerPage,
+          "leave",
+          debouncedStaffCode || undefined,
+          requestCategoryCode
+        );
 
         if (!active) return;
 
@@ -145,7 +158,7 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
     return () => {
       active = false;
     };
-  }, [currentPage, itemsPerPage, onCountsChange, debouncedStaffCode]);
+  }, [currentPage, itemsPerPage, onCountsChange, debouncedStaffCode, requestCategoryCode]);
 
   const startIndex = dataState.total === 0 ? 0 : (currentPage - 1) * itemsPerPage;
   const endIndex = dataState.total === 0 ? 0 : Math.min(startIndex + dataState.rows.length, dataState.total);
@@ -202,17 +215,34 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
                 Theo dõi và tra cứu đơn nghỉ phép theo mã nhân viên.
               </Typography>
             </Box>
-            <CustomTextField
-              label="Mã nhân viên"
-              variant="outlined"
-              size="small"
-              value={staffCodeInput}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setStaffCodeInput(e.target.value);
-                setCurrentPage(1);
-              }}
-              sx={{ width: { xs: "100%", md: 320 } }}
-            />
+            <Stack direction="row" spacing={2} sx={{ width: { xs: "100%", md: "auto" } }}>
+              <CustomTextField
+                select
+                label="Loại đơn"
+                variant="outlined"
+                size="small"
+                value={requestCategoryCode}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setRequestCategoryCode(e.target.value as RequestCategoryCode);
+                  setCurrentPage(1);
+                }}
+                sx={{ width: { xs: "50%", md: 200 } }}
+              >
+                <MenuItem value="LEAVE">Nghỉ phép</MenuItem>
+                <MenuItem value="UPDATE_ATTENDANCE">Cập nhật công</MenuItem>
+              </CustomTextField>
+              <CustomTextField
+                label="Mã nhân viên"
+                variant="outlined"
+                size="small"
+                value={staffCodeInput}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setStaffCodeInput(e.target.value);
+                  setCurrentPage(1);
+                }}
+                sx={{ width: { xs: "50%", md: 200 } }}
+              />
+            </Stack>
           </Stack>
 
           <TableContainer sx={{ overflowX: "auto" }}>

@@ -271,6 +271,7 @@ export async function GET(request: NextRequest) {
     const q = searchParams.get("q") || DEFAULT_QUERY;
     const staffCode = searchParams.get("staffCode");
     const planYear = searchParams.get("planYear");
+    const requestCategoryCode = searchParams.get("requestCategoryCode");
 
     const externalParams = new URLSearchParams({
       page: String(page),
@@ -285,6 +286,10 @@ export async function GET(request: NextRequest) {
     }
     if (planYear) {
       externalParams.append("planYear", planYear);
+    }
+    // Truyền requestCategoryCode: LEAVE (nghỉ phép), UPDATE_ATTENDANCE (cập nhật công)
+    if (requestCategoryCode) {
+      externalParams.append("requestCategoryCode", requestCategoryCode);
     }
 
     const externalResponse = await fetch(`${EXTERNAL_API_URL}?${externalParams.toString()}`, {
