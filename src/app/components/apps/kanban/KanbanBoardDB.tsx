@@ -106,6 +106,17 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
   const handleNextWeek = () => setCurrentWeekDate(prev => prev.add(1, 'week'));
   const handleToday = () => setCurrentWeekDate(dayjs());
 
+  const openCreate = useCallback((columnId: string, destColId: string) => {
+    // destColId is the visual column ('unscheduled' or 'YYYY-MM-DD')
+    const initData: any = { columnId };
+    if (destColId !== 'unscheduled') {
+      initData.startDate = destColId;
+      initData.endDate = destColId;
+    }
+    setEditorInit(initData);
+    setEditorOpen(true);
+  }, []);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -127,7 +138,7 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [dbColumns, editorOpen, confirmOpen]);
+  }, [dbColumns, editorOpen, confirmOpen, openCreate]);
 
   const onDragStart = (start: any) => {
     setDraggedTask(start.draggableId);
@@ -186,17 +197,6 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
       await load();
     }
   };
-
-  const openCreate = useCallback((columnId: string, destColId: string) => {
-    // destColId is the visual column ('unscheduled' or 'YYYY-MM-DD')
-    const initData: any = { columnId };
-    if (destColId !== 'unscheduled') {
-      initData.startDate = destColId;
-      initData.endDate = destColId;
-    }
-    setEditorInit(initData);
-    setEditorOpen(true);
-  }, []);
 
   const openEdit = useCallback((task: KanbanTask) => {
     setEditorInit({

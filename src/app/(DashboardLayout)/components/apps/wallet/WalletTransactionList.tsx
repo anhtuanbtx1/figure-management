@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -115,7 +115,7 @@ const WalletTransactionList: React.FC = () => {
   };
 
   // Load transactions
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     try {
       setLoading(true);
       console.log('💳 Loading wallet transactions...');
@@ -141,10 +141,10 @@ const WalletTransactionList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, currentPage, itemsPerPage]);
 
   // Load categories
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       console.log('📂 Loading wallet categories...');
       const categoriesData = await WalletService.fetchCategories();
@@ -157,16 +157,16 @@ const WalletTransactionList: React.FC = () => {
         'error'
       );
     }
-  };
+  }, []); // WalletService and setState setters are stable
 
   // Load data on component mount
   useEffect(() => {
     loadCategories();
-  }, []);
+  }, [loadCategories]);
 
   useEffect(() => {
     loadTransactions();
-  }, [filters, currentPage, itemsPerPage]);
+  }, [loadTransactions]);
 
   // Listen for transaction created event
   useEffect(() => {
@@ -179,7 +179,7 @@ const WalletTransactionList: React.FC = () => {
     return () => {
       window.removeEventListener('walletTransactionCreated', handleTransactionCreated);
     };
-  }, [filters, currentPage, itemsPerPage]);
+  }, [loadTransactions]);
 
   // Bulk selection handlers
   const toggleSelectAll = (checked: boolean) => {

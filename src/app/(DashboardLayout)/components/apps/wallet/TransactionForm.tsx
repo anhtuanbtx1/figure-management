@@ -83,7 +83,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onCreated }) => {
   };
 
   // Load categories - simplified like working component
-  const loadCategories = async () => {
+  const loadCategories = React.useCallback(async () => {
     try {
       console.log('📂 Loading wallet categories for form...');
       const categoriesData = await WalletService.fetchCategories();
@@ -96,12 +96,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onCreated }) => {
         'error'
       );
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load categories on component mount
   useEffect(() => {
     loadCategories();
-  }, []);
+  }, [loadCategories]);
 
 
 

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface UsePaginationProps {
@@ -53,13 +53,21 @@ export const usePagination = ({
   const totalItems = filteredData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
+  // Update URL with current pagination state
+  const updateURL = useCallback((page: number, limit: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', page.toString());
+    params.set('limit', limit.toString());
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
+
   // Reset to page 1 when search term changes
   useEffect(() => {
     if (searchTerm) {
       setCurrentPageState(1);
       updateURL(1, itemsPerPage);
     }
-  }, [searchTerm]);
+  }, [searchTerm, itemsPerPage, updateURL]);
 
   // Ensure current page is valid
   useEffect(() => {
@@ -67,15 +75,7 @@ export const usePagination = ({
       setCurrentPageState(totalPages);
       updateURL(totalPages, itemsPerPage);
     }
-  }, [totalPages, currentPage, itemsPerPage]);
-
-  // Update URL with current pagination state
-  const updateURL = (page: number, limit: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', page.toString());
-    params.set('limit', limit.toString());
-    router.replace(`?${params.toString()}`, { scroll: false });
-  };
+  }, [totalPages, currentPage, itemsPerPage, updateURL]);
 
   const setCurrentPage = (page: number) => {
     const validPage = Math.max(1, Math.min(page, totalPages));

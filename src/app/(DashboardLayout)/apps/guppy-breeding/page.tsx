@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
     Box, Card, CardContent, Typography, Button, Grid,
     TextField, MenuItem, Select, FormControl, InputLabel,
@@ -96,16 +96,23 @@ const GuppyBreedingPage = () => {
     // ==========================================
     // Load Data
     // ==========================================
-    useEffect(() => {
-        loadFish();
-        loadBreedings();
-        loadStats();
-        loadAllFishForSelect();
+    const showNotification = useCallback((message: string, severity: 'success' | 'error' | 'info' = 'success') => {
+        setSnackbar({ open: true, message, severity });
     }, []);
 
-    const loadFish = async (options?: { page?: number; search?: string; gender?: string; status?: string }) => {
+    const loadStateRef = useRef({
+        fishPage, fishSearch, fishGenderFilter, fishStatusFilter,
+        breedingPage, breedingSearch, breedingStatusFilter,
+    });
+    loadStateRef.current = {
+        fishPage, fishSearch, fishGenderFilter, fishStatusFilter,
+        breedingPage, breedingSearch, breedingStatusFilter,
+    };
+
+    const loadFish = useCallback(async (options?: { page?: number; search?: string; gender?: string; status?: string }) => {
         try {
             setFishLoading(true);
+            const { fishPage, fishSearch, fishGenderFilter, fishStatusFilter } = loadStateRef.current;
             const result = await GuppyFishService.getAll({
                 page: options?.page || fishPage,
                 pageSize: 20,
@@ -124,11 +131,12 @@ const GuppyBreedingPage = () => {
         } finally {
             setFishLoading(false);
         }
-    };
+    }, [showNotification]);
 
-    const loadBreedings = async (options?: { page?: number; search?: string; status?: string }) => {
+    const loadBreedings = useCallback(async (options?: { page?: number; search?: string; status?: string }) => {
         try {
             setBreedingLoading(true);
+            const { breedingPage, breedingSearch, breedingStatusFilter } = loadStateRef.current;
             const result = await GuppyBreedingService.getAll({
                 page: options?.page || breedingPage,
                 pageSize: 20,
@@ -142,33 +150,36 @@ const GuppyBreedingPage = () => {
         } finally {
             setBreedingLoading(false);
         }
-    };
+    }, [showNotification]);
 
-    const loadStats = async () => {
+    const loadStats = useCallback(async () => {
         try {
             const s = await GuppyFishService.getStats();
             setStats(s);
         } catch (error) {
             console.error('Error loading stats:', error);
         }
-    };
+    }, []);
 
-    const loadAllFishForSelect = async () => {
+    const loadAllFishForSelect = useCallback(async () => {
         try {
             const result = await GuppyFishService.getAll({ pageSize: 200, status: 'Active' });
             setAllFishForSelect(result.fish);
         } catch {
             // ignore
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        loadFish();
+        loadBreedings();
+        loadStats();
+        loadAllFishForSelect();
+    }, [loadFish, loadBreedings, loadStats, loadAllFishForSelect]);
 
     // ==========================================
     // Helpers
     // ==========================================
-    const showNotification = (message: string, severity: 'success' | 'error' | 'info' = 'success') => {
-        setSnackbar({ open: true, message, severity });
-    };
-
     const maleFish = useMemo(() => allFishForSelect.filter(f => f.gender === 'Male'), [allFishForSelect]);
     const femaleFish = useMemo(() => allFishForSelect.filter(f => f.gender === 'Female'), [allFishForSelect]);
 

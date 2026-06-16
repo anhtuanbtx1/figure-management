@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Grid,
@@ -54,11 +54,26 @@ export default function RemindersPage() {
     severity: 'success' as 'success' | 'error' | 'warning' | 'info',
   });
 
-  useEffect(() => {
-    loadInitialData();
+  const showSnackbar = useCallback((
+    message: string,
+    severity: 'success' | 'error' | 'warning' | 'info' = 'success'
+  ) => {
+    setSnackbar({ open: true, message, severity });
   }, []);
 
-  const loadInitialData = async () => {
+  const checkSchedulerStatus = useCallback(async () => {
+    console.log("checkSchedulerStatus called");
+    try {
+      const response = await reminderApi.getSchedulerStatus();
+      if (response.success) {
+        setSchedulerStatus(response.data?.running || false);
+      }
+    } catch (error) {
+      console.error('Error checking scheduler status:', error);
+    }
+  }, []);
+
+  const loadInitialData = useCallback(async () => {
     console.log("loadInitialData called");
     try {
       setLoading(true);
@@ -78,9 +93,13 @@ export default function RemindersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [checkSchedulerStatus, showSnackbar]);
 
-  const loadReminders = async () => {
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  const loadReminders = useCallback(async () => {
     console.log("loadReminders called");
     try {
       setLoading(true);
@@ -94,19 +113,7 @@ export default function RemindersPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const checkSchedulerStatus = async () => {
-    console.log("checkSchedulerStatus called");
-    try {
-      const response = await reminderApi.getSchedulerStatus();
-      if (response.success) {
-        setSchedulerStatus(response.data?.running || false);
-      }
-    } catch (error) {
-      console.error('Error checking scheduler status:', error);
-    }
-  };
+  }, [showSnackbar]);
 
   const handleCreateReminder = () => {
     console.log("handleCreateReminder called");
@@ -203,13 +210,6 @@ export default function RemindersPage() {
     } catch (error) {
       showSnackbar('Lỗi khi thay đổi trạng thái bộ lập lịch', 'error');
     }
-  };
-
-  const showSnackbar = (
-    message: string,
-    severity: 'success' | 'error' | 'warning' | 'info' = 'success'
-  ) => {
-    setSnackbar({ open: true, message, severity });
   };
 
   console.log("RemindersPage rendered");

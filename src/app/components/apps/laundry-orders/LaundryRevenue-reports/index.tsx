@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
   Button,
@@ -69,16 +69,21 @@ const LaundryRevenueReports = () => {
   };
 
   const defaultRange = getDefaultDateRange();
-  const [dateFrom, setDateFrom] = useState(defaultRange.from);
-  const [dateTo, setDateTo] = useState(defaultRange.to);
+  const [dateFrom, setDateFromState] = useState(defaultRange.from);
+  const [dateTo, setDateToState] = useState(defaultRange.to);
+  const dateFromRef = useRef(dateFrom);
+  const dateToRef = useRef(dateTo);
 
-  const loadRevenueStats = async () => {
+  const setDateFrom = (val: string) => { setDateFromState(val); dateFromRef.current = val; };
+  const setDateTo = (val: string) => { setDateToState(val); dateToRef.current = val; };
+
+  const loadRevenueStats = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         groupBy,
-        ...(dateFrom && { dateFrom }),
-        ...(dateTo && { dateTo }),
+        ...(dateFromRef.current && { dateFrom: dateFromRef.current }),
+        ...(dateToRef.current && { dateTo: dateToRef.current }),
       });
 
       const response = await fetch(`/api/laundry-orders/revenue-stats?${params}`);
@@ -94,11 +99,11 @@ const LaundryRevenueReports = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [groupBy]);
 
   useEffect(() => {
     loadRevenueStats();
-  }, [groupBy]);
+  }, [loadRevenueStats]);
 
   const handleGroupByChange = (
     event: React.MouseEvent<HTMLElement>,

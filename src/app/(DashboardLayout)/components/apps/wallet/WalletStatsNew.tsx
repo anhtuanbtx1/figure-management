@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Grid,
   Card,
@@ -48,7 +48,7 @@ const WalletStatsNew = () => {
     };
   });
 
-  const loadDashboardData = async (currentFilters = filters) => {
+  const loadDashboardData = useCallback(async (currentFilters = filters) => {
     try {
       setLoading(true);
       const data = await WalletService.getDashboard(
@@ -69,11 +69,11 @@ const WalletStatsNew = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [loadDashboardData]);
 
   useEffect(() => {
     const handleRefresh = () => loadDashboardData();
@@ -83,7 +83,7 @@ const WalletStatsNew = () => {
       window.removeEventListener('walletTransactionCreated', handleRefresh);
       window.removeEventListener('walletTransactionDeleted', handleRefresh);
     };
-  }, []);
+  }, [loadDashboardData]);
 
   const handleFiltersChange = (newFilters: FilterType) => setFilters(newFilters);
   const handleApplyFilters = () => loadDashboardData(filters);

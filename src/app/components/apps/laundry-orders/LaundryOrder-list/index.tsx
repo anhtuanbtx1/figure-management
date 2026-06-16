@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Table,
   TextField,
@@ -70,7 +70,7 @@ function LaundryOrderList() {
   const tabItem = ["All", "Pending", "Processing", "Completed"];
 
   // Load orders from API
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     setIsLoading(true);
     try {
       const statusParam = activeTab !== "All" ? `&status=${activeTab}` : "";
@@ -95,12 +95,12 @@ function LaundryOrderList() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeTab, searchTerm, phoneFilter, dateFrom, dateTo]);
 
   // Load orders when activeTab changes
   useEffect(() => {
     loadOrders();
-  }, [activeTab]);
+  }, [activeTab, loadOrders]);
 
   // Debounced search
   useEffect(() => {
@@ -108,7 +108,7 @@ function LaundryOrderList() {
       loadOrders();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm, phoneFilter, dateFrom, dateTo]);
+  }, [searchTerm, phoneFilter, dateFrom, dateTo, loadOrders]);
 
   const handleModalSuccess = () => {
     loadOrders(); // Reload orders after successful creation

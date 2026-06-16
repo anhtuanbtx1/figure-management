@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Stack, Chip, useTheme, alpha, Skeleton, Tooltip, Box, Typography, Fade, Grow } from '@mui/material';
 import { IconTrendingUp, IconUsers, IconClock, IconTarget, IconActivity, IconRefresh } from '@tabler/icons-react';
 import KanbanService from '@/app/(DashboardLayout)/apps/kanban/services/kanbanService';
@@ -20,7 +20,7 @@ const KanbanMetricsChips: React.FC<KanbanMetricsChipsProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -33,7 +33,7 @@ const KanbanMetricsChips: React.FC<KanbanMetricsChipsProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [boardId]);
 
   useEffect(() => {
     fetchStats();
@@ -41,7 +41,7 @@ const KanbanMetricsChips: React.FC<KanbanMetricsChipsProps> = ({
     // Auto-refresh every 5 minutes
     const interval = setInterval(fetchStats, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [boardId]);
+  }, [fetchStats]);
 
   const handleRefresh = () => {
     fetchStats();

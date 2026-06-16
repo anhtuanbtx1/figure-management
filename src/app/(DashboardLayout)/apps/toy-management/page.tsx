@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Card,
@@ -71,10 +71,28 @@ const ToyManagementPage = () => {
     inStock: false,
   });
 
+  // Notification helper
+  const showNotification = useCallback((message: string, severity: NotificationState['severity'] = 'success') => {
+    setNotification({ open: true, message, severity });
+  }, []);
+
+  // Refs for current values of state variables used in loadToys to prevent infinite re-renders
+  const stateRef = useRef({ filters, currentPage, itemsPerPage, sortField, sortDirection });
+  useEffect(() => {
+    stateRef.current = { filters, currentPage, itemsPerPage, sortField, sortDirection };
+  }, [filters, currentPage, itemsPerPage, sortField, sortDirection]);
+
   // Enhanced toys loading with retry logic
-  const loadToys = async (currentRetryCount = 0) => {
+  const loadToys = useCallback(async (currentRetryCount = 0) => {
     const maxRetries = 3;
     const retryDelay = 1000;
+    const {
+      filters: currentFilters,
+      currentPage: currentCP,
+      itemsPerPage: currentIPP,
+      sortField: currentSF,
+      sortDirection: currentSD
+    } = stateRef.current;
 
     try {
       setLoading(true);
@@ -86,11 +104,11 @@ const ToyManagementPage = () => {
       }
 
       const result = await ToyService.fetchToys(
-        filters,
-        currentPage,
-        itemsPerPage,
-        sortField,
-        sortDirection
+        currentFilters,
+        currentCP,
+        currentIPP,
+        currentSF,
+        currentSD
       );
 
       setToys(result.toys);
@@ -120,10 +138,10 @@ const ToyManagementPage = () => {
         );
       }
     }
-  };
+  }, [showNotification]);
 
   // Enhanced loading with retry logic for race condition prevention
-  const loadCategoriesAndBrands = async (currentRetryCount = 0) => {
+  const loadCategoriesAndBrands = useCallback(async (currentRetryCount = 0) => {
     const maxRetries = 3;
     const retryDelay = 1000; // 1 second delay between retries
 
@@ -172,7 +190,7 @@ const ToyManagementPage = () => {
         );
       }
     }
-  };
+  }, [showNotification]);
 
   // Retry handler for manual retry
   const handleRetry = () => {
@@ -207,7 +225,7 @@ const ToyManagementPage = () => {
     };
 
     initializeApp();
-  }, []);
+  }, [loadCategoriesAndBrands]);
 
   // Load toys only after categories and brands are loaded or when dependencies change
   useEffect(() => {
@@ -217,7 +235,7 @@ const ToyManagementPage = () => {
       loadToys();
       setInitialLoadComplete(true);
     }
-  }, [filters, currentPage, itemsPerPage, sortField, sortDirection, categoriesLoading, brandsLoading]);
+  }, [filters, currentPage, itemsPerPage, sortField, sortDirection, categoriesLoading, brandsLoading, loadToys]);
 
   // Fallback: Load toys after a delay even if categories/brands fail
   useEffect(() => {
@@ -230,7 +248,7 @@ const ToyManagementPage = () => {
     }, 5000); // 5 second fallback
 
     return () => clearTimeout(fallbackTimer);
-  }, [initialLoadComplete]);
+  }, [initialLoadComplete, loadToys]);
 
   // Handlers
   const handleFiltersChange = (newFilters: Partial<ToyFilters>) => {
@@ -254,11 +272,6 @@ const ToyManagementPage = () => {
   const handleSort = (field: keyof Toy, direction: 'asc' | 'desc') => {
     setSortField(field);
     setSortDirection(direction);
-  };
-
-  // Notification helper
-  const showNotification = (message: string, severity: NotificationState['severity'] = 'success') => {
-    setNotification({ open: true, message, severity });
   };
 
   const closeNotification = () => {

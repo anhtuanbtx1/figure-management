@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Alert,
   Box,
@@ -262,7 +262,7 @@ const PayrollImportList = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [expandedPeriod, setExpandedPeriod] = useState<string | null>(null);
 
-  const loadPayrolls = async (nextPage = page, nextRowsPerPage = rowsPerPage) => {
+  const loadPayrolls = useCallback(async (nextPage: number, nextRowsPerPage: number) => {
     setLoading(true);
     setErrorMessage("");
 
@@ -299,7 +299,7 @@ const PayrollImportList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [codeKeyword, nameKeyword, salaryKeyword, payrollPeriodKeyword]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -307,7 +307,7 @@ const PayrollImportList = () => {
     }, 300);
 
     return () => window.clearTimeout(timeout);
-  }, [codeKeyword, nameKeyword, salaryKeyword, payrollPeriodKeyword, rowsPerPage]);
+  }, [codeKeyword, nameKeyword, salaryKeyword, payrollPeriodKeyword, rowsPerPage, loadPayrolls]);
 
   useEffect(() => {
     setExpandedPeriod((current) => {

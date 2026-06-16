@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 interface SalaryStats {
@@ -60,7 +60,7 @@ export function useWalletSalaryStats(months: number = 6): UseWalletSalaryStatsRe
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSalaryStats = async () => {
+  const fetchSalaryStats = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -78,11 +78,11 @@ export function useWalletSalaryStats(months: number = 6): UseWalletSalaryStatsRe
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [months]);
 
   useEffect(() => {
     fetchSalaryStats();
-  }, [months]);
+  }, [fetchSalaryStats]);
 
   return {
     data,

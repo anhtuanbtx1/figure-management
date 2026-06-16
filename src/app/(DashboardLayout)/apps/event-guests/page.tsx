@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Card,
@@ -68,17 +68,10 @@ const EventGuestsPage = () => {
   });
 
   // Load data from API
-  useEffect(() => {
-    loadGuests();
-    loadStatistics();
-  }, []);
+  const stateRef = useRef({ currentPage, itemsPerPage, filters });
+  stateRef.current = { currentPage, itemsPerPage, filters };
 
-  // Reload statistics when status filter changes (not search - search is now manual)
-  useEffect(() => {
-    loadStatistics();
-  }, [filters.status]);
-
-  const loadGuests = async (options: {
+  const loadGuests = useCallback(async (options: {
     page?: number;
     search?: string;
     status?: string;
@@ -87,11 +80,13 @@ const EventGuestsPage = () => {
       setLoading(true);
       const startTime = Date.now();
 
+      const { currentPage: statePage, itemsPerPage: stateItems, filters: stateFilters } = stateRef.current;
+
       const result = await GuestService.getAllGuests({
-        page: options.page || currentPage,
-        pageSize: itemsPerPage,
-        search: options.search || filters.search,
-        status: options.status || filters.status,
+        page: options.page || statePage,
+        pageSize: stateItems,
+        search: options.search !== undefined ? options.search : stateFilters.search,
+        status: options.status !== undefined ? options.status : stateFilters.status,
         sortField: 'createdDate',
         sortDirection: 'DESC',
       });
@@ -103,7 +98,6 @@ const EventGuestsPage = () => {
       const loadTime = Date.now() - startTime;
       console.log(`📊 Loaded ${result.guests.length} guests in ${loadTime}ms (server: ${result.performanceMs}ms)`);
 
-      // Show performance notification if load time is significant
       if (result.performanceMs > 1000) {
         console.warn(`⚠️ Slow query detected: ${result.performanceMs}ms`);
       }
@@ -114,40 +108,41 @@ const EventGuestsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Load statistics using multiple API calls to get ALL data
-  const loadStatistics = async (options: {
+  const loadStatistics = useCallback(async (options: {
     search?: string;
     status?: string;
   } = {}) => {
     try {
       console.log('📊 Loading statistics using multiple API calls...');
 
+      const { filters: stateFilters } = stateRef.current;
+
       let allGuests: EventGuest[] = [];
-      let currentPage = 1;
+      let currentStatsPage = 1;
       let hasMorePages = true;
       const pageSize = 100; // Use max allowed pageSize
 
       // Keep fetching pages until we get all data
       while (hasMorePages) {
         const result = await GuestService.getAllGuests({
-          page: currentPage,
+          page: currentStatsPage,
           pageSize: pageSize,
-          search: options.search || filters.search,
-          status: options.status || filters.status,
+          search: options.search !== undefined ? options.search : stateFilters.search,
+          status: options.status !== undefined ? options.status : stateFilters.status,
           sortField: 'createdDate',
           sortDirection: 'DESC',
         });
 
         allGuests = [...allGuests, ...result.guests];
         hasMorePages = result.pagination.hasNextPage;
-        currentPage++;
+        currentStatsPage++;
 
-        console.log(`📄 Loaded page ${currentPage - 1}: ${result.guests.length} guests (total so far: ${allGuests.length})`);
+        console.log(`📄 Loaded page ${currentStatsPage - 1}: ${result.guests.length} guests (total so far: ${allGuests.length})`);
 
         // Safety check to prevent infinite loop
-        if (currentPage > 10) {
+        if (currentStatsPage > 10) {
           console.warn('⚠️ Stopped loading after 10 pages to prevent infinite loop');
           break;
         }
@@ -227,8 +222,8 @@ const EventGuestsPage = () => {
         },
         topUnits: [], // Can calculate if needed
         filters: {
-          search: options.search || filters.search || null,
-          status: options.status || filters.status || null,
+          search: options.search !== undefined ? options.search : stateFilters.search,
+          status: options.status !== undefined ? options.status : stateFilters.status,
         },
       };
 
@@ -243,7 +238,17 @@ const EventGuestsPage = () => {
       console.error('❌ Failed to load statistics:', error);
       // Don't show error notification for stats, just log it
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadGuests();
+    loadStatistics();
+  }, [loadGuests, loadStatistics]);
+
+  // Reload statistics when status filter changes (not search - search is now manual)
+  useEffect(() => {
+    loadStatistics();
+  }, [filters.status, loadStatistics]);
 
   // Use statistics from API (all data) instead of calculating from paginated guests
   const stats = useMemo(() => {
