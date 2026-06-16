@@ -4,7 +4,11 @@ import React from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
+import Fade from "@mui/material/Fade";
 import Grid from "@mui/material/Grid";
+import LinearProgress from "@mui/material/LinearProgress";
+import MenuItem from "@mui/material/MenuItem";
+import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -13,9 +17,9 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 
 import CustomTextField from "@/app/components/forms/theme-elements/CustomTextField";
-import MenuItem from "@mui/material/MenuItem";
 import BlankCard from "@/app/components/shared/BlankCard";
 import PaginationControls from "@/app/components/shared/PaginationControls";
 import {
@@ -39,6 +43,7 @@ interface LeaveRequestListState {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   loading: boolean;
+  loaded: boolean;
   error: string | null;
 }
 
@@ -51,12 +56,25 @@ const initialState: LeaveRequestListState = {
   hasNextPage: false,
   hasPreviousPage: false,
   loading: false,
+  loaded: false,
   error: null,
 };
 
 const noop = () => {};
 
-const getStatusColor = (status: string) => {
+const TABLE_COLUMNS = [
+  "Mã đơn",
+  "Họ và tên",
+  "Mã nhân viên",
+  "Loại nghỉ phép",
+  "Từ ngày",
+  "Đến ngày",
+  "Trạng thái",
+] as const;
+
+type StatusColor = "success" | "warning" | "error" | "default";
+
+const getStatusColor = (status: string): StatusColor => {
   switch (status) {
     case "Approved":
       return "success";
@@ -69,32 +87,90 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const summaryItems = (counts: LeaveRequestCounts | null, total: number) => [
-  {
-    title: "Tổng đơn",
-    value: total,
-    color: "primary.light",
-    iconColor: "primary.main",
-  },
-  {
-    title: "Nghỉ phép",
-    value: counts?.countLeave ?? 0,
-    color: "success.light",
-    iconColor: "success.main",
-  },
-  {
-    title: "Công tác",
-    value: counts?.countBusinessTrip ?? 0,
-    color: "secondary.light",
-    iconColor: "secondary.main",
-  },
-  {
-    title: "Đăng ký WS",
-    value: counts?.countWSRegistration ?? 0,
-    color: "warning.light",
-    iconColor: "warning.main",
-  },
+// ---- Memoized table row: chỉ re-render khi dữ liệu của chính nó đổi ----
+const LeaveRequestTableRow = React.memo(function LeaveRequestTableRow({
+  row,
+}: {
+  row: LeaveRequestRow;
+}) {
+  return (
+    <TableRow hover>
+      <TableCell>{row.id}</TableCell>
+      <TableCell>
+        <Typography variant="subtitle2" fontWeight={600} noWrap>
+          {row.fullName}
+        </Typography>
+      </TableCell>
+      <TableCell>{row.staffCode}</TableCell>
+      <TableCell>{row.type}</TableCell>
+      <TableCell>{row.start_date}</TableCell>
+      <TableCell>{row.end_date}</TableCell>
+      <TableCell>
+        <Chip label={row.status} color={getStatusColor(row.status)} size="small" />
+      </TableCell>
+    </TableRow>
+  );
+});
+
+// ---- Skeleton rows hiển thị khi load lần đầu ----
+const SkeletonRows = React.memo(function SkeletonRows({ rows = 5 }: { rows?: number }) {
+  return (
+    <>
+      {Array.from({ length: rows }).map((_, rowIndex) => (
+        <TableRow key={`skeleton-${rowIndex}`}>
+          {TABLE_COLUMNS.map((_col, colIndex) => (
+            <TableCell key={colIndex}>
+              <Skeleton variant="text" width={colIndex === 1 ? "80%" : "60%"} />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </>
+  );
+});
+
+// ---- Summary cards ----
+interface SummaryItem {
+  title: string;
+  value: number;
+  color: string;
+  iconColor: string;
+}
+
+const buildSummaryItems = (counts: LeaveRequestCounts | null, total: number): SummaryItem[] => [
+  { title: "Tổng đơn", value: total, color: "primary.light", iconColor: "primary.main" },
+  { title: "Nghỉ phép", value: counts?.countLeave ?? 0, color: "success.light", iconColor: "success.main" },
+  { title: "Công tác", value: counts?.countBusinessTrip ?? 0, color: "secondary.light", iconColor: "secondary.main" },
+  { title: "Đăng ký WS", value: counts?.countWSRegistration ?? 0, color: "warning.light", iconColor: "warning.main" },
 ];
+
+const SummaryCard = React.memo(function SummaryCard({ item }: { item: SummaryItem }) {
+  return (
+    <Box
+      sx={{
+        p: 3,
+        bgcolor: item.color,
+        borderRadius: 2,
+        height: "100%",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        "&:hover": {
+          transform: "translateY(-3px)",
+          boxShadow: 3,
+        },
+      }}
+    >
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Box sx={{ width: 42, height: 42, borderRadius: 2, bgcolor: item.iconColor }} />
+        <Box>
+          <Typography variant="subtitle2" color="textSecondary">
+            {item.title}
+          </Typography>
+          <Typography variant="h6">{item.value}</Typography>
+        </Box>
+      </Stack>
+    </Box>
+  );
+});
 
 const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: LeaveRequestListProps) => {
   const [dataState, setDataState] = React.useState<LeaveRequestListState>(initialState);
@@ -104,6 +180,7 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
   const [debouncedStaffCode, setDebouncedStaffCode] = React.useState("");
   const [requestCategoryCode, setRequestCategoryCode] = React.useState<RequestCategoryCode>("LEAVE");
 
+  // Debounce ô nhập mã nhân viên
   React.useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedStaffCode(staffCodeInput.trim());
@@ -112,6 +189,7 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
     return () => clearTimeout(handler);
   }, [staffCodeInput]);
 
+  // Fetch dữ liệu — giữ data cũ khi đang load để tránh nhảy layout
   React.useEffect(() => {
     let active = true;
 
@@ -140,6 +218,7 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
           hasNextPage: response.pagination.hasNextPage,
           hasPreviousPage: response.pagination.hasPreviousPage,
           loading: false,
+          loaded: true,
           error: null,
         });
       } catch (error) {
@@ -148,6 +227,7 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
         setDataState((prev) => ({
           ...prev,
           loading: false,
+          loaded: true,
           error: error instanceof Error ? error.message : "Không thể tải danh sách đơn nghỉ phép",
         }));
       }
@@ -160,41 +240,46 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
     };
   }, [currentPage, itemsPerPage, onCountsChange, debouncedStaffCode, requestCategoryCode]);
 
+  // ---- Memoized values & callbacks ----
+  const summaryItems = React.useMemo(
+    () => buildSummaryItems(dataState.counts, dataState.total),
+    [dataState.counts, dataState.total]
+  );
+
   const startIndex = dataState.total === 0 ? 0 : (currentPage - 1) * itemsPerPage;
-  const endIndex = dataState.total === 0 ? 0 : Math.min(startIndex + dataState.rows.length, dataState.total);
+  const endIndex =
+    dataState.total === 0 ? 0 : Math.min(startIndex + dataState.rows.length, dataState.total);
+
+  const handleCategoryChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setRequestCategoryCode(e.target.value as RequestCategoryCode);
+    setCurrentPage(1);
+  }, []);
+
+  const handleStaffCodeChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setStaffCodeInput(e.target.value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleItemsPerPageChange = React.useCallback((value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1);
+  }, []);
+
+  const isInitialLoading = dataState.loading && !dataState.loaded;
+  const isEmpty = dataState.loaded && !dataState.loading && dataState.rows.length === 0;
 
   return (
     <Stack spacing={3}>
-      {dataState.error ? <Alert severity="error">{dataState.error}</Alert> : null}
+      {dataState.error ? (
+        <Fade in>
+          <Alert severity="error">{dataState.error}</Alert>
+        </Fade>
+      ) : null}
 
       <Grid container spacing={3}>
-        {summaryItems(dataState.counts, dataState.total).map((item) => (
+        {summaryItems.map((item) => (
           <Grid item xs={12} sm={6} lg={3} key={item.title}>
-            <Box
-              sx={{
-                p: 3,
-                bgcolor: item.color,
-                borderRadius: 1,
-                height: "100%",
-              }}
-            >
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Box
-                  sx={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 1,
-                    bgcolor: item.iconColor,
-                  }}
-                />
-                <Box>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    {item.title}
-                  </Typography>
-                  <Typography variant="h6">{item.value}</Typography>
-                </Box>
-              </Stack>
-            </Box>
+            <SummaryCard item={item} />
           </Grid>
         ))}
       </Grid>
@@ -222,10 +307,7 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
                 variant="outlined"
                 size="small"
                 value={requestCategoryCode}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setRequestCategoryCode(e.target.value as RequestCategoryCode);
-                  setCurrentPage(1);
-                }}
+                onChange={handleCategoryChange}
                 sx={{ width: { xs: "50%", md: 200 } }}
               >
                 <MenuItem value="LEAVE">Nghỉ phép</MenuItem>
@@ -236,73 +318,79 @@ const LeaveRequestList = ({ filter: _filter = "All", onCountsChange = noop }: Le
                 variant="outlined"
                 size="small"
                 value={staffCodeInput}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setStaffCodeInput(e.target.value);
-                  setCurrentPage(1);
-                }}
+                onChange={handleStaffCodeChange}
                 sx={{ width: { xs: "50%", md: 200 } }}
               />
             </Stack>
           </Stack>
 
-          <TableContainer sx={{ overflowX: "auto" }}>
-            <Table sx={{ minWidth: 900 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Mã đơn</TableCell>
-                  <TableCell>Họ và tên</TableCell>
-                  <TableCell>Mã nhân viên</TableCell>
-                  <TableCell>Loại nghỉ phép</TableCell>
-                  <TableCell>Từ ngày</TableCell>
-                  <TableCell>Đến ngày</TableCell>
-                  <TableCell>Trạng thái</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {dataState.rows.length === 0 && !dataState.loading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      <Typography py={4} color="textSecondary">
-                        Không có dữ liệu đơn nghỉ phép.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : null}
+          {/* Thanh tiến trình mảnh hiển thị khi đang refetch (đã có data) */}
+          <Box sx={{ position: "relative" }}>
+            <Box sx={{ height: 2, mb: -0.5 }}>
+              {dataState.loading && dataState.loaded ? (
+                <LinearProgress sx={{ borderRadius: 1 }} />
+              ) : null}
+            </Box>
 
-                {dataState.rows.map((row) => (
-                  <TableRow hover key={row.id}>
-                    <TableCell>{row.id}</TableCell>
-                    <TableCell>{row.fullName}</TableCell>
-                    <TableCell>{row.staffCode}</TableCell>
-                    <TableCell>{row.type}</TableCell>
-                    <TableCell>{row.start_date}</TableCell>
-                    <TableCell>{row.end_date}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={row.status}
-                        color={getStatusColor(row.status) as "success" | "warning" | "error" | "default"}
-                        size="small"
-                      />
-                    </TableCell>
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table sx={{ minWidth: 900 }} stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {TABLE_COLUMNS.map((col) => (
+                      <TableCell
+                        key={col}
+                        sx={{
+                          fontWeight: 600,
+                          whiteSpace: "nowrap",
+                          bgcolor: (theme) => alpha(theme.palette.primary.main, 0.04),
+                        }}
+                      >
+                        {col}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {isInitialLoading ? (
+                    <SkeletonRows rows={itemsPerPage > 10 ? 8 : itemsPerPage} />
+                  ) : isEmpty ? (
+                    <TableRow>
+                      <TableCell colSpan={TABLE_COLUMNS.length} align="center">
+                        <Typography py={5} color="textSecondary">
+                          Không có dữ liệu đơn nghỉ phép.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    dataState.rows.map((row) => <LeaveRequestTableRow key={row.id} row={row} />)
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* Mờ nhẹ + khóa tương tác khi đang refetch để báo trạng thái loading mượt */}
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                bgcolor: "background.paper",
+                opacity: dataState.loading && dataState.loaded ? 0.5 : 0,
+                pointerEvents: dataState.loading && dataState.loaded ? "auto" : "none",
+                transition: "opacity 0.2s ease",
+              }}
+            />
+          </Box>
         </Stack>
 
         <PaginationControls
           currentPage={currentPage}
           totalPages={Math.max(dataState.totalPages, 1)}
-          itemsPerPage={dataState.pageSize}
+          itemsPerPage={itemsPerPage}
           totalItems={dataState.total}
           startIndex={startIndex}
           endIndex={endIndex}
           onPageChange={setCurrentPage}
-          onItemsPerPageChange={(value) => {
-            setItemsPerPage(value);
-            setCurrentPage(1);
-          }}
+          onItemsPerPageChange={handleItemsPerPageChange}
           canGoNext={dataState.hasNextPage}
           canGoPrevious={dataState.hasPreviousPage}
           itemsPerPageOptions={[5, 10, 20]}
