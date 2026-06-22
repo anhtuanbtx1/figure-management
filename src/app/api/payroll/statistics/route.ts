@@ -15,12 +15,13 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const employeeCode = (searchParams.get("employeeCode") || "").trim();
+    const employeeNameParam = (searchParams.get("employeeName") || "").trim();
 
-    if (!employeeCode) {
+    if (!employeeCode && !employeeNameParam) {
       return NextResponse.json(
         {
           success: true,
-          message: "Nhập mã nhân viên để xem thống kê lương theo tháng.",
+          message: "Nhập mã hoặc tên nhân viên để xem thống kê lương theo tháng.",
           data: [],
           summary: {
             employeeCode: "",
@@ -36,21 +37,30 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const rows = await executeQuery<EmployeeSalaryStatisticsRow>(
-      `
+    let query = `
         SELECT
           PayrollPeriod AS payrollPeriod,
           Salary AS salary,
           EmployeeCode AS employeeCode,
           EmployeeName AS employeeName
         FROM dbo.Payrolls
-        WHERE EmployeeCode = @employeeCode
-        ORDER BY PayrollPeriod ASC
-      `,
-      {
-        employeeCode: { type: sql.NVarChar(50), value: employeeCode },
-      }
-    );
+        WHERE 1=1
+      `;
+    const params: any = {};
+
+    if (employeeCode) {
+      query += ` AND EmployeeCode = @employeeCode`;
+      params.employeeCode = { type: sql.NVarChar(50), value: employeeCode };
+    }
+    
+    if (employeeNameParam) {
+      query += ` AND EmployeeName LIKE @employeeName`;
+      params.employeeName = { type: sql.NVarChar(255), value: `%${employeeNameParam}%` };
+    }
+
+    query += ` ORDER BY PayrollPeriod ASC`;
+
+    const rows = await executeQuery<EmployeeSalaryStatisticsRow>(query, params);
 
     const data = rows.map((row) => ({
       payrollPeriod: row.payrollPeriod,
@@ -64,7 +74,7 @@ export async function GET(request: NextRequest) {
     const latestSalary = totalMonths > 0 ? data[totalMonths - 1].salary : 0;
     const highestSalary = totalMonths > 0 ? Math.max(...data.map((row) => row.salary)) : 0;
     const averageSalary = totalMonths > 0 ? totalSalary / totalMonths : 0;
-    const employeeName = totalMonths > 0 ? data[0].employeeName : "";
+    const employeeName = totalMonths > 0 ? data[0].employeeName : employeeNameParam;
 
     return NextResponse.json(
       {

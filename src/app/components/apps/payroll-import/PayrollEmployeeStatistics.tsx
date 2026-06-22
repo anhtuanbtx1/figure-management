@@ -56,6 +56,7 @@ const formatPayrollPeriod = (value: string) => {
 const PayrollEmployeeStatistics = () => {
   const theme = useTheme();
   const [employeeCode, setEmployeeCode] = useState("");
+  const [employeeNameQuery, setEmployeeNameQuery] = useState("");
   const [items, setItems] = useState<EmployeeSalaryStatisticsItem[]>([]);
   const [employeeName, setEmployeeName] = useState("");
   const [totalMonths, setTotalMonths] = useState(0);
@@ -68,8 +69,8 @@ const PayrollEmployeeStatistics = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async () => {
-    if (!employeeCode.trim()) {
-      setErrorMessage("Vui lòng nhập mã nhân viên để xem dashboard lương.");
+    if (!employeeCode.trim() && !employeeNameQuery.trim()) {
+      setErrorMessage("Vui lòng nhập mã hoặc tên nhân viên để xem dashboard lương.");
       return;
     }
 
@@ -78,7 +79,10 @@ const PayrollEmployeeStatistics = () => {
     setMessage("");
 
     try {
-      const result = await PayrollService.getEmployeeSalaryStatistics(employeeCode.trim());
+      const result = await PayrollService.getEmployeeSalaryStatistics({
+        employeeCode: employeeCode.trim(),
+        employeeName: employeeNameQuery.trim(),
+      });
       setItems(result.items);
       setEmployeeName(result.employeeName);
       setTotalMonths(result.totalMonths);
@@ -180,7 +184,7 @@ const PayrollEmployeeStatistics = () => {
             Thống kê lương của 1 nhân viên
           </Typography>
           <Typography variant="body1" sx={{ maxWidth: 760, opacity: 0.9 }}>
-            Nhập mã nhân viên để xem lịch sử lương theo tháng, tổng quỹ lương và xu hướng lương trên dashboard.
+            Nhập mã hoặc tên nhân viên để xem lịch sử lương theo tháng, tổng quỹ lương và xu hướng lương trên dashboard.
           </Typography>
         </Stack>
       </Box>
@@ -196,7 +200,7 @@ const PayrollEmployeeStatistics = () => {
       >
         <Stack spacing={2}>
           <Typography variant="h6" fontWeight={700}>
-            Tra cứu theo mã nhân viên
+            Tra cứu theo mã hoặc tên nhân viên
           </Typography>
           <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
             <CustomTextField
@@ -204,6 +208,12 @@ const PayrollEmployeeStatistics = () => {
               placeholder="Nhập mã nhân viên, ví dụ: 009"
               value={employeeCode}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmployeeCode(event.target.value)}
+            />
+            <CustomTextField
+              fullWidth
+              placeholder="Hoặc nhập tên nhân viên, ví dụ: Nguyễn Văn A"
+              value={employeeNameQuery}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmployeeNameQuery(event.target.value)}
             />
             <Button
               variant="contained"

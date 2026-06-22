@@ -193,17 +193,18 @@ const PayrollService = {
     });
   },
 
-  async getEmployeeSalaryStatistics(employeeCode: string): Promise<EmployeeSalaryStatisticsResult> {
+  async getEmployeeSalaryStatistics(filters: { employeeCode?: string; employeeName?: string }): Promise<EmployeeSalaryStatisticsResult> {
     const response = await axios.get("/api/payroll/statistics", {
       params: {
-        employeeCode,
+        employeeCode: filters.employeeCode || "",
+        employeeName: filters.employeeName || "",
       },
     });
 
     return {
       message: response.data.message,
       items: response.data.data || [],
-      employeeCode: response.data.summary?.employeeCode || employeeCode,
+      employeeCode: response.data.summary?.employeeCode || filters.employeeCode || "",
       employeeName: response.data.summary?.employeeName || "",
       totalMonths: response.data.summary?.totalMonths || 0,
       totalSalary: response.data.summary?.totalSalary || 0,
