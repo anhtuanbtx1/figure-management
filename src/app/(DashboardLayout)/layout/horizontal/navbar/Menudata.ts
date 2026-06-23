@@ -86,12 +86,6 @@ const Menuitems = [
       },
       {
         id: uniqueId(),
-        title: "Quản lý cá Guppy",
-        icon: IconFlask,
-        href: "/apps/guppy-breeding",
-      },
-      {
-        id: uniqueId(),
         title: "Quản lý Database",
         icon: IconDatabase,
         href: "/apps/db-manager",

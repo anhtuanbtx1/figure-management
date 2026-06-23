@@ -66,12 +66,6 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: uniqueId(),
-    title: "Quản lý cá Guppy",
-    icon: IconFlask,
-    href: "/apps/guppy-breeding",
-  },
-  {
-    id: uniqueId(),
     title: "Quản lý giặt ủi",
     icon: IconFileCheck,
     href: "/apps/laundry-orders",
