@@ -5,7 +5,7 @@ import "./global.css";
 
 
 export const metadata = {
-  title: "Modernize Main Demo",
+  title: "Quản lý tập trung",
   description: "Modernize Main kit",
 };
 
