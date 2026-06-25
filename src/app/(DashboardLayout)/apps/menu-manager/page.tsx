@@ -39,8 +39,46 @@ import {
 } from '@tabler/icons-react';
 import Menuitems, { IconMap, mapMenuIcons, MenuitemsType } from '../../layout/vertical/sidebar/MenuItems';
 import { useDispatch, useSelector } from '@/store/hooks';
+import { Chip, OutlinedInput, Checkbox, ListItemText, SelectChangeEvent } from '@mui/material';
+import { IconShield } from '@tabler/icons-react';
 import { setMenuItems } from '@/store/apps/menu/menuSlice';
 import { AppState } from '@/store/store';
+
+
+const ALL_ROLES = ['admin', 'user'];
+const ROLE_LABELS: Record<string, { label: string; color: string }> = {
+  admin: { label: 'Admin', color: '#ef4444' },
+  user: { label: 'User', color: '#3b82f6' },
+};
+
+function RoleChip({ role }: { role: string }) {
+  const info = ROLE_LABELS[role] ?? { label: role, color: '#6366f1' };
+  return (
+    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, px: 1, py: 0.2, borderRadius: '5px', bgcolor: info.color + '15', border: '1px solid ' + info.color + '40', color: info.color, fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+      <IconShield size={10} /> {info.label}
+    </Box>
+  );
+}
+
+function RoleSelectField({ value, onChange, label = 'Phân quyền xem', size = 'small' }: any) {
+  const handleChange = (e: any) => {
+    const val = e.target.value;
+    onChange(typeof val === 'string' ? val.split(',') : val);
+  };
+  return (
+    <FormControl fullWidth size={size}>
+      <InputLabel>{label}</InputLabel>
+      <Select multiple value={value || []} onChange={handleChange} input={<OutlinedInput label={label} />} renderValue={sel => sel.length === 0 ? <Typography variant="caption" color="text.secondary">Tất cả</Typography> : <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>{sel.map((r: string) => <RoleChip key={r} role={r} />)}</Box>}>
+        {ALL_ROLES.map(role => (
+          <MenuItem key={role} value={role}>
+            <Checkbox checked={(value || []).includes(role)} />
+            <ListItemText primary={ROLE_LABELS[role]?.label ?? role} />
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
 
 export default function MenuManagerPage() {
   const router = useRouter();
@@ -59,11 +97,13 @@ export default function MenuManagerPage() {
   const [newTitle, setNewTitle] = useState('');
   const [newHref, setNewHref] = useState('/apps/');
   const [newIcon, setNewIcon] = useState('IconAperture');
+  const [newRoles, setNewRoles] = useState<string[]>([]);
 
   // Selected item for inline editing
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editHref, setEditHref] = useState('');
+  const [editRoles, setEditRoles] = useState<string[]>([]);
 
   // Notification State
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' | 'warning' });
@@ -169,11 +209,13 @@ export default function MenuManagerPage() {
       href: newHref,
       iconName: newIcon,
       show: true,
+      allowedRoles: newRoles.length > 0 ? newRoles : undefined,
     };
 
     setItems([...items, newItem]);
     setNewTitle('');
     setNewHref('/apps/');
+    setNewRoles([]);
     setToast({ open: true, message: 'Đã thêm tính năng tùy chỉnh vào cuối danh sách', severity: 'success' });
   };
 
@@ -198,18 +240,19 @@ export default function MenuManagerPage() {
     setEditingId(item.id || null);
     setEditTitle(item.title || '');
     setEditHref(item.href || '');
+    setEditRoles(item.allowedRoles || []);
   };
 
   const saveEdit = (id: string | undefined) => {
     if (!id) return;
     const updated = items.map(item => {
       if (item.id === id) {
-        return { ...item, title: editTitle, href: editHref };
+        return { ...item, title: editTitle, href: editHref, allowedRoles: editRoles.length > 0 ? editRoles : undefined };
       }
       if (item.children) {
         const updatedChildren = item.children.map(child => {
           if (child.id === id) {
-            return { ...child, title: editTitle, href: editHref };
+            return { ...child, title: editTitle, href: editHref, allowedRoles: editRoles.length > 0 ? editRoles : undefined };
           }
           return child;
         });
@@ -491,9 +534,13 @@ export default function MenuManagerPage() {
                               </Box>
                             ) : (
                               <Box>
-                                <Typography variant="body1" fontWeight={600} sx={{ color: '#334155' }}>
-                                  {item.title}
-                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                                  <Typography variant="body1" fontWeight={600} sx={{ color: '#334155' }}>
+                                    {item.title}
+                                  </Typography>
+                                  {item.allowedRoles && item.allowedRoles.map((r: string) => <RoleChip key={r} role={r} />)}
+                                  {(!item.allowedRoles || item.allowedRoles.length === 0) && <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic' }}>Tất cả role</Typography>}
+                                </Box>
                                 <Typography variant="caption" sx={{ color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                   {item.href} {item.id?.toString().startsWith('custom-') && <IconExternalLink size={12} />}
                                 </Typography>
@@ -601,9 +648,13 @@ export default function MenuManagerPage() {
                                     </Box>
                                   ) : (
                                     <Box>
-                                      <Typography variant="body2" fontWeight={600} sx={{ color: '#475569' }}>
-                                        {child.title}
-                                      </Typography>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                                        <Typography variant="body2" fontWeight={600} sx={{ color: '#475569' }}>
+                                          {child.title}
+                                        </Typography>
+                                        {child.allowedRoles && child.allowedRoles.map((r: string) => <RoleChip key={r} role={r} />)}
+                                        {(!child.allowedRoles || child.allowedRoles.length === 0) && <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic' }}>Tất cả role</Typography>}
+                                      </Box>
                                       <Typography variant="caption" color="textSecondary">
                                         {child.href}
                                       </Typography>
@@ -680,6 +731,9 @@ export default function MenuManagerPage() {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12}>
+                    <RoleSelectField value={newRoles} onChange={setNewRoles} label="Phân quyền role xem (Để trống = Ai cũng được thấy)" />
+                  </Grid>
+                  <Grid item xs={12}>
                     <Button
                       type="submit"
                       variant="outlined"
@@ -698,108 +752,7 @@ export default function MenuManagerPage() {
 
         {/* Right Side: Live Preview Layout */}
         <Grid item xs={12} md={5}>
-          <Card sx={{
-            position: 'sticky', top: '90px',
-            borderRadius: '16px', border: '1px solid #e2e8f0',
-            bgcolor: '#0f172a', color: '#cbd5e1',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
-          }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" fontWeight={700} sx={{ color: '#ffffff', mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                👀 Xem Trước Trực Quan
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#94a3b8', mb: 3, display: 'block' }}>
-                Sidebar hiển thị trên thực tế sau khi lưu cấu hình.
-              </Typography>
-
-              {/* Mock Sidebar Wrapper */}
-              <Box sx={{
-                border: '1px solid #1e293b',
-                borderRadius: '12px',
-                bgcolor: '#0b0f19',
-                p: 2.5,
-                minHeight: '400px',
-                maxHeight: '550px',
-                overflowY: 'auto',
-              }}>
-                <Box sx={{ mb: 4, px: 2 }}>
-                  <Typography variant="h5" fontWeight={800} color="#6366f1">
-                    🏠 DASHBOARD
-                  </Typography>
-                </Box>
-
-                {items.filter(item => item.show !== false).map((item, idx) => {
-                  const IconComp = item.iconName ? IconMap[item.iconName] : null;
-
-                  if (item.navlabel) {
-                    return (
-                      <Typography
-                        key={idx}
-                        variant="caption"
-                        fontWeight={700}
-                        sx={{
-                          display: 'block',
-                          px: 2, mt: 3, mb: 1,
-                          color: '#475569',
-                          textTransform: 'uppercase',
-                          letterSpacing: '1px'
-                        }}
-                      >
-                        {item.subheader}
-                      </Typography>
-                    );
-                  }
-
-                  return (
-                    <Box key={item.id || idx} sx={{ mb: 0.5 }}>
-                      <Box sx={{
-                        display: 'flex', alignItems: 'center', gap: 1.5,
-                        px: 2, py: 1.2,
-                        borderRadius: '8px',
-                        cursor: 'default',
-                        transition: 'background 0.2s',
-                        '&:hover': { bgcolor: 'rgba(255,255,255,0.03)' }
-                      }}>
-                        <Box sx={{ color: '#6366f1', display: 'flex', alignItems: 'center' }}>
-                          {IconComp ? React.createElement(IconComp, { size: 18 }) : '🔹'}
-                        </Box>
-                        <Typography variant="body2" sx={{ color: '#cbd5e1', fontWeight: 500, flex: 1 }}>
-                          {item.title}
-                        </Typography>
-                      </Box>
-
-                      {/* Preview Children */}
-                      {item.children && item.children.length > 0 && (
-                        <Box sx={{ pl: 4, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
-                          {item.children.filter(child => child.show !== false).map((child, childIdx) => {
-                            const ChildIcon = child.iconName ? IconMap[child.iconName] : null;
-                            return (
-                              <Box
-                                key={child.id || childIdx}
-                                sx={{
-                                  display: 'flex', alignItems: 'center', gap: 1.2,
-                                  px: 2, py: 0.8,
-                                  borderRadius: '6px',
-                                  '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }
-                                }}
-                              >
-                                <Box sx={{ color: '#475569', display: 'flex', alignItems: 'center' }}>
-                                  {ChildIcon ? React.createElement(ChildIcon, { size: 12 }) : '▪️'}
-                                </Box>
-                                <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 500 }}>
-                                  {child.title}
-                                </Typography>
-                              </Box>
-                            );
-                          })}
-                        </Box>
-                      )}
-                    </Box>
-                  );
-                })}
-              </Box>
-            </CardContent>
-          </Card>
+          <PreviewComponent items={items} />
         </Grid>
       </Grid>
 
@@ -819,5 +772,160 @@ export default function MenuManagerPage() {
         </Alert>
       </Snackbar>
     </Box>
+  );
+}
+
+
+function PreviewComponent({ items }: { items: MenuitemsType[] }) {
+  const [selectedRole, setSelectedRole] = React.useState<string>('all');
+
+  const filteredItems = items.filter(item => {
+    if (item.show === false) return false;
+    if (item.allowedRoles && item.allowedRoles.length > 0 && selectedRole !== 'all') {
+      return item.allowedRoles.includes(selectedRole);
+    }
+    return true;
+  });
+
+  return (
+    <Card sx={{
+      position: 'sticky', top: '90px',
+      borderRadius: '16px', border: '1px solid #e2e8f0',
+      bgcolor: '#0f172a', color: '#cbd5e1',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+    }}>
+      <CardContent sx={{ p: 3 }}>
+        <Typography variant="h6" fontWeight={700} sx={{ color: '#ffffff', mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+          👀 Xem Trước Trực Quan
+        </Typography>
+        <Typography variant="caption" sx={{ color: '#94a3b8', mb: 2, display: 'block' }}>
+          Xem trước Sidebar hiển thị dựa trên Role đã chọn.
+        </Typography>
+
+        {/* Role Selector Tabs */}
+        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+          {['all', 'admin', 'user'].map((r) => (
+            <Button
+              key={r}
+              size="small"
+              variant={selectedRole === r ? 'contained' : 'outlined'}
+              onClick={() => setSelectedRole(r)}
+              sx={{
+                textTransform: 'none',
+                fontSize: 11,
+                py: 0.3,
+                px: 1.5,
+                borderRadius: '8px',
+                color: selectedRole === r ? 'white' : '#94a3b8',
+                borderColor: '#334155',
+                bgcolor: selectedRole === r ? '#6366f1' : 'transparent',
+                '&:hover': {
+                  bgcolor: selectedRole === r ? '#4f46e5' : 'rgba(255,255,255,0.05)',
+                  borderColor: '#6366f1',
+                }
+              }}
+            >
+              {r === 'all' ? 'Tất cả' : (r === 'admin' ? 'Admin' : 'User')}
+            </Button>
+          ))}
+        </Box>
+
+        {/* Mock Sidebar Wrapper */}
+        <Box sx={{
+          border: '1px solid #1e293b',
+          borderRadius: '12px',
+          bgcolor: '#0b0f19',
+          p: 2.5,
+          minHeight: '400px',
+          maxHeight: '550px',
+          overflowY: 'auto',
+        }}>
+          <Box sx={{ mb: 4, px: 2 }}>
+            <Typography variant="h5" fontWeight={800} color="#6366f1">
+              🏠 DASHBOARD
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#475569', display: 'block' }}>
+              Hiển thị với Role: <strong style={{ color: '#94a3b8' }}>{selectedRole === 'all' ? 'Tất cả' : (selectedRole === 'admin' ? 'Admin' : 'User')}</strong>
+            </Typography>
+          </Box>
+
+          {filteredItems.map((item, idx) => {
+            const IconComp = item.iconName ? IconMap[item.iconName] : null;
+
+            if (item.navlabel) {
+              return (
+                <Typography
+                  key={idx}
+                  variant="caption"
+                  fontWeight={700}
+                  sx={{
+                    display: 'block',
+                    px: 2, mt: 3, mb: 1,
+                    color: '#475569',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  {item.subheader}
+                </Typography>
+              );
+            }
+
+            return (
+              <Box key={item.id || idx} sx={{ mb: 0.5 }}>
+                <Box sx={{
+                  display: 'flex', alignItems: 'center', gap: 1.5,
+                  px: 2, py: 1.2,
+                  borderRadius: '8px',
+                  cursor: 'default',
+                  transition: 'background 0.2s',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.03)' }
+                }}>
+                  <Box sx={{ color: '#6366f1', display: 'flex', alignItems: 'center' }}>
+                    {IconComp ? React.createElement(IconComp, { size: 18 }) : '🔹'}
+                  </Box>
+                  <Typography variant="body2" sx={{ color: '#cbd5e1', fontWeight: 500, flex: 1 }}>
+                    {item.title}
+                  </Typography>
+                </Box>
+
+                {/* Preview Children */}
+                {item.children && item.children.length > 0 && (
+                  <Box sx={{ pl: 4, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                    {item.children.filter((child: any) => {
+                      if (child.show === false) return false;
+                      if (child.allowedRoles && child.allowedRoles.length > 0 && selectedRole !== 'all') {
+                        return child.allowedRoles.includes(selectedRole);
+                      }
+                      return true;
+                    }).map((child: any, childIdx: number) => {
+                      const ChildIcon = child.iconName ? IconMap[child.iconName] : null;
+                      return (
+                        <Box
+                          key={child.id || childIdx}
+                          sx={{
+                            display: 'flex', alignItems: 'center', gap: 1.2,
+                            px: 2, py: 0.8,
+                            borderRadius: '6px',
+                            '&:hover': { bgcolor: 'rgba(255,255,255,0.02)' }
+                          }}
+                        >
+                          <Box sx={{ color: '#475569', display: 'flex', alignItems: 'center' }}>
+                            {ChildIcon ? React.createElement(ChildIcon, { size: 12 }) : '▪️'}
+                          </Box>
+                          <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 500 }}>
+                            {child.title}
+                          </Typography>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                )}
+              </Box>
+            );
+          })}
+        </Box>
+      </CardContent>
+    </Card>
   );
 }

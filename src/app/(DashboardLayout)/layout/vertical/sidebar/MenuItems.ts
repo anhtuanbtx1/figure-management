@@ -30,6 +30,7 @@ export interface MenuitemsType {
   chipColor?: string;
   variant?: string;
   external?: boolean;
+  allowedRoles?: string[];
 }
 
 export const IconMap: { [key: string]: any } = {

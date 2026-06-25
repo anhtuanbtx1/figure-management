@@ -22,7 +22,8 @@ const SidebarItems = () => {
   const hideMenu: any = lgUp ? customizer.isCollapse && !customizer.isSidebarHover : '';
   const dispatch = useDispatch();
 
-  const [isAdmin, setIsAdmin] = React.useState(false);
+  const [userRole, setUserRole] = React.useState<string | null>(null);
+  const isAdmin = userRole === 'admin';
 
   // Check role on mount
   useEffect(() => {
@@ -30,11 +31,11 @@ const SidebarItems = () => {
       try {
         const res = await fetch('/api/auth/session');
         const data = await res.json();
-        if (data.success && data.user && data.user.role === 'admin') {
-          setIsAdmin(true);
+        if (data.success && data.user && data.user.role) {
+          setUserRole(data.user.role);
         }
       } catch (err) {
-        console.error('Error checking admin role in sidebar:', err);
+        console.error('Error checking user role in sidebar:', err);
       }
     };
     checkRole();
@@ -65,10 +66,13 @@ const SidebarItems = () => {
   const displayItems = menuItemsState.length > 0 ? menuItemsState : Menuitems;
 
   // Filter out items that are marked as hidden (show === false)
-  // And filter out admin-only items if the user is not admin
+  // And filter based on allowedRoles or legacy isAdminOnly
   const visibleItems = displayItems.filter(item => {
     if (item.show === false) return false;
     if (item.isAdminOnly && !isAdmin) return false;
+    if (item.allowedRoles && item.allowedRoles.length > 0) {
+      if (!userRole || !item.allowedRoles.includes(userRole)) return false;
+    }
     return true;
   });
 
@@ -83,8 +87,15 @@ const SidebarItems = () => {
             // {/********If Sub Menu**********/}
             /* eslint no-else-return: "off" */
           } else if (item.children && item.children.length > 0) {
-            // Filter children that are visible
-            const visibleChildren = item.children.filter((child: any) => child.show !== false);
+            // Filter children that are visible and allowed
+            const visibleChildren = item.children.filter((child: any) => {
+              if (child.show === false) return false;
+              if (child.isAdminOnly && !isAdmin) return false;
+              if (child.allowedRoles && child.allowedRoles.length > 0) {
+                if (!userRole || !child.allowedRoles.includes(userRole)) return false;
+              }
+              return true;
+            });
             if (visibleChildren.length === 0) {
               return (
                 <NavItem item={item} key={item.id} pathDirect={pathDirect} hideMenu={hideMenu} onClick={() => dispatch(toggleMobileSidebar())} />
