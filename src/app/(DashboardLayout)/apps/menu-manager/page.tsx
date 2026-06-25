@@ -514,22 +514,25 @@ export default function MenuManagerPage() {
 
                             {/* Editing Inline Form */}
                             {editingId === item.id ? (
-                              <Box sx={{ display: 'flex', gap: 1, flex: 1 }}>
+                              <Box sx={{ display: 'flex', gap: 1, flex: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                                 <TextField
                                   size="small"
                                   value={editTitle}
                                   onChange={(e) => setEditTitle(e.target.value)}
                                   placeholder="Tiêu đề"
-                                  sx={{ flex: 1 }}
+                                  sx={{ flex: 1, minWidth: '120px' }}
                                 />
                                 <TextField
                                   size="small"
                                   value={editHref}
                                   onChange={(e) => setEditHref(e.target.value)}
                                   placeholder="Liên kết (URL)"
-                                  sx={{ flex: 1 }}
+                                  sx={{ flex: 1, minWidth: '120px' }}
                                 />
-                                <Button size="small" variant="contained" onClick={() => saveEdit(item.id)}>Lưu</Button>
+                                <Box sx={{ width: '200px' }}>
+                                  <RoleSelectField value={editRoles} onChange={setEditRoles} label="Quyền xem" />
+                                </Box>
+                                <Button size="small" variant="contained" onClick={() => saveEdit(item.id)} sx={{ bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' } }}>Lưu</Button>
                                 <Button size="small" variant="outlined" onClick={() => setEditingId(null)}>Hủy</Button>
                               </Box>
                             ) : (
@@ -628,22 +631,25 @@ export default function MenuManagerPage() {
                                   </Box>
 
                                   {isChildEditing ? (
-                                    <Box sx={{ display: 'flex', gap: 1, flex: 1 }}>
+                                    <Box sx={{ display: 'flex', gap: 1, flex: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                                       <TextField
                                         size="small"
                                         value={editTitle}
                                         onChange={(e) => setEditTitle(e.target.value)}
                                         placeholder="Tiêu đề con"
-                                        sx={{ flex: 1 }}
+                                        sx={{ flex: 1, minWidth: '100px' }}
                                       />
                                       <TextField
                                         size="small"
                                         value={editHref}
                                         onChange={(e) => setEditHref(e.target.value)}
                                         placeholder="URL"
-                                        sx={{ flex: 1 }}
+                                        sx={{ flex: 1, minWidth: '100px' }}
                                       />
-                                      <Button size="small" variant="contained" onClick={() => saveEdit(child.id)}>Lưu</Button>
+                                      <Box sx={{ width: '180px' }}>
+                                        <RoleSelectField value={editRoles} onChange={setEditRoles} label="Quyền" />
+                                      </Box>
+                                      <Button size="small" variant="contained" onClick={() => saveEdit(child.id)} sx={{ bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' } }}>Lưu</Button>
                                       <Button size="small" variant="outlined" onClick={() => setEditingId(null)}>Hủy</Button>
                                     </Box>
                                   ) : (
