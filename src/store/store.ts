@@ -14,6 +14,7 @@ import ContactsReducer from "./apps/contacts/ContactSlice";
 import UserProfileReducer from "./apps/userProfile/UserProfileSlice";
 import BlogReducer from "./apps/blog/BlogSlice";
 import WalletReducer from "./wallet/walletSlice";
+import menuReducer from "./apps/menu/menuSlice";
 
 const persistConfig = {
   key: "root",
@@ -32,6 +33,7 @@ export const store = configureStore({
     userpostsReducer: UserProfileReducer,
     blogReducer: BlogReducer,
     walletReducer: WalletReducer,
+    menuReducer: menuReducer,
   },
   devTools: process.env.NODE_ENV !== "production",
   middleware: (getDefaultMiddleware) =>
@@ -49,6 +51,7 @@ const rootReducer = combineReducers({
   userpostsReducer: UserProfileReducer,
   blogReducer: BlogReducer,
   walletReducer: WalletReducer,
+  menuReducer: menuReducer,
 });
 
 export const persistor = persistStore(store);

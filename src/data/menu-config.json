@@ -1,0 +1,153 @@
+[
+  {
+    "navlabel": true,
+    "subheader": "Home"
+  },
+  {
+    "id": "home",
+    "title": "Trang chủ",
+    "iconName": "IconAperture",
+    "href": "/",
+    "chipColor": "secondary",
+    "show": true
+  },
+  {
+    "id": "toy-management",
+    "title": "Quản lý đồ chơi",
+    "iconName": "IconBox",
+    "href": "/apps/toy-management"
+  },
+  {
+    "id": "blog",
+    "title": "Quản lý nhân vật",
+    "iconName": "IconWallet",
+    "href": "/apps/blog"
+  },
+  {
+    "id": "wallet",
+    "title": "Quản lý ví",
+    "iconName": "IconWallet",
+    "href": "/apps/wallet"
+  },
+  {
+    "id": "laundry-orders",
+    "title": "Quản lý giặt ủi",
+    "iconName": "IconFileCheck",
+    "href": "/apps/laundry-orders",
+    "children": [
+      {
+        "id": "laundry-orders-list",
+        "title": "Danh sách đơn",
+        "iconName": "IconPoint",
+        "href": "/apps/laundry-orders/list"
+      },
+      {
+        "id": "laundry-orders-customers",
+        "title": "Khách hàng",
+        "iconName": "IconPoint",
+        "href": "/apps/laundry-orders/customers"
+      },
+      {
+        "id": "laundry-orders-reports",
+        "title": "Báo cáo giặt ủi",
+        "iconName": "IconPoint",
+        "href": "/apps/laundry-orders/reports"
+      }
+    ]
+  },
+  {
+    "id": "db-manager",
+    "title": "Quản lý Database",
+    "iconName": "IconDatabase",
+    "href": "/apps/db-manager"
+  },
+  {
+    "id": "menu-manager",
+    "title": "Quản lý Menu",
+    "iconName": "IconSettings",
+    "href": "/apps/menu-manager",
+    "isAdminOnly": true
+  },
+  {
+    "id": "football-lineup",
+    "title": "Quản lý đội hình",
+    "iconName": "IconBallFootball",
+    "href": "/apps/football-lineup"
+  },
+  {
+    "id": "event-guests",
+    "title": "Quản lý khách mời sự kiện",
+    "iconName": "IconUsers",
+    "href": "/apps/event-guests"
+  },
+  {
+    "id": "kanban",
+    "title": "Kanban",
+    "iconName": "IconNotebook",
+    "href": "/apps/kanban"
+  },
+  {
+    "id": "leave-requests",
+    "title": "Xin nghỉ phép",
+    "iconName": "IconCalendar",
+    "href": "/apps/leave-requests"
+  },
+  {
+    "id": "payroll",
+    "title": "Ghi bảng lương nhân sự",
+    "iconName": "IconCurrencyDollar",
+    "href": "/apps/payroll",
+    "children": [
+      {
+        "id": "payroll-import",
+        "title": "Import Excel",
+        "iconName": "IconPoint",
+        "href": "/apps/payroll/import"
+      },
+      {
+        "id": "payroll-list",
+        "title": "Danh sách bảng lương",
+        "iconName": "IconPoint",
+        "href": "/apps/payroll/list"
+      },
+      {
+        "id": "payroll-statistics",
+        "title": "Thống kê lương nhân viên",
+        "iconName": "IconPoint",
+        "href": "/apps/payroll/statistics"
+      }
+    ]
+  },
+  {
+    "id": "reminders",
+    "title": "Nhắc nhở",
+    "iconName": "IconBell",
+    "href": "/apps/reminders",
+    "children": [
+      {
+        "id": "reminders-list",
+        "title": "Danh sách nhắc nhở",
+        "iconName": "IconPoint",
+        "href": "/apps/reminders/list"
+      },
+      {
+        "id": "reminders-create",
+        "title": "Tạo nhắc nhở mới",
+        "iconName": "IconPoint",
+        "href": "/apps/reminders/create"
+      },
+      {
+        "id": "reminders-calendar",
+        "title": "Lịch nhắc nhở",
+        "iconName": "IconClock",
+        "href": "/apps/reminders/calendar"
+      },
+      {
+        "id": "reminders-telegram-settings",
+        "title": "Cài đặt Telegram",
+        "iconName": "IconPoint",
+        "href": "/apps/reminders/telegram-settings"
+      }
+    ]
+  }
+]

@@ -1,4 +1,5 @@
-import Menuitems from './MenuItems';
+import React, { useEffect } from 'react';
+import Menuitems, { mapMenuIcons } from './MenuItems';
 import { usePathname } from "next/navigation";
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
@@ -7,32 +8,93 @@ import { useDispatch, useSelector } from '@/store/hooks';
 import NavItem from './NavItem';
 import NavCollapse from './NavCollapse';
 import NavGroup from './NavGroup/NavGroup';
-import { AppState } from '@/store/store'
+import { AppState } from '@/store/store';
 import { toggleMobileSidebar } from '@/store/customizer/CustomizerSlice';
-
+import { setMenuItems } from '@/store/apps/menu/menuSlice';
 
 const SidebarItems = () => {
-  const  pathname  = usePathname();
+  const pathname = usePathname();
   const pathDirect = pathname;
   const pathWithoutLastPart = pathname.slice(0, pathname.lastIndexOf('/'));
   const customizer = useSelector((state: AppState) => state.customizer);
+  const menuItemsState = useSelector((state: AppState) => state.menuReducer.items);
   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
   const hideMenu: any = lgUp ? customizer.isCollapse && !customizer.isSidebarHover : '';
   const dispatch = useDispatch();
+
+  const [isAdmin, setIsAdmin] = React.useState(false);
+
+  // Check role on mount
+  useEffect(() => {
+    const checkRole = async () => {
+      try {
+        const res = await fetch('/api/auth/session');
+        const data = await res.json();
+        if (data.success && data.user && data.user.role === 'admin') {
+          setIsAdmin(true);
+        }
+      } catch (err) {
+        console.error('Error checking admin role in sidebar:', err);
+      }
+    };
+    checkRole();
+  }, []);
+
+  // Load custom menu config on mount
+  useEffect(() => {
+    const fetchMenu = async () => {
+      try {
+        const res = await fetch('/api/menu-config');
+        const data = await res.json();
+        if (data.success && data.menu && data.menu.length > 0) {
+          const mapped = mapMenuIcons(data.menu);
+          dispatch(setMenuItems(mapped));
+        } else {
+          // If no custom menu exists on server, load the default menu items
+          dispatch(setMenuItems(Menuitems));
+        }
+      } catch (error) {
+        console.error('Failed to load menu config:', error);
+        dispatch(setMenuItems(Menuitems));
+      }
+    };
+    fetchMenu();
+  }, [dispatch]);
+
+  // Fallback to static Menuitems if Redux store is not populated yet
+  const displayItems = menuItemsState.length > 0 ? menuItemsState : Menuitems;
+
+  // Filter out items that are marked as hidden (show === false)
+  // And filter out admin-only items if the user is not admin
+  const visibleItems = displayItems.filter(item => {
+    if (item.show === false) return false;
+    if (item.isAdminOnly && !isAdmin) return false;
+    return true;
+  });
+
   return (
     <Box sx={{ px: 3 }}>
       <List sx={{ pt: 0 }} className="sidebarNav">
-        {Menuitems.map((item) => {
+        {visibleItems.map((item) => {
           // {/********SubHeader**********/}
           if (item.subheader) {
             return <NavGroup item={item} hideMenu={hideMenu} key={item.subheader} />;
 
             // {/********If Sub Menu**********/}
             /* eslint no-else-return: "off" */
-          } else if (item.children) {
+          } else if (item.children && item.children.length > 0) {
+            // Filter children that are visible
+            const visibleChildren = item.children.filter((child: any) => child.show !== false);
+            if (visibleChildren.length === 0) {
+              return (
+                <NavItem item={item} key={item.id} pathDirect={pathDirect} hideMenu={hideMenu} onClick={() => dispatch(toggleMobileSidebar())} />
+              );
+            }
+            const itemWithVisibleChildren = { ...item, children: visibleChildren };
+
             return (
               <NavCollapse
-                menu={item}
+                menu={itemWithVisibleChildren}
                 pathDirect={pathDirect}
                 hideMenu={hideMenu}
                 pathWithoutLastPart={pathWithoutLastPart}
