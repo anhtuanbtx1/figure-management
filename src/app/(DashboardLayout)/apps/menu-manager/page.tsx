@@ -436,9 +436,9 @@ export default function MenuManagerPage() {
       <Grid container spacing={3}>
         {/* Left Side: Drag & Drop List */}
         <Grid item xs={12} md={7}>
-          <Card sx={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <Card sx={{ borderRadius: '16px', border: '1px solid #1e293b', bgcolor: '#0b0f19', color: '#cbd5e1', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
             <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" fontWeight={700} sx={{ color: '#1e293b', mb: 3 }}>
+              <Typography variant="h6" fontWeight={700} sx={{ color: '#f8fafc', mb: 3 }}>
                 Danh Sách Tính Năng
               </Typography>
 
@@ -452,8 +452,8 @@ export default function MenuManagerPage() {
                     <Box key={item.id || index}>
                       {/* Subheaders/Labels */}
                       {item.navlabel && (
-                        <Box sx={{ px: 2, pt: 2, pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#f8fafc', borderRadius: '8px' }}>
-                          <Typography variant="caption" fontWeight={700} color="textSecondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                        <Box sx={{ px: 2, pt: 2, pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }}>
+                          <Typography variant="caption" fontWeight={700}  sx={{ textTransform: 'uppercase', letterSpacing: '0.8px' }}>
                             🏷️ Phân Mục: {item.subheader}
                           </Typography>
                           <Box sx={{ display: 'flex', gap: 0.5 }}>
@@ -482,15 +482,15 @@ export default function MenuManagerPage() {
                             p: 2,
                             borderRadius: '12px',
                             border: '1px solid',
-                            borderColor: editingId === item.id ? '#6366f1' : '#f1f5f9',
-                            background: isVisible ? '#ffffff' : '#f8fafc',
+                            borderColor: editingId === item.id ? '#6366f1' : '#334155',
+                            background: isVisible ? '#1e293b' : '#0f172a',
                             opacity: isVisible ? 1 : 0.7,
                             cursor: 'grab',
                             transition: 'all 0.2s ease',
                             '&:hover': {
-                              borderColor: '#cbd5e1',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                              bgcolor: '#fafafa',
+                              borderColor: '#475569',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                              bgcolor: '#334155',
                             },
                             '&:active': { cursor: 'grabbing' },
                           }}
@@ -498,15 +498,15 @@ export default function MenuManagerPage() {
                           {/* Left: Drag dots, Icon, Title */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
                             <Tooltip title="Kéo thả để sắp xếp">
-                              <Box sx={{ color: '#94a3b8', display: 'flex', alignItems: 'center' }}>
+                              <Box sx={{ color: '#64748b', display: 'flex', alignItems: 'center' }}>
                                 <IconGridDots size={20} />
                               </Box>
                             </Tooltip>
 
                             <Box sx={{
                               width: 38, height: 38, borderRadius: '8px',
-                              bgcolor: isVisible ? 'rgba(99,102,241,0.08)' : '#e2e8f0',
-                              color: isVisible ? '#6366f1' : '#64748b',
+                              bgcolor: isVisible ? 'rgba(99,102,241,0.15)' : '#334155',
+                              color: isVisible ? '#818cf8' : '#94a3b8',
                               display: 'flex', alignItems: 'center', justifyContent: 'center'
                             }}>
                               {IconComp ? React.createElement(IconComp, { size: 20 }) : '🔹'}
@@ -538,7 +538,7 @@ export default function MenuManagerPage() {
                             ) : (
                               <Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                                  <Typography variant="body1" fontWeight={600} sx={{ color: '#334155' }}>
+                                  <Typography variant="body1" fontWeight={600} sx={{ color: '#f1f5f9' }}>
                                     {item.title}
                                   </Typography>
                                   {item.allowedRoles && item.allowedRoles.map((r: string) => <RoleChip key={r} role={r} />)}
@@ -615,16 +615,17 @@ export default function MenuManagerPage() {
                                   p: 1.5,
                                   borderRadius: '10px',
                                   border: '1px dashed #e2e8f0',
-                                  bgcolor: isChildVisible ? '#fafcfd' : '#f8fafc',
+                                  bgcolor: isChildVisible ? '#0f172a' : '#0b0f19',
                                   opacity: isChildVisible ? 1 : 0.7,
-                                  '&:hover': { bgcolor: '#f1f5f9' },
+                                  borderColor: '#334155',
+                                  '&:hover': { bgcolor: '#1e293b' },
                                 }}
                               >
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
                                   <Box sx={{
                                     width: 30, height: 30, borderRadius: '6px',
-                                    bgcolor: isChildVisible ? 'rgba(99,102,241,0.06)' : '#e2e8f0',
-                                    color: isChildVisible ? '#6366f1' : '#64748b',
+                                    bgcolor: isChildVisible ? 'rgba(99,102,241,0.1)' : '#334155',
+                                    color: isChildVisible ? '#818cf8' : '#94a3b8',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                                   }}>
                                     {ChildIcon ? React.createElement(ChildIcon, { size: 16 }) : '▪️'}
@@ -655,13 +656,13 @@ export default function MenuManagerPage() {
                                   ) : (
                                     <Box>
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                                        <Typography variant="body2" fontWeight={600} sx={{ color: '#475569' }}>
+                                        <Typography variant="body2" fontWeight={600} sx={{ color: '#cbd5e1' }}>
                                           {child.title}
                                         </Typography>
                                         {child.allowedRoles && child.allowedRoles.map((r: string) => <RoleChip key={r} role={r} />)}
                                         {(!child.allowedRoles || child.allowedRoles.length === 0) && <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic' }}>Tất cả role</Typography>}
                                       </Box>
-                                      <Typography variant="caption" color="textSecondary">
+                                      <Typography variant="caption" >
                                         {child.href}
                                       </Typography>
                                     </Box>
@@ -691,8 +692,8 @@ export default function MenuManagerPage() {
               </Box>
 
               {/* Add Custom Item Card */}
-              <Box component="form" onSubmit={handleAddCustomItem} sx={{ mt: 4, p: 2.5, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <Typography variant="subtitle1" fontWeight={700} sx={{ color: '#334155', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box component="form" onSubmit={handleAddCustomItem} sx={{ mt: 4, p: 2.5, bgcolor: '#0f172a', border: '1px dashed #334155', borderRadius: '12px' }}>
+                <Typography variant="subtitle1" fontWeight={700} sx={{ color: '#e2e8f0', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <IconPlus size={18} /> Thêm Mục Tính Năng Mới
                 </Typography>
                 <Grid container spacing={2}>
