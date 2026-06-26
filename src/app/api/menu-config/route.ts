@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import sql from 'mssql';
-import { getDbPool } from '@/lib/database';
+import { getDbPool, executeTransaction } from '@/lib/database';
 
 const CONFIG_DIR = path.join(process.cwd(), 'src', 'data');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'menu-config.json');
@@ -99,7 +99,7 @@ export async function GET() {
     return NextResponse.json({ success: true, menu: menuWithPerms });
   } catch (error) {
     console.error('Error reading menu config:', error);
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal Server Error', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
@@ -128,10 +128,7 @@ export async function POST(req: NextRequest) {
     await fs.promises.writeFile(CONFIG_FILE, JSON.stringify(cleanMenu, null, 2), 'utf-8');
 
     // 3. Đồng bộ phân quyền vào DB trong transaction
-    const pool = await getDbPool();
-    const transaction = new sql.Transaction(pool);
-    await transaction.begin();
-    try {
+    await executeTransaction(async (transaction) => {
       // Xóa toàn bộ quyền cũ
       await new sql.Request(transaction).query('DELETE FROM MenuPermissions');
 
@@ -144,12 +141,8 @@ export async function POST(req: NextRequest) {
             .query('INSERT INTO MenuPermissions (MenuId, RoleName) VALUES (@menuId, @roleName)');
         }
       }
-
-      await transaction.commit();
-    } catch (dbErr) {
-      await transaction.rollback();
-      throw dbErr;
-    }
+      return true;
+    });
 
     return NextResponse.json({
       success: true,
@@ -158,6 +151,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error writing menu config:', error);
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal Server Error', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
