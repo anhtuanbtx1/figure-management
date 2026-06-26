@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     if (!fs.existsSync(CONFIG_DIR)) {
       await fs.promises.mkdir(CONFIG_DIR, { recursive: true });
     }
-    await fs.promises.writeFile(CONFIG_FILE, JSON.stringify(cleanMenu, null, 2), 'utf-8');
+    try { await fs.promises.writeFile(CONFIG_FILE, JSON.stringify(cleanMenu, null, 2), 'utf-8'); } catch(e) { console.warn('Cannot write config file on Serverless env'); }
 
     // 3. Đồng bộ phân quyền vào DB trong transaction
     await executeTransaction(async (transaction) => {
