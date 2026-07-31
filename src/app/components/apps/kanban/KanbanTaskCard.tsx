@@ -33,16 +33,25 @@ const KanbanTaskCard: React.FC<Props> = ({ task, statusName = 'Chưa xác địn
   const priority = priorityConfig(task.priority);
 
   const isCompleted = task.columnId === 'col-done' || statusName.toLowerCase().includes('done') || statusName.toLowerCase().includes('hoàn thành');
-  const isInProgress = statusName.toLowerCase().includes('progress') || statusName.toLowerCase().includes('đang làm');
+  const isInProgress = task.columnId === 'col-progress' || statusName.toLowerCase().includes('progress') || statusName.toLowerCase().includes('đang làm');
+  const isPending = task.columnId === 'col-pending' || statusName.toLowerCase().includes('pending') || statusName.toLowerCase().includes('chờ xử lý');
 
   const baseBackground = theme.palette.mode === 'dark' ? '#1E293B' : '#FFFFFF';
-  const completedBg = isCompleted ? alpha(theme.palette.success.main, 0.04) : baseBackground;
+  const cardBg = isCompleted
+    ? alpha(theme.palette.success.main, 0.04)
+    : isInProgress
+      ? alpha(theme.palette.info.main, 0.02)
+      : isPending
+        ? alpha(theme.palette.warning.main, 0.02)
+        : baseBackground;
 
   const statusColor = isCompleted
     ? theme.palette.success.main
     : isInProgress
       ? theme.palette.info.main
-      : theme.palette.text.secondary;
+      : isPending
+        ? theme.palette.warning.main
+        : '#94A3B8'; // Grey for to do
 
   return (
     <Box
@@ -51,7 +60,7 @@ const KanbanTaskCard: React.FC<Props> = ({ task, statusName = 'Chưa xác địn
       sx={{
         p: 2,
         borderRadius: 1, // Sharper corners for utilitarian feel
-        bgcolor: completedBg,
+        bgcolor: cardBg,
         border: '1px solid',
         borderColor: isDragging
           ? theme.palette.primary.main
@@ -71,8 +80,8 @@ const KanbanTaskCard: React.FC<Props> = ({ task, statusName = 'Chưa xác địn
         '&:active': {
           cursor: 'grabbing',
         },
-        // Industrial Accent Border
-        borderLeft: `4px solid ${isCompleted ? theme.palette.success.main : priority.color}`,
+        // Industrial Accent Border by STATUS color
+        borderLeft: `4px solid ${statusColor}`,
       }}
     >
       <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1} mb={1}>
