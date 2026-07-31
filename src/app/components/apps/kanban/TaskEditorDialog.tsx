@@ -15,6 +15,15 @@ interface TaskEditorDialogProps {
 
 const PRIORITIES: KanbanPriority[] = ['Thấp', 'Trung bình', 'Cao', 'Khẩn cấp'];
 
+const getStatusColor = (colId: string) => {
+  const id = colId.toLowerCase();
+  if (id.includes('todo') || id.includes('col-todo')) return '#94A3B8'; // Grey
+  if (id.includes('progress') || id.includes('col-progress')) return '#3B82F6'; // Blue
+  if (id.includes('pending') || id.includes('col-pending')) return '#F59E0B'; // Orange
+  if (id.includes('done') || id.includes('col-done')) return '#10B981'; // Green
+  return '#6366F1'; // Default Indigo
+};
+
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement<any, any>;
@@ -150,6 +159,26 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, colu
               value={columnId}
               onChange={(e) => setColumnId(e.target.value)}
               variant="outlined"
+              SelectProps={{
+                renderValue: (value) => {
+                  const selectedCol = columns.find(c => c.id === value);
+                  const name = selectedCol ? (selectedCol.name || selectedCol.TenCot) : '';
+                  const color = getStatusColor(value as string);
+                  return (
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: color
+                        }}
+                      />
+                      <Typography variant="body2">{name}</Typography>
+                    </Stack>
+                  );
+                }
+              }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
@@ -161,7 +190,17 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, colu
             >
               {columns.map((col) => (
                 <MenuItem key={col.id} value={col.id}>
-                  {col.name || col.TenCot}
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        bgcolor: getStatusColor(col.id)
+                      }}
+                    />
+                    <Typography>{col.name || col.TenCot}</Typography>
+                  </Stack>
                 </MenuItem>
               ))}
             </TextField>
