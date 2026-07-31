@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parsePayrollWorkbook, PayrollWorkbookInspectionError } from "@/lib/payroll-workbook";
 
+export const dynamic = 'force-dynamic';
+
+
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {

@@ -3,6 +3,9 @@ import { executeStoredProcedure, executeQuery } from '@/lib/database';
 import { Toy, ToyStatus, ToyUpdateRequest } from '@/app/(DashboardLayout)/types/apps/toy';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // Helper function to map database row to frontend Toy format
 function mapDatabaseRowToToy(row: any): Toy {
   return {

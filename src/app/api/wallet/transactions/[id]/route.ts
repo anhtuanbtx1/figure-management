@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // GET /api/wallet/transactions/[id] - Get single transaction
 export async function GET(
   request: NextRequest,

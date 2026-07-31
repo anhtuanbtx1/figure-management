@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
+
 const USERS = [
   { username: 'admin', password: '123456', displayName: 'Administrator', role: 'admin' },
   { username: 'user', password: '123456', displayName: 'Regular User', role: 'user' },

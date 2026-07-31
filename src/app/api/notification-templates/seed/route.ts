@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 const DEFAULT_TELEGRAM_TEMPLATE_NAME = 'telegram_default_reminder';
 const DEFAULT_TELEGRAM_TEMPLATE_CONTENT = `
 🔔 *THÔNG BÁO NHẮC NHỞ* 🔔

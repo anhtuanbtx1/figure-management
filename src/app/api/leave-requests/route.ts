@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
+
 const EXTERNAL_API_URL = "https://iam.biso24.org/v1/requests";
 const DEFAULT_AUTHORIZATION = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODBhODI3Nzc1N2QxNTRlMmZhN2FlYiIsIm9yZ0lkIjoiNjc0MDUzZTVmM2JkYWZkMjQyODI2YTdiIiwiaWF0IjoxNzc2MDYyODg2LCJleHAiOjE3NzcyNzI0ODZ9.8fxOlKHYoqJeim13bdei-HFb1wnY3ia08huxWERQoJ8";
 const DEFAULT_ACCEPT = "application/json, text/plain, */*";

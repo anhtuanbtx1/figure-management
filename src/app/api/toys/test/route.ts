@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery, executeStoredProcedure } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // GET /api/toys/test - Test database connection and API endpoints
 export async function GET(request: NextRequest) {
   try {

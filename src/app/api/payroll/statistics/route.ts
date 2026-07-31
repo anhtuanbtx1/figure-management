@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import sql from "mssql";
 import { executeQuery } from "@/lib/database";
 
+export const dynamic = 'force-dynamic';
+
+
 export const runtime = "nodejs";
 
 interface EmployeeSalaryStatisticsRow {

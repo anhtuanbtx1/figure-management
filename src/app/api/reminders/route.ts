@@ -5,6 +5,9 @@ import { executeQuery, getDbPool } from '@/lib/database';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 
+export const dynamic = 'force-dynamic';
+
+
 dayjs.extend(customParseFormat);
 
 const formatReminderTime = (time: any): Date | null => {

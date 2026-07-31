@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDbPool } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 export async function POST(request: NextRequest) {
   try {
     const { ids } = await request.json();

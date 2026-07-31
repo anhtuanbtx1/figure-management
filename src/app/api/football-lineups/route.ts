@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { executeQuery, executeTransaction } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // GET: Lấy thông tin đội bóng, danh sách cầu thủ và đội hình đã lưu.
 export async function GET(req: Request) {
   try {

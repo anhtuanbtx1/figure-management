@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { executeQuery, executeTransaction } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // POST: Tạo mới cầu thủ
 export async function POST(req: Request) {
   try {

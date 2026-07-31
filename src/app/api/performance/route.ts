@@ -7,6 +7,9 @@ import {
 } from '@/lib/performance-monitor';
 import { getCacheStats, checkDatabaseHealth } from '@/lib/database-optimized';
 
+export const dynamic = 'force-dynamic';
+
+
 // GET /api/performance - Get performance metrics
 export async function GET(request: NextRequest) {
   try {

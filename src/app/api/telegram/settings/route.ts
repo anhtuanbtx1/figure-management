@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 /**
  * @swagger
  * /api/telegram/settings:

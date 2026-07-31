@@ -7,6 +7,9 @@ import {
 } from '@/lib/database-optimized';
 import { Toy, ToyStatus, ToyCreateRequest } from '@/app/(DashboardLayout)/types/apps/toy';
 
+export const dynamic = 'force-dynamic';
+
+
 // Helper function to map database row to frontend Toy format
 function mapDatabaseRowToToy(row: any): Toy {
   return {

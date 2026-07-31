@@ -3,6 +3,9 @@ import { executeQuery } from '@/lib/database';
 import { GuestStatus } from '@/app/(DashboardLayout)/types/apps/eventGuest';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // Helper: read allowed values from a CHECK constraint definition (SQL Server)
 async function getAllowedValuesFromCheckConstraint(constraintName: string): Promise<string[] | null> {
   try {

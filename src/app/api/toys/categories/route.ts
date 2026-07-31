@@ -3,6 +3,9 @@ import { executeQuery, executeStoredProcedure } from '@/lib/database';
 import { ToyCategory } from '@/app/(DashboardLayout)/types/apps/toy';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // Helper function to map database row to frontend ToyCategory format
 function mapDatabaseRowToCategory(row: any): ToyCategory {
   return {

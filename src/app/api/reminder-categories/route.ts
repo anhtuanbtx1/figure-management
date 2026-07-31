@@ -2,6 +2,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 
+export const dynamic = 'force-dynamic';
+
+
 export async function GET(request: NextRequest) {
   try {
     const query = `SELECT id, name FROM dbo.ReminderCategories WHERE isActive = 1 ORDER BY name`;

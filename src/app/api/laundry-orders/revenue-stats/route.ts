@@ -2,6 +2,9 @@ import { NextResponse, NextRequest } from 'next/server';
 import { executeQuery } from '@/lib/database-optimized';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // GET /api/laundry-orders/revenue-stats - Get revenue statistics by date
 export async function GET(request: NextRequest) {
   try {

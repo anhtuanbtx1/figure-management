@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 
+export const dynamic = 'force-dynamic';
+
+
 // POST /api/wallet/transactions/bulk-delete
 // Body: { ids: string[] }
 export async function POST(request: NextRequest) {

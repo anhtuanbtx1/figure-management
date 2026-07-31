@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import sql from "mssql";
 
+export const dynamic = 'force-dynamic';
+
+
 const dbConfig: sql.config = {
   server: process.env.DB_SERVER || "localhost",
   database: process.env.DB_DATABASE || "master",

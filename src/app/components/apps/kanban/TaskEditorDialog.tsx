@@ -162,7 +162,7 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, colu
               SelectProps={{
                 renderValue: (value) => {
                   const selectedCol = columns.find(c => c.id === value);
-                  const name = selectedCol ? (selectedCol.name || selectedCol.TenCot) : '';
+                  const name = selectedCol ? selectedCol.name : '';
                   const color = getStatusColor(value as string);
                   return (
                     <Stack direction="row" alignItems="center" spacing={1}>
@@ -199,7 +199,7 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, colu
                         bgcolor: getStatusColor(col.id)
                       }}
                     />
-                    <Typography>{col.name || col.TenCot}</Typography>
+                    <Typography>{col.name}</Typography>
                   </Stack>
                 </MenuItem>
               ))}

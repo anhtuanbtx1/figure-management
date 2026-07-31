@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // GET /api/wallet/transactions - Fetch transactions with pagination and filtering
 export async function GET(request: NextRequest) {
   try {

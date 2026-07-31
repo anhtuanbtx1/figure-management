@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
 import sql from 'mssql';
 
+export const dynamic = 'force-dynamic';
+
+
 // PUT /api/kanban/tasks/[id] - update a task
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

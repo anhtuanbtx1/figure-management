@@ -4,6 +4,9 @@ import path from 'path';
 import sql from 'mssql';
 import { getDbPool, executeTransaction } from '@/lib/database';
 
+export const dynamic = 'force-dynamic';
+
+
 const CONFIG_DIR = path.join(process.cwd(), 'src', 'data');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'menu-config.json');
 

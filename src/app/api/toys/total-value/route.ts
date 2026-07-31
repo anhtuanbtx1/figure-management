@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeStoredProcedure } from '@/lib/database';
 
+export const dynamic = 'force-dynamic';
+
+
 // GET /api/toys/total-value - Return total value (SUM of Price) of toys
 // Optional query params:
 //   - search: search in name and description
