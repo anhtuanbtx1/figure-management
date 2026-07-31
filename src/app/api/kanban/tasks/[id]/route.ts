@@ -10,11 +10,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const { title, description, priority, assignee, columnId, startDate, endDate, orderIndex, metadata } = body || {};
 
-    const checkQuery = `SELECT Id FROM ManagementStore.dbo.KanbanTasks WHERE Id=@id AND IsActive=1`;
-    const exists = await executeQuery(checkQuery, { id: { type: sql.NVarChar, value: id } });
-    if (exists.length === 0) {
+    const checkQuery = `SELECT Id, ColumnId FROM ManagementStore.dbo.KanbanTasks WHERE Id=@id AND IsActive=1`;
+    const checkResult = await executeQuery<any>(checkQuery, { id: { type: sql.NVarChar(50), value: id } });
+    if (checkResult.length === 0) {
       return NextResponse.json({ success: false, message: 'Task not found', data: null }, { status: 404 });
     }
+    const currentTask = checkResult[0];
 
     const updateFields: string[] = [];
     const queryParams: Record<string, any> = {
@@ -40,6 +41,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (columnId !== undefined) {
       updateFields.push('ColumnId = @columnId');
       queryParams.columnId = { type: sql.NVarChar(50), value: columnId };
+
+      // If column changes and no orderIndex is provided, put it at the end of the new column
+      if (columnId !== currentTask.ColumnId && orderIndex === undefined) {
+        const nextOrderQuery = `
+          SELECT ISNULL(MAX(ThuTu), 0) + 1 AS nextOrder
+          FROM ManagementStore.dbo.KanbanTasks
+          WHERE ColumnId = @toColId AND IsActive = 1
+        `;
+        const [{ nextOrder }] = await executeQuery<any>(nextOrderQuery, { toColId: { type: sql.NVarChar(50), value: columnId } });
+        updateFields.push('ThuTu = @autoOrderIndex');
+        queryParams.autoOrderIndex = { type: sql.Int, value: nextOrder };
+      }
     }
     if (startDate !== undefined) {
       updateFields.push('NgayBatDau = @startDate');

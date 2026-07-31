@@ -524,6 +524,7 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
       <TaskEditorDialog
         open={editorOpen}
         initial={editorInit as any}
+        columns={dbColumns}
         onClose={() => setEditorOpen(false)}
         onSubmit={handleSubmitEditor}
       />

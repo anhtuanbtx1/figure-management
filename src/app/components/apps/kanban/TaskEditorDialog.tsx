@@ -2,12 +2,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, Grid, Slide, useTheme, alpha, Stack, Typography, Chip, Box } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
-import { KanbanTaskDb, KanbanPriority } from '@/types/apps/kanban-db';
+import { KanbanTaskDb, KanbanPriority, KanbanColumn } from '@/types/apps/kanban-db';
 import { IconX, IconDeviceFloppy, IconPlus } from '@tabler/icons-react';
 
 interface TaskEditorDialogProps {
   open: boolean;
   initial?: Partial<KanbanTaskDb> & { columnId: string };
+  columns: KanbanColumn[];
   onClose: () => void;
   onSubmit: (data: Partial<KanbanTaskDb> & { columnId: string; title: string }) => Promise<void> | void;
 }
@@ -23,12 +24,13 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, onClose, onSubmit }) => {
+const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, columns, onClose, onSubmit }) => {
   const theme = useTheme();
   const [title, setTitle] = useState(initial?.title || '');
   const [description, setDescription] = useState(initial?.description || '');
   const [priority, setPriority] = useState<KanbanPriority>(initial?.priority || 'Trung bình');
   const [assignee, setAssignee] = useState(initial?.assignee || '');
+  const [columnId, setColumnId] = useState(initial?.columnId || '');
   const isEdit = Boolean(initial?.id);
 
   useEffect(() => {
@@ -36,15 +38,16 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, onCl
     setDescription((initial?.description as string) || '');
     setPriority((initial?.priority as KanbanPriority) || 'Trung bình');
     setAssignee(initial?.assignee || '');
+    setColumnId(initial?.columnId || '');
   }, [open, initial]);
 
-  const canSubmit = title.trim().length > 0;
+  const canSubmit = title.trim().length > 0 && columnId.length > 0;
 
   const handleSubmit = async () => {
-    if (!canSubmit || !initial?.columnId) return;
+    if (!canSubmit) return;
     await onSubmit({
       id: initial?.id as string,
-      columnId: initial.columnId,
+      columnId: columnId,
       title: title.trim(),
       description: description.trim(),
       priority,
@@ -138,7 +141,32 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, onCl
             />
           </Grid>
 
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              select
+              fullWidth
+              label="Trạng thái"
+              value={columnId}
+              onChange={(e) => setColumnId(e.target.value)}
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: theme.palette.primary.main,
+                  }
+                }
+              }}
+            >
+              {columns.map((col) => (
+                <MenuItem key={col.id} value={col.id}>
+                  {col.name || col.TenCot}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          <Grid item xs={12} sm={4}>
             <TextField
               select
               fullWidth
@@ -173,7 +201,7 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, onCl
             </TextField>
           </Grid>
 
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               label="Người được gán"
