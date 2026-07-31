@@ -43,6 +43,8 @@ BEGIN
     DoUuTien      NVARCHAR(20)   NOT NULL DEFAULT N'Trung bÃ¬nh', -- Tháº¥p/Trung bÃ¬nh/Cao/Kháº©n cáº¥p
     ThuTu         INT            NOT NULL,
     NguoiDuocGan  NVARCHAR(255)  NULL,
+    NgayBatDau    DATETIME2      NULL, -- ngày bắt đầu công việc
+    NgayKetThuc   DATETIME2      NULL, -- ngày kết thúc công việc
     Metadata      NVARCHAR(200)  NULL, -- thÃ´ng tin kÃ©o tháº£ (position, vv.)
     NgayTao       DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
     NgayCapNhat   DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
