@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Get current column of the task
     const taskResult = await executeQuery<any>(
       `SELECT ColumnId FROM ManagementStore.dbo.KanbanTasks WHERE Id=@id`,
-      { id: { type: sql.NVarChar, value: id } }
+      { id: { type: sql.NVarChar(50), value: id } }
     );
     const task = taskResult[0];
     const sourceColumnId = fromColumnId || task?.ColumnId;
@@ -27,8 +27,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
        SET ThuTu = ThuTu + 1
        WHERE BoardId=@boardId AND ColumnId=@toColumnId AND IsActive=1 AND ThuTu >= @toPosition`,
       {
-        boardId: { type: sql.NVarChar, value: boardId },
-        toColumnId: { type: sql.NVarChar, value: toColumnId },
+        boardId: { type: sql.NVarChar(50), value: boardId },
+        toColumnId: { type: sql.NVarChar(50), value: toColumnId },
         toPosition: { type: sql.Int, value: toPosition },
       }
     );
@@ -39,8 +39,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
        SET ColumnId=@toColumnId, ThuTu=@toPosition, NgayCapNhat=SYSUTCDATETIME()
        WHERE Id=@id`,
       {
-        id: { type: sql.NVarChar, value: id },
-        toColumnId: { type: sql.NVarChar, value: toColumnId },
+        id: { type: sql.NVarChar(50), value: id },
+        toColumnId: { type: sql.NVarChar(50), value: toColumnId },
         toPosition: { type: sql.Int, value: toPosition },
       }
     );
@@ -58,8 +58,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
          FROM ManagementStore.dbo.KanbanTasks T
          INNER JOIN IndexedTasks I ON T.Id = I.Id`,
         {
-          boardId: { type: sql.NVarChar, value: boardId },
-          colId: { type: sql.NVarChar, value: colId },
+          boardId: { type: sql.NVarChar(50), value: boardId },
+          colId: { type: sql.NVarChar(50), value: colId },
         }
       );
     };

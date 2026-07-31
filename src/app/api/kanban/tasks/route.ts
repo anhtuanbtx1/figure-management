@@ -75,8 +75,8 @@ export async function POST(request: Request) {
       WHERE BoardId = @boardId AND ColumnId = @columnId AND IsActive = 1
     `;
     const [{ nextOrder }] = await executeQuery(nextOrderQuery, {
-      boardId: { type: sql.NVarChar, value: boardId },
-      columnId: { type: sql.NVarChar, value: columnId },
+      boardId: { type: sql.NVarChar(50), value: boardId },
+      columnId: { type: sql.NVarChar(50), value: columnId },
     });
 
     const insertQuery = `
@@ -86,17 +86,17 @@ export async function POST(request: Request) {
     `;
 
     await executeQuery(insertQuery, {
-      id: { type: sql.NVarChar, value: id },
-      boardId: { type: sql.NVarChar, value: boardId ?? null },
-      columnId: { type: sql.NVarChar, value: columnId ?? null },
-      title: { type: sql.NVarChar, value: title ?? null },
-      description: { type: sql.NVarChar, value: description ?? null },
-      priority: { type: sql.NVarChar, value: priority ?? null },
+      id: { type: sql.NVarChar(50), value: id },
+      boardId: { type: sql.NVarChar(50), value: boardId ?? null },
+      columnId: { type: sql.NVarChar(50), value: columnId ?? null },
+      title: { type: sql.NVarChar(255), value: title ?? null },
+      description: { type: sql.NVarChar(sql.MAX), value: description ?? null },
+      priority: { type: sql.NVarChar(20), value: priority ?? null },
       orderIndex: { type: sql.Int, value: nextOrder ?? 0 },
-      assignee: { type: sql.NVarChar, value: assignee ?? null },
+      assignee: { type: sql.NVarChar(255), value: assignee ?? null },
       startDate: { type: sql.DateTime, value: startDate ? new Date(startDate) : null },
       endDate: { type: sql.DateTime, value: endDate ? new Date(endDate) : null },
-      metadata: { type: sql.NVarChar, value: metadata ?? null },
+      metadata: { type: sql.NVarChar(200), value: metadata ?? null },
     });
 
     const fetchQuery = `
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
       WHERE t.Id = @id
     `;
 
-    const [created] = await executeQuery(fetchQuery, { id: { type: sql.NVarChar, value: id } });
+    const [created] = await executeQuery(fetchQuery, { id: { type: sql.NVarChar(50), value: id } });
 
     return NextResponse.json({ success: true, message: 'Task created', data: created });
   } catch (error: any) {

@@ -16,38 +16,61 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ success: false, message: 'Task not found', data: null }, { status: 404 });
     }
 
+    const updateFields: string[] = [];
+    const queryParams: Record<string, any> = {
+      id: { type: sql.NVarChar(50), value: id }
+    };
+
+    if (title !== undefined) {
+      updateFields.push('TieuDe = @title');
+      queryParams.title = { type: sql.NVarChar(255), value: title };
+    }
+    if (description !== undefined) {
+      updateFields.push('MoTa = @description');
+      queryParams.description = { type: sql.NVarChar(sql.MAX), value: description };
+    }
+    if (priority !== undefined) {
+      updateFields.push('DoUuTien = @priority');
+      queryParams.priority = { type: sql.NVarChar(20), value: priority };
+    }
+    if (assignee !== undefined) {
+      updateFields.push('NguoiDuocGan = @assignee');
+      queryParams.assignee = { type: sql.NVarChar(255), value: assignee };
+    }
+    if (columnId !== undefined) {
+      updateFields.push('ColumnId = @columnId');
+      queryParams.columnId = { type: sql.NVarChar(50), value: columnId };
+    }
+    if (startDate !== undefined) {
+      updateFields.push('NgayBatDau = @startDate');
+      queryParams.startDate = { type: sql.DateTime, value: startDate ? new Date(startDate) : null };
+    }
+    if (endDate !== undefined) {
+      updateFields.push('NgayKetThuc = @endDate');
+      queryParams.endDate = { type: sql.DateTime, value: endDate ? new Date(endDate) : null };
+    }
+    if (orderIndex !== undefined) {
+      updateFields.push('ThuTu = @orderIndex');
+      queryParams.orderIndex = { type: sql.Int, value: orderIndex };
+    }
+    if (metadata !== undefined) {
+      updateFields.push('Metadata = @metadata');
+      queryParams.metadata = { type: sql.NVarChar(200), value: metadata };
+    }
+
+    if (updateFields.length === 0) {
+      return NextResponse.json({ success: true, message: 'No changes provided', data: { id } });
+    }
+
+    updateFields.push('NgayCapNhat = SYSUTCDATETIME()');
+
     const updateQuery = `
       UPDATE ManagementStore.dbo.KanbanTasks
-      SET TieuDe = ISNULL(@title, TieuDe),
-          MoTa = ISNULL(@description, MoTa),
-          DoUuTien = ISNULL(@priority, DoUuTien),
-          NguoiDuocGan = ISNULL(@assignee, NguoiDuocGan),
-          ColumnId = ISNULL(@columnId, ColumnId),
-          NgayBatDau = CASE WHEN @updateDates = 1 THEN @startDate ELSE NgayBatDau END,
-          NgayKetThuc = CASE WHEN @updateDates = 1 THEN @endDate ELSE NgayKetThuc END,
-          ThuTu = ISNULL(@orderIndex, ThuTu),
-          Metadata = ISNULL(@metadata, Metadata),
-          NgayCapNhat = SYSUTCDATETIME()
+      SET ${updateFields.join(', ')}
       WHERE Id=@id AND IsActive=1
     `;
 
-    // We pass a flag to tell the query whether to update dates since we might explicitly want to set them to null.
-    // If startDate/endDate properties are completely undefined in the payload, don't update them.
-    const updateDates = (startDate !== undefined || endDate !== undefined) ? 1 : 0;
-
-    await executeQuery(updateQuery, {
-      id: { type: sql.NVarChar, value: id },
-      title: { type: sql.NVarChar, value: title ?? null },
-      description: { type: sql.NVarChar, value: description ?? null },
-      priority: { type: sql.NVarChar, value: priority ?? null },
-      assignee: { type: sql.NVarChar, value: assignee ?? null },
-      columnId: { type: sql.NVarChar, value: columnId ?? null },
-      updateDates: { type: sql.Bit, value: updateDates },
-      startDate: { type: sql.DateTime, value: startDate ? new Date(startDate) : null },
-      endDate: { type: sql.DateTime, value: endDate ? new Date(endDate) : null },
-      orderIndex: { type: sql.Int, value: orderIndex ?? null },
-      metadata: { type: sql.NVarChar, value: metadata ?? null },
-    });
+    await executeQuery(updateQuery, queryParams);
 
     return NextResponse.json({ success: true, message: 'Task updated', data: { id } });
   } catch (error) {
