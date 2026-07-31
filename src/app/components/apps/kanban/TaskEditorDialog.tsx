@@ -66,13 +66,14 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, colu
         sx: {
           borderRadius: 3,
           boxShadow: `0 20px 60px ${alpha(theme.palette.grey[900], 0.15)}`,
-          overflow: 'visible'
+          overflow: 'hidden'
         }
       }}
     >
       <DialogTitle
         sx={{
-          pb: 1,
+          p: 2,
+          pb: 2,
           borderBottom: `1px solid ${theme.palette.divider}`,
           bgcolor: alpha(theme.palette.primary.main, 0.02)
         }}
@@ -99,8 +100,8 @@ const TaskEditorDialog: React.FC<TaskEditorDialogProps> = ({ open, initial, colu
         </Stack>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3 }}>
-        <Grid container spacing={3}>
+      <DialogContent sx={{ p: 3, pt: '20px !important' }}>
+        <Grid container spacing={3} sx={{ mt: 0.5 }}>
           <Grid item xs={12}>
             <TextField
               autoFocus
