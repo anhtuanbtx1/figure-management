@@ -111,9 +111,14 @@ export async function POST(request: Request) {
     const [created] = await executeQuery(fetchQuery, { id: { type: sql.NVarChar, value: id } });
 
     return NextResponse.json({ success: true, message: 'Task created', data: created });
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error creating task:', error);
-    return NextResponse.json({ success: false, message: 'Failed to create task', data: null }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      message: error?.message || 'Failed to create task',
+      data: null,
+      error: process.env.NODE_ENV === 'development' ? { code: error?.code, number: error?.number } : undefined,
+    }, { status: 500 });
   }
 }
 
