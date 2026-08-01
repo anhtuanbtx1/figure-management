@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { KanbanDataContext } from "@/app/context/kanbancontext/index";
 import axios from "@/utils/axios";
+import Link from "next/link";
 import {
   Dialog,
   DialogActions,
@@ -11,8 +12,9 @@ import {
   Typography,
   Box,
   Grid,
+  Stack,
 } from "@mui/material";
-import { IconPlus, IconColumns } from "@tabler/icons-react";
+import { IconPlus, IconColumns, IconFileAnalytics } from "@tabler/icons-react";
 import CustomFormLabel from "../../forms/theme-elements/CustomFormLabel";
 import CustomTextField from "../../forms/theme-elements/CustomTextField";
 
@@ -54,6 +56,8 @@ function KanbanHeader() {
           justifyContent: 'space-between',
           alignItems: 'center',
           boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3)',
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 2, sm: 0 },
         }}
       >
         <Box display="flex" alignItems="center" gap={2}>
@@ -67,28 +71,54 @@ function KanbanHeader() {
             </Typography>
           </Box>
         </Box>
-        <Button
-          variant="contained"
-          onClick={handleShow}
-          startIcon={<IconPlus size={20} />}
-          sx={{
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            color: 'white',
-            fontWeight: 600,
-            px: 3,
-            py: 1.5,
-            borderRadius: 2,
-            textTransform: 'none',
-            '&:hover': {
-              backgroundColor: 'rgba(255,255,255,0.3)',
-              transform: 'translateY(-2px)',
-              boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
-            },
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        >
-          Thêm danh sách
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button
+            component={Link}
+            href="/apps/kanban/reports"
+            variant="contained"
+            startIcon={<IconFileAnalytics size={20} />}
+            sx={{
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              color: 'white',
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: 'none',
+              border: '1px solid rgba(255,255,255,0.2)',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.25)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+              },
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
+            Xem báo cáo
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleShow}
+            startIcon={<IconPlus size={20} />}
+            sx={{
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.3)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+              },
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
+            Thêm danh sách
+          </Button>
+        </Stack>
       </Box>
       <Dialog
         open={show}
