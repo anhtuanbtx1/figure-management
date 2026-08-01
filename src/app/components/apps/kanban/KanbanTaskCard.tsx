@@ -53,6 +53,9 @@ const KanbanTaskCard: React.FC<Props> = ({ task, statusName = 'Chưa xác địn
         ? theme.palette.warning.main
         : '#94A3B8'; // Grey for to do
 
+  const isLight = theme.palette.mode === 'light';
+  const customBorderColor = isLight ? 'rgba(0, 0, 0, 0.15)' : alpha(theme.palette.divider, 0.8);
+
   return (
     <Box
       onMouseEnter={() => setIsHovered(true)}
@@ -65,8 +68,8 @@ const KanbanTaskCard: React.FC<Props> = ({ task, statusName = 'Chưa xác địn
         borderColor: isDragging
           ? theme.palette.primary.main
           : isHovered
-            ? alpha(theme.palette.text.primary, 0.2)
-            : alpha(theme.palette.divider, 0.8),
+            ? alpha(theme.palette.text.primary, 0.3)
+            : customBorderColor,
         boxShadow: isDragging
           ? `0 12px 24px ${alpha(theme.palette.common.black, 0.2)}`
           : isHovered

@@ -275,11 +275,14 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
     );
   }
 
+  const isLight = theme.palette.mode === 'light';
+  const customBorderColor = isLight ? 'rgba(0, 0, 0, 0.12)' : alpha(theme.palette.divider, 0.5);
+
   return (
     <>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: alpha(theme.palette.background.paper, 0.5), p: 0.5, borderRadius: 1, border: `1px solid ${alpha(theme.palette.divider, 0.8)}` }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: alpha(theme.palette.background.paper, 0.5), p: 0.5, borderRadius: 1, border: `1px solid ${customBorderColor}` }}>
             <IconButton size="small" onClick={handlePrevWeek} sx={{ borderRadius: 1 }}>
               <IconChevronLeft size={18} />
             </IconButton>
@@ -308,7 +311,7 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
           sx={{
             bgcolor: alpha(theme.palette.background.paper, 0.5),
             backdropFilter: 'blur(10px)',
-            border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+            border: `1px solid ${customBorderColor}`,
             '.MuiToggleButton-root': {
               fontFamily: 'monospace',
               fontWeight: 600,
@@ -336,7 +339,7 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
       </Stack>
 
       {isMobile && viewMode === 'board' && (
-        <Box sx={{ mb: 2, borderBottom: 1, borderColor: 'divider', width: '100%', bgcolor: alpha(theme.palette.background.paper, 0.4), borderRadius: 1 }}>
+        <Box sx={{ mb: 2, borderBottom: 1, borderColor: isLight ? 'rgba(0, 0, 0, 0.15)' : 'divider', width: '100%', bgcolor: alpha(theme.palette.background.paper, 0.4), borderRadius: 1 }}>
           <Tabs
             value={activeTab}
             onChange={(e, val) => setActiveTab(val)}
@@ -424,7 +427,7 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
                         backdropFilter: 'blur(10px)',
                         borderRadius: 1, // Sharp corners
                         border: '1px solid',
-                        borderColor: isToday ? 'primary.main' : 'divider',
+                        borderColor: isToday ? 'primary.main' : customBorderColor,
                         transition: 'all 0.2s ease',
                         height: '100%',
                         minHeight: { xs: 400, sm: 500, md: 600 },
@@ -483,7 +486,7 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
                           pb: 1.5,
                           pt: 2,
                           px: 2,
-                          borderBottom: `2px solid ${alpha(isToday ? theme.palette.primary.main : theme.palette.divider, 0.5)}`
+                          borderBottom: `2px solid ${isToday ? alpha(theme.palette.primary.main, 0.5) : customBorderColor}`
                         }}
                       />
                       <CardContent sx={{ pt: 2, flex: 1, display: 'flex', flexDirection: 'column', bgcolor: alpha(theme.palette.background.default, 0.3) }}>
@@ -553,7 +556,7 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
                                     textAlign: 'center',
                                     color: 'text.disabled',
                                     borderRadius: 1,
-                                    border: `1px dashed ${theme.palette.divider}`,
+                                    border: `1px dashed ${customBorderColor}`,
                                     bgcolor: alpha(theme.palette.background.paper, 0.5)
                                   }}
                                 >
