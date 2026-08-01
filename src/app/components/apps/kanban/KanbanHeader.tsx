@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { KanbanDataContext } from "@/app/context/kanbancontext/index";
 import axios from "@/utils/axios";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogActions,
@@ -22,6 +22,7 @@ function KanbanHeader() {
   const { addCategory, setError } = useContext(KanbanDataContext);
   const [show, setShow] = useState(false);
   const [listName, setListName] = useState("");
+  const router = useRouter();
 
   //Closes the modal
   const handleClose = () => setShow(false);
@@ -73,8 +74,7 @@ function KanbanHeader() {
         </Box>
         <Stack direction="row" spacing={2}>
           <Button
-            component={Link}
-            href="/apps/kanban/reports"
+            onClick={() => router.push("/apps/kanban/reports")}
             variant="contained"
             startIcon={<IconFileAnalytics size={20} />}
             sx={{

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Breadcrumb from "@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb";
 import PageContainer from "@/app/components/container/PageContainer";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Box,
   CardContent,
@@ -37,6 +37,7 @@ const BCrumb = [
 
 export default function KanbanReportsPage() {
   const theme = useTheme();
+  const router = useRouter();
   const [tasks, setTasks] = useState<any[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -141,8 +142,7 @@ export default function KanbanReportsPage() {
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
         <Breadcrumb title="BÁO CÁO KANBAN" items={BCrumb} />
         <Button
-          component={Link}
-          href="/apps/kanban"
+          onClick={() => router.push("/apps/kanban")}
           variant="outlined"
           color="primary"
           startIcon={<IconArrowLeft size={18} />}
