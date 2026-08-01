@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Card, CardHeader, CardContent, IconButton, Typography, Stack, Snackbar, Alert, LinearProgress, useTheme, alpha, Fade, Grow, Slide, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Box, Card, CardHeader, CardContent, IconButton, Typography, Stack, LinearProgress, useTheme, alpha, Fade, Grow, Slide, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import KanbanService from '@/app/(DashboardLayout)/apps/kanban/services/kanbanService';
 import { KanbanTaskDb as KanbanTask, KanbanColumn } from '@/types/apps/kanban-db';
@@ -9,6 +9,7 @@ import TaskEditorDialog from './TaskEditorDialog';
 import ConfirmDialog from './ConfirmDialog';
 import KanbanTaskCard from './KanbanTaskCard';
 import KanbanWeeklyGantt from './KanbanWeeklyGantt';
+import ModernNotification from '@/app/components/shared/ModernNotification';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 
@@ -535,23 +536,10 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
         title="Xóa nhiệm vụ"
         message="Hành động không thể khôi phục."
       />
-      <Snackbar
-        open={snack.open}
-        autoHideDuration={3000}
+      <ModernNotification
+        notification={snack}
         onClose={() => setSnack({ ...snack, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnack({ ...snack, open: false })}
-          severity={snack.severity}
-          variant="filled"
-          sx={{
-            borderRadius: 1,
-          }}
-        >
-          {snack.message}
-        </Alert>
-      </Snackbar>
+      />
     </>
   );
 };
