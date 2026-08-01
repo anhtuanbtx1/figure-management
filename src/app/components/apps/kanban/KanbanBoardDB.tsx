@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Card, CardHeader, CardContent, IconButton, Typography, Stack, LinearProgress, useTheme, alpha, Fade, Grow, Slide, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Box, Card, CardHeader, CardContent, IconButton, Typography, Stack, LinearProgress, useTheme, alpha, Fade, Grow, Slide, ToggleButton, ToggleButtonGroup, Tabs, Tab, Chip, useMediaQuery } from '@mui/material';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import KanbanService from '@/app/(DashboardLayout)/apps/kanban/services/kanbanService';
 import { KanbanTaskDb as KanbanTask, KanbanColumn } from '@/types/apps/kanban-db';
@@ -28,6 +28,9 @@ interface KanbanBoardDBProps {
 
 const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [activeTab, setActiveTab] = useState(0);
+
   // We keep columns from DB to know status names, but we render Day columns
   const [dbColumns, setDbColumns] = useState<KanbanColumn[]>([]);
   const [allTasks, setAllTasks] = useState<KanbanTask[]>([]);
@@ -332,20 +335,74 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
         </ToggleButtonGroup>
       </Stack>
 
+      {isMobile && viewMode === 'board' && (
+        <Box sx={{ mb: 2, borderBottom: 1, borderColor: 'divider', width: '100%', bgcolor: alpha(theme.palette.background.paper, 0.4), borderRadius: 1 }}>
+          <Tabs
+            value={activeTab}
+            onChange={(e, val) => setActiveTab(val)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              '& .MuiTab-root': {
+                fontFamily: 'monospace',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                minWidth: 70,
+                textTransform: 'none',
+                py: 1,
+              }
+            }}
+          >
+            {columns.map((col, index) => {
+              let shortName = col.name;
+              if (col.id === 'unscheduled') {
+                shortName = 'Lên lịch';
+              } else {
+                shortName = col.name.replace('Thứ ', 'T');
+              }
+              return (
+                <Tab
+                  key={col.id}
+                  label={
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <span>{shortName}</span>
+                      <Chip
+                        label={col.tasks.length}
+                        size="small"
+                        sx={{
+                          height: 18,
+                          fontSize: '0.7rem',
+                          bgcolor: activeTab === index ? theme.palette.primary.main : alpha(theme.palette.text.secondary, 0.1),
+                          color: activeTab === index ? theme.palette.primary.contrastText : theme.palette.text.secondary,
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      />
+                    </Stack>
+                  }
+                />
+              );
+            })}
+          </Tabs>
+        </Box>
+      )}
+
       {viewMode === 'board' ? (
         <Box
           sx={{
             display: 'flex',
-            flexWrap: 'nowrap',
+            flexDirection: isMobile ? 'column' : 'row',
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
             gap: { xs: 2 },
             pb: 2,
             px: { xs: 1, sm: 1.5, md: 2 },
             width: '100%',
-            overflowX: 'auto', // Important for 8 columns!
+            overflowX: isMobile ? 'hidden' : 'auto', // Disable horizontal scroll when on mobile
           }}
         >
           <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
-            {columns.map((col, colIndex) => {
+            {columns.filter((_, idx) => !isMobile || idx === activeTab).map((col, colIndex) => {
               const isToday = col.id === dayjs().format('YYYY-MM-DD');
               return (
                 <Grow
@@ -355,8 +412,8 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
                   style={{ transformOrigin: 'top center' }}
                 >
                   <Box sx={{
-                    minWidth: 300,
-                    width: 320,
+                    minWidth: isMobile ? '100%' : 300,
+                    width: isMobile ? '100%' : 320,
                     display: 'flex',
                     flexDirection: 'column'
                   }}>
