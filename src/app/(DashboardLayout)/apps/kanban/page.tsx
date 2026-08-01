@@ -5,8 +5,9 @@ import PageContainer from "@/app/components/container/PageContainer";
 import KanbanBoardDB from "@/app/components/apps/kanban/KanbanBoardDB";
 import KanbanMetricsChips from "@/app/components/apps/kanban/KanbanMetricsChips";
 import { KanbanDataContextProvider } from "@/app/context/kanbancontext/index";
-import { CardContent, Box, useTheme, alpha, Stack, Typography, Tooltip, IconButton, Paper } from "@mui/material";
-import { IconLayoutKanban, IconKeyboard } from "@tabler/icons-react";
+import { CardContent, Box, useTheme, alpha, Stack, Typography, Tooltip, IconButton, Paper, Button } from "@mui/material";
+import { IconLayoutKanban, IconKeyboard, IconFileAnalytics } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 
 const BCrumb = [
   {
@@ -20,6 +21,7 @@ const BCrumb = [
 
 function Page() {
   const theme = useTheme();
+  const router = useRouter();
   const metricsRef = useRef<{ refreshStats: () => void } | null>(null);
 
   const handleMetricsRefresh = () => {
@@ -34,7 +36,28 @@ function Page() {
     <KanbanDataContextProvider>
       <PageContainer title="Kanban Workspace" description="Quản lý công việc với bảng Kanban">
         <Box sx={{ mb: 3 }}>
-          <Breadcrumb title="KANBAN WORKSPACE" items={BCrumb} />
+          <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} sx={{ mb: 2 }}>
+            <Breadcrumb title="KANBAN WORKSPACE" items={BCrumb} />
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<IconFileAnalytics size={20} />}
+              onClick={() => router.push('/apps/kanban/reports')}
+              sx={{
+                height: '42px',
+                textTransform: 'none',
+                fontWeight: 600,
+                boxShadow: theme.shadows[2],
+                '&:hover': {
+                  transform: 'translateY(-1px)',
+                  boxShadow: theme.shadows[4]
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              Xem báo cáo
+            </Button>
+          </Box>
 
           {/* Real-time Metrics - Cyberpunk / Glassmorphism mix */}
           <Box
