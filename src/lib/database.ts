@@ -2,10 +2,10 @@
 
 // Database configuration
 const config: sql.config = {
-  server: process.env.DB_SERVER || '112.78.2.70',
+  server: process.env.DB_SERVER || '45.118.151.103',
   database: process.env.DB_DATABASE || 'ManagementStore',
-  user: process.env.DB_USER || 'ManagementStore',
-  password: process.env.DB_PASSWORD || 'Passwordla@123',
+  user: process.env.DB_USER || 'sa',
+  password: process.env.DB_PASSWORD || 'Ots@123',
   options: {
     encrypt: false,
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
