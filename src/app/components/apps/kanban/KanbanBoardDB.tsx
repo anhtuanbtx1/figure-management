@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Card, CardHeader, CardContent, IconButton, Typography, Stack, LinearProgress, useTheme, alpha, Fade, Grow, Slide, ToggleButton, ToggleButtonGroup, Tabs, Tab, Chip, useMediaQuery } from '@mui/material';
+import { Box, Card, CardHeader, CardContent, IconButton, Typography, Stack, LinearProgress, useTheme, alpha, Fade, Grow, ToggleButton, ToggleButtonGroup, Tabs, Tab, Chip, useMediaQuery, Fab, Tooltip } from '@mui/material';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import KanbanService from '@/app/(DashboardLayout)/apps/kanban/services/kanbanService';
 import { KanbanTaskDb as KanbanTask, KanbanColumn } from '@/types/apps/kanban-db';
-import { IconPlus, IconGripVertical, IconColumns, IconCalendarTime, IconCalendar, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { IconPlus, IconGripVertical, IconColumns, IconCalendarTime, IconCalendar, IconChevronLeft, IconChevronRight, IconCalendarOff } from '@tabler/icons-react';
 import TaskEditorDialog from './TaskEditorDialog';
 import ConfirmDialog from './ConfirmDialog';
 import KanbanTaskCard from './KanbanTaskCard';
@@ -280,29 +280,66 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
 
   return (
     <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: alpha(theme.palette.background.paper, 0.5), p: 0.5, borderRadius: 1, border: `1px solid ${customBorderColor}` }}>
-            <IconButton size="small" onClick={handlePrevWeek} sx={{ borderRadius: 1 }}>
-              <IconChevronLeft size={18} />
+      {/* === HEADER: Week Navigation + View Toggle === */}
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mb: isMobile ? 1.5 : 3 }}
+        flexWrap="wrap"
+        gap={1}
+      >
+        {/* Week Navigation */}
+        <Stack direction="row" alignItems="center" spacing={0.75}>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            bgcolor: alpha(theme.palette.background.paper, 0.5),
+            p: 0.5,
+            borderRadius: 1,
+            border: `1px solid ${customBorderColor}`
+          }}>
+            <IconButton size="small" onClick={handlePrevWeek} sx={{ borderRadius: 1, p: isMobile ? 0.5 : 0.75 }}>
+              <IconChevronLeft size={isMobile ? 16 : 18} />
             </IconButton>
-            <Typography variant="body2" fontWeight={700} sx={{ px: 2, fontFamily: 'monospace', minWidth: 140, textAlign: 'center' }}>
-              Tuần {currentWeekDate.isoWeek()} - {currentWeekDate.format('YYYY')}
+            <Typography
+              variant="body2"
+              fontWeight={700}
+              sx={{
+                px: isMobile ? 1 : 2,
+                fontFamily: 'monospace',
+                minWidth: isMobile ? 100 : 140,
+                textAlign: 'center',
+                fontSize: isMobile ? '0.75rem' : '0.875rem',
+              }}
+            >
+              {isMobile
+                ? `T${currentWeekDate.isoWeek()}/${currentWeekDate.format('YY')}`
+                : `Tuần ${currentWeekDate.isoWeek()} - ${currentWeekDate.format('YYYY')}`
+              }
             </Typography>
-            <IconButton size="small" onClick={handleNextWeek} sx={{ borderRadius: 1 }}>
-              <IconChevronRight size={18} />
+            <IconButton size="small" onClick={handleNextWeek} sx={{ borderRadius: 1, p: isMobile ? 0.5 : 0.75 }}>
+              <IconChevronRight size={isMobile ? 16 : 18} />
             </IconButton>
           </Box>
-          <IconButton size="small" onClick={handleToday} sx={{
-            bgcolor: alpha(theme.palette.primary.main, 0.1),
-            color: 'primary.main',
-            borderRadius: 1,
-            '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
-          }}>
-            <IconCalendar size={18} />
-          </IconButton>
+          <Tooltip title="Hôm nay" arrow>
+            <IconButton
+              size="small"
+              onClick={handleToday}
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: 'primary.main',
+                borderRadius: 1,
+                p: isMobile ? 0.5 : 0.75,
+                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
+              }}
+            >
+              <IconCalendar size={isMobile ? 16 : 18} />
+            </IconButton>
+          </Tooltip>
         </Stack>
 
+        {/* View Toggle */}
         <ToggleButtonGroup
           value={viewMode}
           exclusive
@@ -315,9 +352,10 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
             '.MuiToggleButton-root': {
               fontFamily: 'monospace',
               fontWeight: 600,
-              px: 2,
+              px: isMobile ? 1.25 : 2,
               py: 0.75,
               letterSpacing: 0.5,
+              fontSize: isMobile ? '0.7rem' : '0.8rem',
               border: 'none',
               transition: 'all 0.2s',
               '&.Mui-selected': {
@@ -328,61 +366,164 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
           }}
         >
           <ToggleButton value="board">
-            <IconColumns size={18} style={{ marginRight: 8 }} />
-            BOARD
+            <IconColumns size={isMobile ? 14 : 18} style={{ marginRight: isMobile ? 4 : 8 }} />
+            {isMobile ? 'BOARD' : 'BOARD'}
           </ToggleButton>
           <ToggleButton value="weekly">
-            <IconCalendarTime size={18} style={{ marginRight: 8 }} />
+            <IconCalendarTime size={isMobile ? 14 : 18} style={{ marginRight: isMobile ? 4 : 8 }} />
             GANTT
           </ToggleButton>
         </ToggleButtonGroup>
       </Stack>
 
+      {/* === MOBILE TAB BAR: Compact day selector === */}
       {isMobile && viewMode === 'board' && (
-        <Box sx={{ mb: 2, borderBottom: 1, borderColor: isLight ? 'rgba(0, 0, 0, 0.15)' : 'divider', width: '100%', bgcolor: alpha(theme.palette.background.paper, 0.4), borderRadius: 1 }}>
+        <Box sx={{
+          mb: 2,
+          borderRadius: 1.5,
+          overflow: 'hidden',
+          border: `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : alpha(theme.palette.divider, 0.4)}`,
+          bgcolor: alpha(theme.palette.background.paper, 0.6),
+          backdropFilter: 'blur(12px)',
+        }}>
           <Tabs
             value={activeTab}
             onChange={(e, val) => setActiveTab(val)}
             variant="scrollable"
             scrollButtons="auto"
             allowScrollButtonsMobile
+            TabIndicatorProps={{
+              style: {
+                height: 3,
+                borderRadius: '3px 3px 0 0',
+                backgroundColor: theme.palette.primary.main,
+              }
+            }}
             sx={{
+              minHeight: 60,
               '& .MuiTab-root': {
-                fontFamily: 'monospace',
-                fontWeight: 700,
-                fontSize: '0.8rem',
-                minWidth: 70,
+                minWidth: 56,
+                minHeight: 60,
+                p: 0,
                 textTransform: 'none',
-                py: 1,
+              },
+              '& .MuiTabScrollButton-root': {
+                width: 24,
               }
             }}
           >
             {columns.map((col, index) => {
-              let shortName = col.name;
+              const isToday = col.id === dayjs().format('YYYY-MM-DD');
+              const isActiveTab = activeTab === index;
+              const hasTask = col.tasks.length > 0;
+
+              let dayLabel = '';
+              let dateLabel = '';
+
               if (col.id === 'unscheduled') {
-                shortName = 'Lên lịch';
+                dayLabel = '?';
+                dateLabel = 'Lịch';
               } else {
-                shortName = col.name.replace('Thứ ', 'T');
+                const d = dayjs(col.id);
+                // Vietnamese day abbreviation: Mon=T2, Tue=T3 ...
+                const dayOfWeek = d.day(); // 0=Sun,1=Mon,...
+                const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+                dayLabel = dayNames[dayOfWeek];
+                dateLabel = d.format('DD');
               }
+
               return (
                 <Tab
                   key={col.id}
                   label={
-                    <Stack direction="row" spacing={0.5} alignItems="center">
-                      <span>{shortName}</span>
-                      <Chip
-                        label={col.tasks.length}
-                        size="small"
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.3, py: 0.75 }}>
+                      {/* Day abbreviation */}
+                      <Typography
+                        variant="caption"
                         sx={{
-                          height: 18,
-                          fontSize: '0.7rem',
-                          bgcolor: activeTab === index ? theme.palette.primary.main : alpha(theme.palette.text.secondary, 0.1),
-                          color: activeTab === index ? theme.palette.primary.contrastText : theme.palette.text.secondary,
+                          fontFamily: 'monospace',
                           fontWeight: 700,
-                          cursor: 'pointer'
+                          fontSize: '0.65rem',
+                          letterSpacing: '0.05em',
+                          color: isActiveTab
+                            ? 'primary.main'
+                            : isToday
+                              ? theme.palette.warning.main
+                              : 'text.secondary',
+                          lineHeight: 1,
                         }}
-                      />
-                    </Stack>
+                      >
+                        {dayLabel}
+                      </Typography>
+
+                      {/* Date number in circle */}
+                      <Box
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: isActiveTab
+                            ? theme.palette.primary.main
+                            : isToday
+                              ? alpha(theme.palette.warning.main, 0.15)
+                              : 'transparent',
+                          border: isToday && !isActiveTab
+                            ? `1.5px solid ${theme.palette.warning.main}`
+                            : 'none',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 800,
+                            fontSize: '0.8rem',
+                            lineHeight: 1,
+                            color: isActiveTab
+                              ? '#fff'
+                              : isToday
+                                ? theme.palette.warning.main
+                                : 'text.primary',
+                          }}
+                        >
+                          {dateLabel}
+                        </Typography>
+                      </Box>
+
+                      {/* Task count dot */}
+                      {hasTask ? (
+                        <Box
+                          sx={{
+                            width: 16,
+                            height: 16,
+                            borderRadius: '50%',
+                            bgcolor: isActiveTab
+                              ? alpha(theme.palette.primary.main, 0.15)
+                              : alpha(theme.palette.text.secondary, 0.12),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: '0.55rem',
+                              fontWeight: 800,
+                              lineHeight: 1,
+                              color: isActiveTab ? 'primary.main' : 'text.secondary',
+                              fontFamily: 'monospace',
+                            }}
+                          >
+                            {col.tasks.length}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Box sx={{ width: 16, height: 16 }} />
+                      )}
+                    </Box>
                   }
                 />
               );
@@ -430,7 +571,7 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
                         borderColor: isToday ? 'primary.main' : customBorderColor,
                         transition: 'all 0.2s ease',
                         height: '100%',
-                        minHeight: { xs: 400, sm: 500, md: 600 },
+                        minHeight: { xs: 280, sm: 400, md: 600 },
                         display: 'flex',
                         flexDirection: 'column',
                         // Utilitarian header decoration concept
@@ -552,16 +693,25 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
                               {col.tasks.length === 0 && (
                                 <Box
                                   sx={{
-                                    p: 3,
+                                    p: isMobile ? 2 : 3,
                                     textAlign: 'center',
                                     color: 'text.disabled',
                                     borderRadius: 1,
                                     border: `1px dashed ${customBorderColor}`,
-                                    bgcolor: alpha(theme.palette.background.paper, 0.5)
+                                    bgcolor: alpha(theme.palette.background.paper, 0.5),
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: 0.75,
                                   }}
                                 >
-                                  <Typography variant="body2" fontFamily="monospace">
-                                    [ RỖNG ]
+                                  <IconCalendarOff size={isMobile ? 20 : 26} opacity={0.35} />
+                                  <Typography
+                                    variant="caption"
+                                    fontFamily="monospace"
+                                    sx={{ opacity: 0.6, fontSize: isMobile ? '0.65rem' : '0.75rem' }}
+                                  >
+                                    Không có nhiệm vụ
                                   </Typography>
                                 </Box>
                               )}
@@ -577,9 +727,31 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
           </DragDropContext>
         </Box>
       ) : (
-        <Box sx={{ height: { xs: 500, md: 600 } }}>
+        <Box sx={{ height: { xs: 400, md: 600 } }}>
           <KanbanWeeklyGantt columns={columns} />
         </Box>
+      )}
+
+      {/* === FAB: Mobile quick-add button === */}
+      {isMobile && viewMode === 'board' && (
+        <Fab
+          color="primary"
+          size="medium"
+          onClick={() => openCreate(dbColumns[0]?.id || '', columns[activeTab]?.id || 'unscheduled')}
+          sx={{
+            position: 'fixed',
+            bottom: 80,
+            right: 20,
+            zIndex: 1200,
+            boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.5)}`,
+            '&:hover': {
+              transform: 'scale(1.08)',
+            },
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <IconPlus size={22} />
+        </Fab>
       )}
 
       <TaskEditorDialog

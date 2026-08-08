@@ -158,36 +158,6 @@ const PayrollEmployeeStatistics = () => {
 
   return (
     <Stack spacing={3}>
-      <Box
-        sx={{
-          borderRadius: 3,
-          px: { xs: 2.5, md: 4 },
-          py: { xs: 3, md: 3.5 },
-          background: "linear-gradient(135deg, #172554 0%, #1d4ed8 50%, #60a5fa 100%)",
-          color: "common.white",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <Stack spacing={1.5} sx={{ position: "relative", zIndex: 1 }}>
-          <Chip
-            icon={<IconChartBar size={16} />}
-            label="Dashboard lương theo tháng"
-            sx={{
-              width: "fit-content",
-              bgcolor: "rgba(255,255,255,0.16)",
-              color: "common.white",
-              "& .MuiChip-icon": { color: "common.white" },
-            }}
-          />
-          <Typography variant="h4" fontWeight={700}>
-            Thống kê lương của 1 nhân viên
-          </Typography>
-          <Typography variant="body1" sx={{ maxWidth: 760, opacity: 0.9 }}>
-            Nhập mã hoặc tên nhân viên để xem lịch sử lương theo tháng, tổng quỹ lương và xu hướng lương trên dashboard.
-          </Typography>
-        </Stack>
-      </Box>
 
       <Box
         sx={{

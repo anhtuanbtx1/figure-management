@@ -1,8 +1,6 @@
 import React from "react";
-import { CardContent } from "@mui/material";
 import Breadcrumb from "@/app/(DashboardLayout)/layout/shared/breadcrumb/Breadcrumb";
 import PageContainer from "@/app/components/container/PageContainer";
-import BlankCard from "@/app/components/shared/BlankCard";
 import PayrollEmployeeStatistics from "@/app/components/apps/payroll-import/PayrollEmployeeStatistics";
 
 const BCrumb = [
@@ -27,11 +25,7 @@ const PayrollStatisticsPage = () => {
         items={BCrumb}
       />
 
-      <BlankCard>
-        <CardContent>
-          <PayrollEmployeeStatistics />
-        </CardContent>
-      </BlankCard>
+      <PayrollEmployeeStatistics />
     </PageContainer>
   );
 };

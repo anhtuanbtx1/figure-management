@@ -5,12 +5,10 @@ import { useEffect, useState } from 'react';
 
 import PageContainer from '@/app/components/container/PageContainer';
 // components
-import YearlyBreakup from '@/app/components/dashboards/modern/YearlyBreakup';
 import TopCards from '@/app/components/dashboards/modern/TopCards';
 import RevenueUpdates from '@/app/components/dashboards/modern/RevenueUpdates';
 import EmployeeSalary from '@/app/components/dashboards/modern/EmployeeSalary';
 import RecentWalletTransactions from '@/app/components/dashboards/modern/RecentWalletTransactions';
-import ToysTotalValueCard from '@/app/components/dashboards/modern/ToysTotalValueCard';
 
 
 export default function Dashboard() {
@@ -28,25 +26,9 @@ export default function Dashboard() {
           <Grid item xs={12} lg={12}>
             <TopCards />
           </Grid>
-          {/* Row with Revenue Updates and side cards */}
+          {/* Row with Revenue Updates */}
           <Grid item xs={12}>
-            <Grid container spacing={3} sx={{ minHeight: 500 }}>
-              {/* column - Revenue Updates */}
-              <Grid item xs={12} lg={8}>
-                <RevenueUpdates isLoading={isLoading} />
-              </Grid>
-              {/* column - YearlyBreakup & ToysTotalValueCard */}
-              <Grid item xs={12} lg={4} sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, height: '100%' }}>
-                  <Box sx={{ flex: 1 }}>
-                    <YearlyBreakup isLoading={isLoading} />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <ToysTotalValueCard isLoading={isLoading} />
-                  </Box>
-                </Box>
-              </Grid>
-            </Grid>
+            <RevenueUpdates isLoading={isLoading} />
           </Grid>
           {/* Row with EmployeeSalary and RecentWalletTransactions */}
           <Grid item xs={12}>
