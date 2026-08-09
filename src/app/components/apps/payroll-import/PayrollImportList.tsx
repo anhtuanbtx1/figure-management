@@ -423,7 +423,7 @@ const PayrollGroupSection = ({
                     label={`${details.length} nhân sự`}
                     size="small"
                     color="primary"
-                    variant="tonal"
+                    variant="filled"
                     sx={{ fontWeight: 700, fontSize: "0.72rem", height: 22 }}
                   />
                 )}
