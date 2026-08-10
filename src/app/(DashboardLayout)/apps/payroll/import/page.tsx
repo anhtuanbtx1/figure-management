@@ -11,18 +11,18 @@ const BCrumb = [
     title: "Trang chủ",
   },
   {
-    title: "Ghi bảng lương nhân sự",
+    title: "Bảng lương",
   },
 ];
 
 const PayrollImportPage = () => {
   return (
     <PageContainer
-      title="Ghi bảng lương nhân sự"
+      title="Bảng lương"
       description="Màn hình import file Excel bảng lương và nhập mã mở khóa"
     >
       <Breadcrumb
-        title="Ghi bảng lương nhân sự"
+        title="Bảng lương"
         subtitle="Import file Excel và nhập mã để mở khóa trước khi xử lý dữ liệu bảng lương"
         items={BCrumb}
       />

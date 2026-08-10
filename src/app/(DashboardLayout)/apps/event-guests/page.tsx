@@ -36,7 +36,7 @@ const BCrumb = [
     title: 'Trang chủ',
   },
   {
-    title: 'Quản lý khách mời sự kiện',
+    title: 'Danh sách khách mời',
   },
 ];
 
@@ -484,8 +484,8 @@ const EventGuestsPage = () => {
   };
 
   return (
-    <PageContainer title="Quản lý khách mời sự kiện" description="Quản lý danh sách khách mời và đóng góp sự kiện">
-      {/* <Breadcrumb title="Quản lý khách mời sự kiện" items={BCrumb} /> */}
+    <PageContainer title="Danh sách khách mời" description="Quản lý danh sách khách mời và đóng góp sự kiện">
+      {/* <Breadcrumb title="Danh sách khách mời" items={BCrumb} /> */}
 
       {/* Header */}
       <Box
@@ -503,7 +503,7 @@ const EventGuestsPage = () => {
             <IconUsers size={32} />
             <Box>
               <Typography variant="h4" fontWeight={700} sx={{ mb: 0.5 }}>
-                Quản lý khách mời sự kiện
+                Danh sách khách mời
               </Typography>
               <Typography variant="body1" sx={{ opacity: 0.9 }}>
                 Quản lý danh sách khách mời và theo dõi đóng góp sự kiện

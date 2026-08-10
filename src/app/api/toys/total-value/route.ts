@@ -1,8 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeStoredProcedure } from '@/lib/database';
+import {
+  executeQueryCached,
+  executeStoredProcedureCached,
+} from '@/lib/database-optimized';
 
 export const dynamic = 'force-dynamic';
 
+type ToysTotalValueRow = {
+  totalValue?: number | string | null;
+  totalCount?: number | string | null;
+  averagePrice?: number | string | null;
+  minPrice?: number | string | null;
+  maxPrice?: number | string | null;
+  TotalValue?: number | string | null;
+  TotalCount?: number | string | null;
+  AveragePrice?: number | string | null;
+  MinPrice?: number | string | null;
+  MaxPrice?: number | string | null;
+};
+
+const toNumber = (value: unknown) => Number(value || 0);
+
+const parseOptionalNumber = (value: string | null) => {
+  if (!value) return null;
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const buildCacheKey = (params: Record<string, any>) =>
+  `toys:total-value:${Buffer.from(JSON.stringify(params)).toString('base64')}`;
+
+async function getToysTotalValue(params: Record<string, any>) {
+  const cacheKey = buildCacheKey(params);
+
+  try {
+    return await executeStoredProcedureCached<ToysTotalValueRow>(
+      'sp_GetToysTotalValueForFrontend',
+      params,
+      `${cacheKey}:sp`,
+      300
+    );
+  } catch (procedureError) {
+    console.warn(
+      'Stored procedure sp_GetToysTotalValueForFrontend failed, using direct query fallback:',
+      procedureError
+    );
+
+    const query = `
+      SELECT
+        ISNULL(SUM(t.Price), 0) AS totalValue,
+        COUNT(*) AS totalCount,
+        ISNULL(AVG(CAST(t.Price AS DECIMAL(18, 2))), 0) AS averagePrice,
+        ISNULL(MIN(t.Price), 0) AS minPrice,
+        ISNULL(MAX(t.Price), 0) AS maxPrice
+      FROM ManagementStore.dbo.Toys t WITH (NOLOCK)
+      LEFT JOIN ManagementStore.dbo.ToyBrands b WITH (NOLOCK) ON t.BrandId = b.Id
+      WHERE t.IsActive = 1
+        AND (@Search IS NULL OR @Search = '' OR t.Name LIKE '%' + @Search + '%' OR t.Description LIKE '%' + @Search + '%')
+        AND (@CategoryId IS NULL OR @CategoryId = '' OR t.CategoryId = @CategoryId)
+        AND (@BrandName IS NULL OR @BrandName = '' OR b.Name = @BrandName)
+        AND (@Status IS NULL OR @Status = '' OR t.Status = @Status)
+        AND (@MinPrice IS NULL OR t.Price >= @MinPrice)
+        AND (@MaxPrice IS NULL OR t.Price <= @MaxPrice)
+        AND (@AgeRange IS NULL OR @AgeRange = '' OR t.AgeRange LIKE '%' + @AgeRange + '%')
+        AND (@InStock IS NULL OR @InStock = 0 OR t.Stock > 0)
+    `;
+
+    return executeQueryCached<ToysTotalValueRow>(
+      query,
+      params,
+      `${cacheKey}:fallback`,
+      300
+    );
+  }
+}
 
 // GET /api/toys/total-value - Return total value (SUM of Price) of toys
 // Optional query params:
@@ -23,10 +95,27 @@ export async function GET(request: NextRequest) {
     const categoryId = searchParams.get('categoryId') || null;
     const brandName = searchParams.get('brandName') || null;
     const status = searchParams.get('status') || null;
-    const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : null;
-    const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : null;
+    const minPriceRaw = searchParams.get('minPrice');
+    const maxPriceRaw = searchParams.get('maxPrice');
+    const minPrice = parseOptionalNumber(minPriceRaw);
+    const maxPrice = parseOptionalNumber(maxPriceRaw);
     const ageRange = searchParams.get('ageRange') || null;
     const inStock = searchParams.get('inStock') ? searchParams.get('inStock') === 'true' : null;
+
+    if ((minPriceRaw && minPrice === null) || (maxPriceRaw && maxPrice === null)) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid price filter',
+        message: 'minPrice and maxPrice must be valid numbers',
+        data: {
+          totalValue: 0,
+          totalCount: 0,
+          averagePrice: 0,
+          minPrice: 0,
+          maxPrice: 0
+        }
+      }, { status: 400 });
+    }
 
     console.log('🔍 Fetching toys total value with filters:', {
       search,
@@ -39,20 +128,18 @@ export async function GET(request: NextRequest) {
       inStock
     });
 
-    // Prepare parameters for stored procedure
-    const params: Record<string, any> = {};
-    
-    if (search) params.Search = search;
-    if (categoryId) params.CategoryId = categoryId;
-    if (brandName) params.BrandName = brandName;
-    if (status) params.Status = status;
-    if (minPrice !== null) params.MinPrice = minPrice;
-    if (maxPrice !== null) params.MaxPrice = maxPrice;
-    if (ageRange) params.AgeRange = ageRange;
-    if (inStock !== null) params.InStock = inStock;
+    const params: Record<string, any> = {
+      Search: search,
+      CategoryId: categoryId,
+      BrandName: brandName,
+      Status: status,
+      MinPrice: minPrice,
+      MaxPrice: maxPrice,
+      AgeRange: ageRange,
+      InStock: inStock,
+    };
 
-    // Execute stored procedure
-    const result = await executeStoredProcedure('sp_GetToysTotalValueForFrontend', params);
+    const result = await getToysTotalValue(params);
 
     if (!result || result.length === 0) {
       return NextResponse.json({
@@ -85,11 +172,11 @@ export async function GET(request: NextRequest) {
       success: true,
       message: 'Toys total value fetched successfully',
       data: {
-        totalValue: parseFloat(data.totalValue || 0),
-        totalCount: parseInt(data.totalCount || 0),
-        averagePrice: parseFloat(data.averagePrice || 0),
-        minPrice: parseFloat(data.minPrice || 0),
-        maxPrice: parseFloat(data.maxPrice || 0)
+        totalValue: toNumber(data.totalValue ?? data.TotalValue),
+        totalCount: toNumber(data.totalCount ?? data.TotalCount),
+        averagePrice: toNumber(data.averagePrice ?? data.AveragePrice),
+        minPrice: toNumber(data.minPrice ?? data.MinPrice),
+        maxPrice: toNumber(data.maxPrice ?? data.MaxPrice)
       },
       filters: {
         search,

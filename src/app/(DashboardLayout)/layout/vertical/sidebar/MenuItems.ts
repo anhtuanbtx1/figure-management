@@ -153,7 +153,7 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: "event-guests",
-    title: "Quản lý khách mời sự kiện",
+    title: "Danh sách khách mời",
     icon: IconUsers,
     iconName: "IconUsers",
     href: "/apps/event-guests",
@@ -174,7 +174,7 @@ const Menuitems: MenuitemsType[] = [
   },
   {
     id: "payroll",
-    title: "Ghi bảng lương nhân sự",
+    title: "Bảng lương",
     icon: IconCurrencyDollar,
     iconName: "IconCurrencyDollar",
     href: "/apps/payroll",

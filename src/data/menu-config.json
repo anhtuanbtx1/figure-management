@@ -76,7 +76,7 @@
   },
   {
     "id": "event-guests",
-    "title": "Quản lý khách mời sự kiện",
+    "title": "Danh sách khách mời",
     "iconName": "IconUsers",
     "href": "/apps/event-guests"
   },
@@ -94,7 +94,7 @@
   },
   {
     "id": "payroll",
-    "title": "Ghi bảng lương nhân sự",
+    "title": "Bảng lương",
     "iconName": "IconCurrencyDollar",
     "href": "/apps/payroll",
     "children": [

@@ -28,6 +28,42 @@ import {
 } from "@tabler/icons-react";
 import { format } from "date-fns";
 
+const isValidDate = (value: Date) =>
+  value instanceof Date && !Number.isNaN(value.getTime());
+
+const formatDateValue = (value: Date, pattern: string, fallback: Date) =>
+  format(isValidDate(value) ? value : fallback, pattern);
+
+const parseDateInput = (value: string) => {
+  if (!value) return null;
+
+  const parsedDate = new Date(`${value}T00:00:00`);
+  return isValidDate(parsedDate) ? parsedDate : null;
+};
+
+const parseTimeInput = (value: string, currentValue: Date) => {
+  if (!value) return null;
+
+  const [hoursText, minutesText] = value.split(":");
+  const hours = Number(hoursText);
+  const minutes = Number(minutesText);
+
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return null;
+  }
+
+  const parsedTime = new Date(isValidDate(currentValue) ? currentValue : new Date());
+  parsedTime.setHours(hours, minutes, 0, 0);
+  return parsedTime;
+};
+
 interface Category {
   id: number;
   name: string;
@@ -108,10 +144,17 @@ const CreateReminder = () => {
     setLoading(true);
 
     try {
+      const reminderDate = isValidDate(formData.reminderDate)
+        ? formData.reminderDate
+        : new Date();
+      const reminderTime = isValidDate(formData.reminderTime)
+        ? formData.reminderTime
+        : new Date();
+
       const submitData = {
         ...formData, // formData now includes templateTelegram
-        reminderDate: format(formData.reminderDate, "yyyy-MM-dd"),
-        reminderTime: format(formData.reminderTime, "HH:mm:ss"),
+        reminderDate: format(reminderDate, "yyyy-MM-dd"),
+        reminderTime: format(reminderTime, "HH:mm:ss"),
         categoryId: formData.categoryId || null,
         templateId: formData.templateId || null,
         startDate: format(new Date(), "yyyy-MM-dd"), 
@@ -154,10 +197,10 @@ const CreateReminder = () => {
   };
 
   const handleFieldChange = (field: string, value: any) => {
-    setFormData({
-      ...formData,
+    setFormData((prevData) => ({
+      ...prevData,
       [field]: value,
-    });
+    }));
   };
 
   return (
@@ -272,8 +315,13 @@ const CreateReminder = () => {
                         fullWidth
                         label="Ngày nhắc nhở"
                         type="date"
-                        value={format(formData.reminderDate, "yyyy-MM-dd")}
-                        onChange={(e) => handleFieldChange("reminderDate", new Date(e.target.value))}
+                        value={formatDateValue(formData.reminderDate, "yyyy-MM-dd", new Date())}
+                        onChange={(e) => {
+                          const reminderDate = parseDateInput(e.target.value);
+                          if (reminderDate) {
+                            handleFieldChange("reminderDate", reminderDate);
+                          }
+                        }}
                         InputLabelProps={{
                           shrink: true,
                         }}
@@ -284,12 +332,12 @@ const CreateReminder = () => {
                         fullWidth
                         label="Giờ nhắc nhở"
                         type="time"
-                        value={format(formData.reminderTime, "HH:mm")}
+                        value={formatDateValue(formData.reminderTime, "HH:mm", new Date())}
                         onChange={(e) => {
-                          const [hours, minutes] = e.target.value.split(":");
-                          const newTime = new Date();
-                          newTime.setHours(parseInt(hours), parseInt(minutes));
-                          handleFieldChange("reminderTime", newTime);
+                          const reminderTime = parseTimeInput(e.target.value, formData.reminderTime);
+                          if (reminderTime) {
+                            handleFieldChange("reminderTime", reminderTime);
+                          }
                         }}
                         InputLabelProps={{
                           shrink: true,
