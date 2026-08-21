@@ -7,6 +7,7 @@ export interface LeaveRequestRow {
   end_date: string;
   status: string;
   approved_by: string;
+  approved_date?: string;
   notes: string;
   created_at: string | null;
 }

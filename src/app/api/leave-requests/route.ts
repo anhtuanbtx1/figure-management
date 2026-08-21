@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 
-
 const EXTERNAL_API_URL = "https://iam.biso24.org/v1/requests";
 const DEFAULT_AUTHORIZATION = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ODBhODI3Nzc1N2QxNTRlMmZhN2FlYiIsIm9yZ0lkIjoiNjc0MDUzZTVmM2JkYWZkMjQyODI2YTdiIiwiaWF0IjoxNzc2MDYyODg2LCJleHAiOjE3NzcyNzI0ODZ9.8fxOlKHYoqJeim13bdei-HFb1wnY3ia08huxWERQoJ8";
 const DEFAULT_ACCEPT = "application/json, text/plain, */*";
@@ -63,11 +62,27 @@ interface WorkShiftItem {
   code?: string;
 }
 
+interface LeaveDayDetail {
+  day?: string;
+  option?: string;
+  [key: string]: unknown;
+}
+
 interface RequestData {
+  from?: string;
+  to?: string;
+  leaveTypeId?: string;
+  leaveDayTotal?: number;
+  leaveDayDetails?: LeaveDayDetail[] | LeaveDayDetail;
+  planYear?: number;
+  leaveTypeName?: string;
+  salaryRate?: string;
+  createFrom?: string;
   workingDate?: string;
   workShiftItem?: WorkShiftItem;
   timeIn?: string;
   timeOut?: string;
+  approvedDate?: string;
 }
 
 interface ExternalLeaveRequestItem {
@@ -87,6 +102,7 @@ interface ExternalLeaveRequestItem {
   status?: string;
   priority?: number;
   approvedBy?: ApprovalStepApprover | null;
+  approvedDate?: string;
   approvalForNextStep?: ApprovalStepApprover | null;
   modifiedBy?: EmployeeDetail;
   _destroy?: boolean;
@@ -165,11 +181,31 @@ async function extractBearerToken(request: NextRequest) {
   return DEFAULT_AUTHORIZATION;
 }
 
-function formatDate(value?: string) {
+function formatDate(value?: unknown): string {
   if (!value) return "-";
+  const trimmed = String(value).trim();
+  if (!trimmed || trimmed === "null" || trimmed === "undefined") return "-";
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
+  // Đã là định dạng DD/MM/YYYY (ví dụ: "22/08/2026" hoặc "22/08/2026 00:00:00")
+  const dmyMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (dmyMatch) {
+    const day = dmyMatch[1].padStart(2, "0");
+    const month = dmyMatch[2].padStart(2, "0");
+    const year = dmyMatch[3];
+    return `${day}/${month}/${year}`;
+  }
+
+  // Định dạng YYYY-MM-DD (ví dụ: "2026-08-22" hoặc "2026-08-22T00:00:00.000Z")
+  const ymdMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (ymdMatch) {
+    const year = ymdMatch[1];
+    const month = ymdMatch[2].padStart(2, "0");
+    const day = ymdMatch[3].padStart(2, "0");
+    return `${day}/${month}/${year}`;
+  }
+
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) return trimmed || "-";
 
   return new Intl.DateTimeFormat("vi-VN", {
     year: "numeric",
@@ -209,15 +245,93 @@ function mapStatus(status?: string) {
   }
 }
 
-function mapLeaveRequest(item: ExternalLeaveRequestItem) {
-  // Ngày làm việc từ requestData, fallback về registrationDate
-  const workingDate = item.requestData?.workingDate || item.registrationDate;
+function formatLeaveOption(option?: string): string {
+  if (!option) return "-";
+  const opt = option.trim().toUpperCase();
+  if (opt === "ALL_DAY") {
+    return "Cả ngày";
+  }
+  if (opt === "MORNING" || opt === "MORNING_SHIFT" || opt === "FIRST_HALF") {
+    return "Buổi sáng";
+  }
+  if (opt === "AFTERNOON" || opt === "AFTERNOON_SHIFT" || opt === "SECOND_HALF") {
+    return "Buổi chiều";
+  }
+  if (opt === "NIGHT" || opt === "NIGHT_SHIFT") {
+    return "Ca đêm";
+  }
+  return option;
+}
 
-  // Loại đơn: tên ca hoặc requestCategoryCode
-  const typeName =
+function getLeaveStartDay(item: ExternalLeaveRequestItem): string | undefined {
+  const details = item.requestData?.leaveDayDetails;
+  if (Array.isArray(details) && details.length > 0) {
+    return details[0]?.day || item.requestData?.from || item.requestData?.workingDate || item.registrationDate;
+  }
+  if (details && typeof details === "object" && "day" in details && details.day) {
+    return details.day;
+  }
+  return item.requestData?.from || item.requestData?.workingDate || item.registrationDate;
+}
+
+function getLeaveEndDay(item: ExternalLeaveRequestItem): string | undefined {
+  const details = item.requestData?.leaveDayDetails;
+  if (Array.isArray(details) && details.length > 0) {
+    const lastDetail = details[details.length - 1];
+    return lastDetail?.day || details[0]?.day || item.requestData?.to || item.requestData?.workingDate || item.registrationDate;
+  }
+  if (details && typeof details === "object" && "day" in details && details.day) {
+    return details.day;
+  }
+  return item.requestData?.to || item.requestData?.workingDate || item.registrationDate;
+}
+
+function getLeaveType(item: ExternalLeaveRequestItem): string {
+  const details = item.requestData?.leaveDayDetails;
+  if (Array.isArray(details) && details.length > 0) {
+    const options = details
+      .map((d) => d?.option)
+      .filter(Boolean) as string[];
+    if (options.length > 0) {
+      const formatted = options.map(formatLeaveOption);
+      const uniqueFormatted = Array.from(new Set(formatted));
+      return uniqueFormatted.join(", ");
+    }
+  } else if (details && typeof details === "object" && "option" in details && details.option) {
+    return formatLeaveOption(details.option);
+  }
+
+  return (
+    item.requestData?.leaveTypeName ||
     item.requestData?.workShiftItem?.name ||
     item.requestCategoryCode ||
-    "Leave Request";
+    "Leave Request"
+  );
+}
+
+function getApprovedDate(item: ExternalLeaveRequestItem): string | undefined {
+  if (item.approvedDate) {
+    return item.approvedDate;
+  }
+  if (Array.isArray(item.approvalSteps)) {
+    const stepWithDate = [...item.approvalSteps].reverse().find((s) => s.approvedDate);
+    if (stepWithDate?.approvedDate) {
+      return stepWithDate.approvedDate;
+    }
+  }
+  if (item.requestData?.approvedDate) {
+    return item.requestData.approvedDate;
+  }
+  return undefined;
+}
+
+function mapLeaveRequest(item: ExternalLeaveRequestItem) {
+  // Ngày làm việc: lấy từ requestData -> leaveDayDetails -> day, fallback from/to
+  const startDay = getLeaveStartDay(item);
+  const endDay = getLeaveEndDay(item);
+
+  // Loại nghỉ phép: lấy từ requestData -> leaveDayDetails -> option (ALL_DAY -> Cả ngày, MORNING_SHIFT -> Buổi sáng, ...)
+  const typeName = getLeaveType(item);
 
   // Thông tin nhân viên từ employeeDetail
   const fullName = item.employeeDetail?.fullName || "-";
@@ -242,6 +356,9 @@ function mapLeaveRequest(item: ExternalLeaveRequestItem) {
     }
   }
 
+  // Ngày duyệt
+  const approvedDateRaw = getApprovedDate(item);
+
   // Người sẽ duyệt tiếp theo
   const nextApprover = item.approvalForNextStep?.fullName || null;
 
@@ -252,12 +369,13 @@ function mapLeaveRequest(item: ExternalLeaveRequestItem) {
     staffCode,
     departmentName,
     positionName,
-    start_date: formatDate(workingDate),
-    end_date: formatDate(workingDate), // đơn chỉ có 1 ngày
+    start_date: formatDate(startDay),
+    end_date: formatDate(endDay),
     time_in: item.requestData?.timeIn || null,
     time_out: item.requestData?.timeOut || null,
     status: mapStatus(reqStatus),
     approved_by: approvedByName,
+    approved_date: formatDate(approvedDateRaw),
     next_approver: nextApprover,
     notes: item.notes || "",
     created_at: item.createdAt || null,
