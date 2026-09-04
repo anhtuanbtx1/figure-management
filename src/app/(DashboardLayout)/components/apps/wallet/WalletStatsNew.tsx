@@ -30,10 +30,18 @@ import {
   WalletDashboardSummary,
 } from '../../../../../types/apps/wallet';
 
-const WalletStatsNew = () => {
+interface WalletStatsNewProps {
+  filters?: FilterType;
+  hideFilters?: boolean;
+}
+
+const WalletStatsNew: React.FC<WalletStatsNewProps> = ({
+  filters: externalFilters,
+  hideFilters = false,
+}) => {
   const [dashboardData, setDashboardData] = useState<WalletDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterType>(() => {
+  const [internalFilters, setInternalFilters] = useState<FilterType>(() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     return {
@@ -48,7 +56,9 @@ const WalletStatsNew = () => {
     };
   });
 
-  const loadDashboardData = useCallback(async (currentFilters = filters) => {
+  const activeFilters = externalFilters || internalFilters;
+
+  const loadDashboardData = useCallback(async (currentFilters = activeFilters) => {
     try {
       setLoading(true);
       const data = await WalletService.getDashboard(
@@ -69,7 +79,7 @@ const WalletStatsNew = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [activeFilters]);
 
   useEffect(() => {
     loadDashboardData();
@@ -85,8 +95,8 @@ const WalletStatsNew = () => {
     };
   }, [loadDashboardData]);
 
-  const handleFiltersChange = (newFilters: FilterType) => setFilters(newFilters);
-  const handleApplyFilters = () => loadDashboardData(filters);
+  const handleFiltersChange = (newFilters: FilterType) => setInternalFilters(newFilters);
+  const handleApplyFilters = () => loadDashboardData(activeFilters);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -160,13 +170,15 @@ const WalletStatsNew = () => {
   return (
     <Box>
       {/* Dashboard Filters */}
-      <Box mb={3}>
-        <WalletDashboardFilters
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-          onApplyFilters={handleApplyFilters}
-        />
-      </Box>
+      {!hideFilters && (
+        <Box mb={3}>
+          <WalletDashboardFilters
+            filters={activeFilters}
+            onFiltersChange={handleFiltersChange}
+            onApplyFilters={handleApplyFilters}
+          />
+        </Box>
+      )}
 
       {/* Loading State */}
       {loading && (

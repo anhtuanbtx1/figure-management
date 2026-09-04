@@ -32,12 +32,14 @@ interface WalletDashboardFiltersProps {
   filters: WalletDashboardFilters;
   onFiltersChange: (filters: WalletDashboardFilters) => void;
   onApplyFilters: () => void;
+  onReset?: (defaultFilters: WalletDashboardFilters) => void;
 }
 
 const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
   filters,
   onFiltersChange,
   onApplyFilters,
+  onReset,
 }) => {
   const [categories, setCategories] = useState<WalletCategory[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,27 +65,26 @@ const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
     if (field === 'dateRangeType') {
       const now = new Date();
       let dateFrom = '';
-      let dateTo = now.toISOString();
+      let dateTo = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString();
 
       switch (value) {
         case 'week':
           const startOfWeek = new Date(now);
           startOfWeek.setDate(now.getDate() - now.getDay());
+          startOfWeek.setHours(0, 0, 0, 0);
           dateFrom = startOfWeek.toISOString();
           break;
         case 'month':
-          dateFrom = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+          dateFrom = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0).toISOString();
           break;
         case 'year':
-          dateFrom = new Date(now.getFullYear(), 0, 1).toISOString();
+          dateFrom = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0).toISOString();
           break;
         case 'yearMonth':
           if (filters.yearMonth) {
             const [year, month] = filters.yearMonth.split('-');
-            dateFrom = new Date(parseInt(year), parseInt(month) - 1, 1).toISOString();
-            // Sửa lỗi: tính đúng ngày cuối tháng bằng cách lấy ngày đầu tháng sau rồi trừ 1 giây
-            const endOfMonth = new Date(parseInt(year), parseInt(month), 1);
-            endOfMonth.setSeconds(-1); // Lùi 1 giây từ 00:00:00 ngày đầu tháng sau
+            dateFrom = new Date(parseInt(year), parseInt(month) - 1, 1, 0, 0, 0, 0).toISOString();
+            const endOfMonth = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999);
             dateTo = endOfMonth.toISOString();
           }
           break;
@@ -100,11 +101,8 @@ const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
     // Xử lý khi yearMonth thay đổi - tự động cập nhật dateFrom và dateTo
     if (field === 'yearMonth' && value && filters.dateRangeType === 'yearMonth') {
       const [year, month] = value.split('-');
-      // Ngày đầu tháng
-      const startOfMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
-      // Ngày cuối tháng - sử dụng ngày đầu tháng sau rồi trừ 1 giây
-      const endOfMonth = new Date(parseInt(year), parseInt(month), 1);
-      endOfMonth.setSeconds(-1);
+      const startOfMonth = new Date(parseInt(year), parseInt(month) - 1, 1, 0, 0, 0, 0);
+      const endOfMonth = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59, 999);
       
       newFilters.dateFrom = startOfMonth.toISOString();
       newFilters.dateTo = endOfMonth.toISOString();
@@ -116,18 +114,24 @@ const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
   // Clear all filters
   const clearFilters = () => {
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     
-    onFiltersChange({
+    const defaultValues: WalletDashboardFilters = {
       dateFrom: startOfMonth.toISOString(),
-      dateTo: now.toISOString(),
+      dateTo: endOfDay.toISOString(),
       categoryId: '',
       type: '',
       status: '',
       dateRangeType: 'month',
       yearMonth: '',
       year: '',
-    });
+    };
+
+    onFiltersChange(defaultValues);
+    if (onReset) {
+      onReset(defaultValues);
+    }
   };
 
   // Get active filter count
@@ -148,10 +152,22 @@ const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
   return (
     <Card>
       <CardContent>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-          <Box display="flex" alignItems="center" gap={1}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2} flexWrap="wrap" gap={1}>
+          <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
             <FilterIcon color="primary" />
-            <Typography variant="h6">Bộ lọc thống kê</Typography>
+            <Typography variant="h6" fontWeight={700}>
+              Bộ lọc thống kê & giao dịch
+            </Typography>
+            <Chip
+              label="Dùng chung"
+              size="small"
+              sx={{
+                fontWeight: 600,
+                backgroundColor: 'rgba(27, 94, 32, 0.1)',
+                color: '#1B5E20',
+                borderRadius: 1.5,
+              }}
+            />
             {getActiveFilterCount() > 0 && (
               <Chip 
                 label={`${getActiveFilterCount()} bộ lọc`} 
@@ -166,6 +182,7 @@ const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
             onClick={clearFilters}
             size="small"
             disabled={getActiveFilterCount() === 0}
+            sx={{ textTransform: 'none' }}
           >
             Xóa bộ lọc
           </Button>
@@ -215,7 +232,11 @@ const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
                   label="Từ ngày"
                   type="date"
                   value={filters.dateFrom.split('T')[0]}
-                  onChange={(e) => handleFilterChange('dateFrom', new Date(e.target.value).toISOString())}
+                  onChange={(e) => {
+                    const d = new Date(e.target.value);
+                    d.setHours(0, 0, 0, 0);
+                    handleFilterChange('dateFrom', d.toISOString());
+                  }}
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
@@ -226,7 +247,11 @@ const WalletDashboardFilters: React.FC<WalletDashboardFiltersProps> = ({
                   label="Đến ngày"
                   type="date"
                   value={filters.dateTo.split('T')[0]}
-                  onChange={(e) => handleFilterChange('dateTo', new Date(e.target.value).toISOString())}
+                  onChange={(e) => {
+                    const d = new Date(e.target.value);
+                    d.setHours(23, 59, 59, 999);
+                    handleFilterChange('dateTo', d.toISOString());
+                  }}
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>

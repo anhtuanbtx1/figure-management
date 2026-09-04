@@ -4,7 +4,6 @@ import sql from 'mssql';
 
 export const dynamic = 'force-dynamic';
 
-
 // GET /api/wallet/transactions - Fetch transactions with pagination and filtering
 export async function GET(request: NextRequest) {
   try {
@@ -18,17 +17,19 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type') || '';
     const categoryId = searchParams.get('categoryId') || '';
     const status = searchParams.get('status') || '';
+    const dateFrom = searchParams.get('dateFrom') || '';
+    const dateTo = searchParams.get('dateTo') || '';
     const sortField = searchParams.get('sortField') || 'TransactionDate';
     const sortDirection = searchParams.get('sortDirection') || 'desc';
 
-    console.log('🔍 Query params:', { page, pageSize, search, type, categoryId, status, sortField, sortDirection });
+    console.log('🔍 Query params:', { page, pageSize, search, type, categoryId, status, dateFrom, dateTo, sortField, sortDirection });
 
     // Build WHERE clause
     let whereConditions = ['t.IsActive = 1'];
     let queryParams: any = {};
 
     if (search) {
-      whereConditions.push('(t.Description LIKE @search OR t.Type LIKE @search)');
+      whereConditions.push('(t.Description LIKE @search OR t.Type LIKE @search OR c.Name LIKE @search)');
       queryParams.search = { type: sql.NVarChar, value: `%${search}%` };
     }
 
@@ -47,12 +48,23 @@ export async function GET(request: NextRequest) {
       queryParams.status = { type: sql.NVarChar, value: status };
     }
 
-    const whereClause = whereConditions.length > 1 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    if (dateFrom) {
+      whereConditions.push('t.TransactionDate >= @dateFrom');
+      queryParams.dateFrom = { type: sql.DateTime, value: new Date(dateFrom) };
+    }
+
+    if (dateTo) {
+      whereConditions.push('t.TransactionDate <= @dateTo');
+      queryParams.dateTo = { type: sql.DateTime, value: new Date(dateTo) };
+    }
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
     // Get total count
     const countQuery = `
       SELECT COUNT(*) as total
       FROM ManagementStore.dbo.WalletTransactions t
+      LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       ${whereClause}
     `;
 
@@ -62,7 +74,25 @@ export async function GET(request: NextRequest) {
 
     // Get paginated data
     const offset = (page - 1) * pageSize;
-    
+
+    // Validate sortField to prevent SQL injection
+    const allowedSortFields: Record<string, string> = {
+      transactionDate: 't.TransactionDate',
+      TransactionDate: 't.TransactionDate',
+      amount: 't.Amount',
+      Amount: 't.Amount',
+      createdAt: 't.CreatedAt',
+      CreatedAt: 't.CreatedAt',
+      description: 't.Description',
+      Description: 't.Description',
+      type: 't.Type',
+      Type: 't.Type',
+      status: 't.Status',
+      Status: 't.Status'
+    };
+    const safeSortField = allowedSortFields[sortField] || 't.TransactionDate';
+    const safeSortDirection = sortDirection.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
     const dataQuery = `
       SELECT 
         t.Id as id,
@@ -80,7 +110,7 @@ export async function GET(request: NextRequest) {
       FROM ManagementStore.dbo.WalletTransactions t
       LEFT JOIN ManagementStore.dbo.WalletCategories c ON t.CategoryId = c.Id
       ${whereClause}
-      ORDER BY ${sortField} ${sortDirection}
+      ORDER BY ${safeSortField} ${safeSortDirection}
       OFFSET ${offset} ROWS
       FETCH NEXT ${pageSize} ROWS ONLY
     `;

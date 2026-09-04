@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -38,19 +38,27 @@ import {
   TrendingUp as IncomeIcon,
   TrendingDown as ExpenseIcon,
   SwapHoriz as TransferIcon,
+  Clear as ClearIcon,
 } from '@mui/icons-material';
 import { WalletService } from '@/app/(DashboardLayout)/apps/wallet/services/walletService';
 import {
   WalletTransaction,
   WalletCategory,
   WalletFilters,
+  WalletDashboardFilters,
   WalletUpdateRequest,
   WalletNotificationState,
   WalletFormErrors
 } from '../../../../../types/apps/wallet';
 import WalletDeleteConfirmDialog from './WalletDeleteConfirmDialog';
 
-const WalletTransactionList: React.FC = () => {
+interface WalletTransactionListProps {
+  commonFilters?: WalletDashboardFilters;
+}
+
+const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
+  commonFilters,
+}) => {
   // Data states
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [categories, setCategories] = useState<WalletCategory[]>([]);
@@ -61,8 +69,12 @@ const WalletTransactionList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Filter states
-  const [filters, setFilters] = useState<WalletFilters>({
+  // Search input state with debounce
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Fallback filter states (used when commonFilters is not passed)
+  const [fallbackFilters, setFallbackFilters] = useState<WalletFilters>({
     search: '',
     type: '',
     categoryId: '',
@@ -70,6 +82,39 @@ const WalletTransactionList: React.FC = () => {
     dateFrom: '',
     dateTo: ''
   });
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Reset page when common filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [commonFilters]);
+
+  // Compute effective filters
+  const effectiveFilters = useMemo<WalletFilters>(() => {
+    if (commonFilters) {
+      return {
+        search: debouncedSearch,
+        type: commonFilters.type || '',
+        categoryId: commonFilters.categoryId || '',
+        status: commonFilters.status || '',
+        dateFrom: commonFilters.dateFrom || '',
+        dateTo: commonFilters.dateTo || '',
+      };
+    }
+    return {
+      ...fallbackFilters,
+      search: debouncedSearch,
+    };
+  }, [commonFilters, debouncedSearch, fallbackFilters]);
+
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
@@ -77,7 +122,6 @@ const WalletTransactionList: React.FC = () => {
   const partiallySelected = selectedIds.length > 0 && selectedIds.length < transactions.length;
 
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
-
 
   // Edit form states
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -118,10 +162,10 @@ const WalletTransactionList: React.FC = () => {
   const loadTransactions = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('💳 Loading wallet transactions...');
+      console.log('💳 Loading wallet transactions with filters:', effectiveFilters);
 
       const result = await WalletService.fetchTransactions(
-        filters,
+        effectiveFilters,
         currentPage,
         itemsPerPage,
         'transactionDate',
@@ -141,7 +185,7 @@ const WalletTransactionList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters, currentPage, itemsPerPage]);
+  }, [effectiveFilters, currentPage, itemsPerPage]);
 
   // Load categories
   const loadCategories = useCallback(async () => {
@@ -207,6 +251,8 @@ const WalletTransactionList: React.FC = () => {
       setSelectedIds([]);
       closeBulkDelete();
       loadTransactions();
+      // Dispatch event to refresh statistics
+      window.dispatchEvent(new CustomEvent('walletTransactionDeleted'));
     } catch (error) {
       console.error('❌ Error bulk deleting transactions:', error);
       showNotification('❌ Lỗi khi xóa hàng loạt giao dịch', 'error');
@@ -226,18 +272,18 @@ const WalletTransactionList: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Handle filter change
+  // Handle fallback filter change
   const handleFilterChange = (field: keyof WalletFilters, value: string) => {
-    setFilters(prev => ({
+    setFallbackFilters(prev => ({
       ...prev,
       [field]: value
     }));
     setCurrentPage(1);
   };
 
-  // Reset filters
+  // Reset fallback filters
   const resetFilters = () => {
-    setFilters({
+    setFallbackFilters({
       search: '',
       type: '',
       categoryId: '',
@@ -245,6 +291,7 @@ const WalletTransactionList: React.FC = () => {
       dateFrom: '',
       dateTo: ''
     });
+    setSearch('');
     setCurrentPage(1);
   };
 
@@ -446,92 +493,129 @@ const WalletTransactionList: React.FC = () => {
         </Box>
         <CardContent sx={{ p: 3 }}>
 
-          {/* Filters */}
-          <Grid container spacing={2} sx={{ mb: 2 }}>
-            {/* Search */}
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Tìm kiếm giao dịch..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-              />
+          {/* Filters Bar */}
+          {commonFilters ? (
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2.5 }}>
+              <Grid item xs={12} sm={7} md={5}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Tìm kiếm theo mô tả giao dịch..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: search ? (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setSearch('')}>
+                          <ClearIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null,
+                  }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={5} md={7}>
+                <Box display="flex" alignItems="center" justifyContent={{ xs: 'flex-start', sm: 'flex-end' }} gap={1} flexWrap="wrap">
+                  <Typography variant="body2" color="text.secondary">
+                    Hiển thị <strong>{transactions.length}</strong> / <strong>{totalItems}</strong> giao dịch (theo bộ lọc chung)
+                  </Typography>
+                </Box>
+              </Grid>
             </Grid>
+          ) : (
+            /* Fallback Filters (Standalone Mode) */
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              {/* Search */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Tìm kiếm giao dịch..."
+                  value={fallbackFilters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
 
-            {/* Type Filter */}
-            <Grid item xs={12} md={2}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Loại</InputLabel>
-                <Select
-                  value={filters.type}
-                  label="Loại"
-                  onChange={(e) => handleFilterChange('type', e.target.value)}
+              {/* Type Filter */}
+              <Grid item xs={12} md={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Loại</InputLabel>
+                  <Select
+                    value={fallbackFilters.type}
+                    label="Loại"
+                    onChange={(e) => handleFilterChange('type', e.target.value)}
+                  >
+                    <MenuItem value="">Tất cả</MenuItem>
+                    <MenuItem value="Thu nhập">Thu nhập</MenuItem>
+                    <MenuItem value="Chi tiêu">Chi tiêu</MenuItem>
+                    <MenuItem value="Chuyển khoản">Chuyển khoản</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Category Filter */}
+              <Grid item xs={12} md={3}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Danh mục</InputLabel>
+                  <Select
+                    value={fallbackFilters.categoryId}
+                    label="Danh mục"
+                    onChange={(e) => handleFilterChange('categoryId', e.target.value)}
+                  >
+                    <MenuItem value="">Tất cả</MenuItem>
+                    {categories.map((category) => (
+                      <MenuItem key={category.id} value={category.id}>
+                        {category.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Status Filter */}
+              <Grid item xs={12} md={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Trạng thái</InputLabel>
+                  <Select
+                    value={fallbackFilters.status}
+                    label="Trạng thái"
+                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                  >
+                    <MenuItem value="">Tất cả</MenuItem>
+                    <MenuItem value="Hoàn thành">Hoàn thành</MenuItem>
+                    <MenuItem value="Đang chờ">Đang chờ</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Reset Button */}
+              <Grid item xs={12} md={1}>
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterIcon />}
+                  onClick={resetFilters}
+                  size="small"
+                  fullWidth
                 >
-                  <MenuItem value="">Tất cả</MenuItem>
-                  <MenuItem value="Thu nhập">Thu nhập</MenuItem>
-                  <MenuItem value="Chi tiêu">Chi tiêu</MenuItem>
-                  <MenuItem value="Chuyển khoản">Chuyển khoản</MenuItem>
-                </Select>
-              </FormControl>
+                  Reset
+                </Button>
+              </Grid>
             </Grid>
-
-            {/* Category Filter */}
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Danh mục</InputLabel>
-                <Select
-                  value={filters.categoryId}
-                  label="Danh mục"
-                  onChange={(e) => handleFilterChange('categoryId', e.target.value)}
-                >
-                  <MenuItem value="">Tất cả</MenuItem>
-                  {categories.map((category) => (
-                    <MenuItem key={category.id} value={category.id}>
-                      {category.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* Status Filter */}
-            <Grid item xs={12} md={2}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Trạng thái</InputLabel>
-                <Select
-                  value={filters.status}
-                  label="Trạng thái"
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
-                >
-                  <MenuItem value="">Tất cả</MenuItem>
-                  <MenuItem value="Hoàn thành">Hoàn thành</MenuItem>
-                  <MenuItem value="Đang chờ">Đang chờ</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* Reset Button */}
-            <Grid item xs={12} md={1}>
-              <Button
-                variant="outlined"
-                startIcon={<FilterIcon />}
-                onClick={resetFilters}
-                size="small"
-                fullWidth
-              >
-                Reset
-              </Button>
-            </Grid>
-          </Grid>
+          )}
 
           {/* Bulk actions bar */}
           {selectedIds.length > 0 && (
