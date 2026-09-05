@@ -10,6 +10,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableFooter,
   Paper,
   Chip,
   IconButton,
@@ -39,6 +40,7 @@ import {
   TrendingDown as ExpenseIcon,
   SwapHoriz as TransferIcon,
   Clear as ClearIcon,
+  AccountBalanceWallet as AccountBalanceWalletIcon,
 } from '@mui/icons-material';
 import { WalletService } from '@/app/(DashboardLayout)/apps/wallet/services/walletService';
 import {
@@ -117,9 +119,46 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedTransactionsMap, setSelectedTransactionsMap] = useState<Map<string, WalletTransaction>>(new Map());
   const [bulkDeleting, setBulkDeleting] = useState(false);
-  const allSelected = transactions.length > 0 && selectedIds.length === transactions.length;
-  const partiallySelected = selectedIds.length > 0 && selectedIds.length < transactions.length;
+
+  const currentPageSelectedCount = useMemo(() => {
+    return transactions.filter(t => selectedIds.includes(t.id)).length;
+  }, [transactions, selectedIds]);
+
+  const allSelected = transactions.length > 0 && currentPageSelectedCount === transactions.length;
+  const partiallySelected = currentPageSelectedCount > 0 && currentPageSelectedCount < transactions.length;
+
+  // Selected transactions summary stats
+  const selectedStats = useMemo(() => {
+    let totalAmount = 0;
+    let incomeAmount = 0;
+    let expenseAmount = 0;
+    let transferAmount = 0;
+
+    selectedIds.forEach(id => {
+      const t = selectedTransactionsMap.get(id) || transactions.find(item => item.id === id);
+      if (t) {
+        const amt = Math.abs(Number(t.amount) || 0);
+        totalAmount += amt;
+        if (t.type === 'Thu nhập') {
+          incomeAmount += amt;
+        } else if (t.type === 'Chi tiêu') {
+          expenseAmount += amt;
+        } else if (t.type === 'Chuyển khoản') {
+          transferAmount += amt;
+        }
+      }
+    });
+
+    return {
+      totalAmount,
+      incomeAmount,
+      expenseAmount,
+      transferAmount,
+      hasMixedTypes: incomeAmount > 0 && expenseAmount > 0,
+    };
+  }, [selectedIds, selectedTransactionsMap, transactions]);
 
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
@@ -228,14 +267,41 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
   // Bulk selection handlers
   const toggleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(transactions.map(t => t.id));
+      const newIds = Array.from(new Set([...selectedIds, ...transactions.map(t => t.id)]));
+      setSelectedIds(newIds);
+      setSelectedTransactionsMap(prev => {
+        const next = new Map(prev);
+        transactions.forEach(t => next.set(t.id, t));
+        return next;
+      });
     } else {
-      setSelectedIds([]);
+      const pageIds = new Set(transactions.map(t => t.id));
+      setSelectedIds(prev => prev.filter(id => !pageIds.has(id)));
+      setSelectedTransactionsMap(prev => {
+        const next = new Map(prev);
+        transactions.forEach(t => next.delete(t.id));
+        return next;
+      });
     }
   };
 
-  const toggleSelectOne = (id: string, checked: boolean) => {
+  const toggleSelectOne = (transaction: WalletTransaction, checked: boolean) => {
+    const id = transaction.id;
     setSelectedIds(prev => checked ? (prev.includes(id) ? prev : [...prev, id]) : prev.filter(x => x !== id));
+    setSelectedTransactionsMap(prev => {
+      const next = new Map(prev);
+      if (checked) {
+        next.set(id, transaction);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds([]);
+    setSelectedTransactionsMap(new Map());
   };
 
   const openBulkDelete = () => setShowBulkDeleteDialog(true);
@@ -249,6 +315,7 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
       await WalletService.bulkDeleteTransactions(selectedIds);
       showNotification(`Đã xóa ${selectedIds.length} giao dịch thành công!`, 'success');
       setSelectedIds([]);
+      setSelectedTransactionsMap(new Map());
       closeBulkDelete();
       loadTransactions();
       // Dispatch event to refresh statistics
@@ -392,6 +459,14 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
       showNotification('✅ Xóa giao dịch thành công!');
 
       // Close dialog
+      const deletedId = transactionToDelete.id;
+      setSelectedIds(prev => prev.filter(id => id !== deletedId));
+      setSelectedTransactionsMap(prev => {
+        const next = new Map(prev);
+        next.delete(deletedId);
+        return next;
+      });
+
       setShowDeleteDialog(false);
       setTransactionToDelete(null);
 
@@ -617,19 +692,122 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
             </Grid>
           )}
 
-          {/* Bulk actions bar */}
+          {/* Bulk actions bar with Total Selected Amount Label */}
           {selectedIds.length > 0 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2">Đã chọn {selectedIds.length} giao dịch</Typography>
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={() => setShowBulkDeleteDialog(true)}
-                disabled={bulkDeleting}
-              >
-                {bulkDeleting ? 'Đang xóa...' : 'Xóa đã chọn'}
-              </Button>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 1.5,
+                p: 1.5,
+                mb: 2,
+                borderRadius: 2,
+                bgcolor: 'rgba(46, 125, 50, 0.06)',
+                border: '1px solid',
+                borderColor: 'rgba(46, 125, 50, 0.25)',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                  Đã chọn:
+                </Typography>
+                <Chip
+                  label={`${selectedIds.length} giao dịch`}
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontWeight: 600, borderColor: 'rgba(46, 125, 50, 0.4)', color: '#2E7D32' }}
+                />
+
+                {/* Label hiển thị tổng số tiền đang chọn */}
+                <Chip
+                  icon={<AccountBalanceWalletIcon sx={{ color: '#fff !important' }} />}
+                  label={
+                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                      <span>Tổng số tiền đang chọn:</span>
+                      <strong style={{ fontSize: '0.95rem' }}>
+                        {selectedStats.totalAmount.toLocaleString('vi-VN')} VND
+                      </strong>
+                    </Box>
+                  }
+                  sx={{
+                    bgcolor: '#2E7D32',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    py: 2,
+                    px: 0.5,
+                    boxShadow: '0 2px 8px rgba(46, 125, 50, 0.25)',
+                    '& .MuiChip-label': {
+                      display: 'flex',
+                      alignItems: 'center',
+                    },
+                  }}
+                />
+
+                {/* Phân tách Thu / Chi nếu chọn nhiều loại giao dịch */}
+                {selectedStats.hasMixedTypes && (
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      size="small"
+                      label={`Thu: +${selectedStats.incomeAmount.toLocaleString('vi-VN')} VND`}
+                      sx={{
+                        bgcolor: 'rgba(76, 175, 80, 0.12)',
+                        color: '#2E7D32',
+                        fontWeight: 600,
+                        border: '1px solid rgba(76, 175, 80, 0.3)',
+                      }}
+                    />
+                    <Chip
+                      size="small"
+                      label={`Chi: -${selectedStats.expenseAmount.toLocaleString('vi-VN')} VND`}
+                      sx={{
+                        bgcolor: 'rgba(244, 67, 54, 0.12)',
+                        color: '#D32F2F',
+                        fontWeight: 600,
+                        border: '1px solid rgba(244, 67, 54, 0.3)',
+                      }}
+                    />
+                  </Box>
+                )}
+
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={handleClearSelection}
+                  sx={{
+                    textTransform: 'none',
+                    fontSize: '0.8rem',
+                    color: 'text.secondary',
+                    p: 0,
+                    minWidth: 'auto',
+                    ml: 0.5,
+                    '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' },
+                  }}
+                >
+                  Bỏ chọn tất cả
+                </Button>
+              </Box>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Button
+                  variant="contained"
+                  color="error"
+                  size="small"
+                  startIcon={<DeleteIcon />}
+                  onClick={() => setShowBulkDeleteDialog(true)}
+                  disabled={bulkDeleting}
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderRadius: 1.5,
+                    boxShadow: 'none',
+                  }}
+                >
+                  {bulkDeleting ? 'Đang xóa...' : `Xóa đã chọn (${selectedIds.length})`}
+                </Button>
+              </Box>
             </Box>
           )}
 
@@ -710,7 +888,7 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={selectedIds.includes(transaction.id)}
-                          onChange={(e) => toggleSelectOne(transaction.id, e.target.checked)}
+                          onChange={(e) => toggleSelectOne(transaction, e.target.checked)}
                           inputProps={{ 'aria-label': `Select ${transaction.description}` }}
                         />
                       </TableCell>
@@ -773,6 +951,33 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
                   ))
                 )}
               </TableBody>
+              <TableFooter>
+                {selectedIds.length > 0 && (
+                  <TableRow
+                    sx={{
+                      backgroundColor: 'rgba(46, 125, 50, 0.06)',
+                      borderTop: '2px solid rgba(46, 125, 50, 0.2)',
+                    }}
+                  >
+                    <TableCell padding="checkbox" />
+                    <TableCell colSpan={4} sx={{ fontWeight: 700, fontSize: '0.875rem', color: 'text.primary', py: 1.5 }}>
+                      Tổng số tiền ({selectedIds.length} giao dịch đang chọn):
+                    </TableCell>
+                    <TableCell align="right" sx={{ py: 1.5 }}>
+                      <Typography
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: '0.95rem',
+                          color: '#2E7D32',
+                        }}
+                      >
+                        {selectedStats.totalAmount.toLocaleString('vi-VN')} VND
+                      </Typography>
+                    </TableCell>
+                    <TableCell colSpan={2} />
+                  </TableRow>
+                )}
+              </TableFooter>
             </Table>
           </TableContainer>
 
