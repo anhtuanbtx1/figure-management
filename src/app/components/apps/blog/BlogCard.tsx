@@ -42,10 +42,15 @@ const BlogCard = ({ post }: Btype) => {
   const [error, setError] = useState('');
   const [hovering, setHovering] = useState(false);
 
-  const linkTo = title
+  // Guard: nếu title null/undefined thì không render để tránh crash
+  if (!title) return null;
+
+  const linkTo = ((title as string) || '')
     .toLowerCase()
     .replace(/ /g, '-')
-    .replace(/[^\w-]+/g, '');
+    .replace(/[^\w-]+/g, '')
+    || String(id);
+
 
   const handleOpenDialog = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -73,28 +78,31 @@ const BlogCard = ({ post }: Btype) => {
     }
   };
 
-  const StatRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: number }) => (
-    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-      <Icon size={18} />
-      <Typography variant="body2" sx={{ minWidth: '80px', fontWeight: 500 }}>
-        {label}:
-      </Typography>
-      <Rating
-        value={value}
-        precision={0.5}
-        max={5}
-        readOnly
-        size="small"
-        sx={{
-          '& .MuiRating-iconFilled': { color: '#FFD700' },
-          '& .MuiRating-iconEmpty': { color: 'rgba(255, 215, 0, 0.3)' },
-        }}
-      />
-      <Typography variant="caption" sx={{ ml: 0.5, color: 'text.secondary', minWidth: '30px' }}>
-        {value.toFixed(1)}
-      </Typography>
-    </Stack>
-  );
+  const StatRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: number }) => {
+    const safeValue = typeof value === 'number' && !isNaN(value) ? value : 0;
+    return (
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+        <Icon size={18} />
+        <Typography variant="body2" sx={{ minWidth: '80px', fontWeight: 500 }}>
+          {label}:
+        </Typography>
+        <Rating
+          value={safeValue}
+          precision={0.5}
+          max={5}
+          readOnly
+          size="small"
+          sx={{
+            '& .MuiRating-iconFilled': { color: '#FFD700' },
+            '& .MuiRating-iconEmpty': { color: 'rgba(255, 215, 0, 0.3)' },
+          }}
+        />
+        <Typography variant="caption" sx={{ ml: 0.5, color: 'text.secondary', minWidth: '30px' }}>
+          {safeValue.toFixed(1)}
+        </Typography>
+      </Stack>
+    );
+  };
 
   return (
     <Grid item xs={12} lg={4} md={4} sm={6} display="flex" alignItems="stretch">
