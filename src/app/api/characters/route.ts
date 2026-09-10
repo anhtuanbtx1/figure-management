@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         AuthorAvatar
       FROM GameCharacters
       WHERE IsActive = 1
-      ORDER BY IsFeatured DESC, CreatedAt DESC
+      ORDER BY IsFeatured DESC, CreatedAt DESC, Id DESC
     `;
 
     const characters = await executeQuery(query);

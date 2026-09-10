@@ -21,7 +21,7 @@ import { fetchBlogPosts, SearchBlog, SortBlog } from '@/store/apps/blog/BlogSlic
 import BlogFeaturedCard from './BlogFeaturedCard';
 import { BlogPostType } from '../../../(DashboardLayout)/types/apps/blog';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 10;
 
 const BlogListing = () => {
   const dispatch = useDispatch();
@@ -66,19 +66,19 @@ const BlogListing = () => {
 
     // SORT BY
     if (sortBy === 'newest') {
-      filteredPosts = orderBy(filteredPosts, ['createdAt'], ['desc']);
+      filteredPosts = orderBy(filteredPosts, ['createdAt', 'id'], ['desc', 'desc']);
     }
     if (sortBy === 'oldest') {
-      filteredPosts = orderBy(filteredPosts, ['createdAt'], ['asc']);
+      filteredPosts = orderBy(filteredPosts, ['createdAt', 'id'], ['asc', 'asc']);
     }
     if (sortBy === 'popular') {
-      filteredPosts = orderBy(filteredPosts, ['view'], ['desc']);
+      filteredPosts = orderBy(filteredPosts, ['view', 'id'], ['desc', 'desc']);
     }
     if (sortBy === 'name-asc') {
-      filteredPosts = orderBy(filteredPosts, [(post: any) => post.title?.toLowerCase()], ['asc']);
+      filteredPosts = orderBy(filteredPosts, [(post: any) => post.title?.toLowerCase(), 'id'], ['asc', 'asc']);
     }
     if (sortBy === 'name-desc') {
-      filteredPosts = orderBy(filteredPosts, [(post: any) => post.title?.toLowerCase()], ['desc']);
+      filteredPosts = orderBy(filteredPosts, [(post: any) => post.title?.toLowerCase(), 'id'], ['desc', 'desc']);
     }
 
     return filteredPosts;
@@ -98,11 +98,19 @@ const BlogListing = () => {
   const games = ['all', ...Array.from(new Set(allPosts.map((post: any) => post.game).filter(Boolean)))];
   const elements = ['all', ...Array.from(new Set(allPosts.map((post: any) => post.element).filter(Boolean)))];
 
-  // Pagination
-  const totalPages = Math.ceil(blogPosts.length / ITEMS_PER_PAGE);
+  // Pagination - cố định 10 nhân vật mỗi trang
+  const totalPosts = blogPosts.length;
+  const totalPages = Math.ceil(totalPosts / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentPosts = blogPosts.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalPosts);
+  const currentPosts = blogPosts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  // Tự động chuyển về trang 1 nếu bộ lọc làm giảm số trang nhỏ hơn currentPage
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
@@ -257,22 +265,27 @@ const BlogListing = () => {
         </Stack>
       </Box>
 
-      {/* Results Count */}
-      <Box sx={{ mb: 2 }}>
+      {/* Results Count & Page Summary */}
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
         <Typography variant="body1" color="textSecondary">
-          Tìm thấy <strong>{blogPosts.length}</strong> nhân vật
+          Tìm thấy <strong>{totalPosts}</strong> nhân vật
           {searchInput && ` cho "${searchInput}"`}
         </Typography>
+        {totalPosts > 0 && (
+          <Typography variant="body2" color="textSecondary">
+            Trang <strong>{currentPage}</strong> / <strong>{totalPages || 1}</strong> (10 nhân vật / trang)
+          </Typography>
+        )}
       </Box>
 
       {/* Results Grid */}
-      <Grid container spacing={3}>
+      <Grid container spacing={2.5} columns={{ xs: 12, sm: 12, md: 10, lg: 10 }}>
         {currentPosts.length > 0 ? (
           currentPosts.map((post, index) => {
-            return <BlogCard post={post} key={post.id || `post-${index}`} />;
+            return <BlogCard post={post} key={`${post.id}-${post.title}-${index}`} />;
           })
         ) : (
-          <Grid item xs={12}>
+          <Grid item xs={12} sm={12} md={10} lg={10}>
             <Box sx={{ textAlign: 'center', py: 8 }}>
               <Typography variant="h5" color="textSecondary" sx={{ mb: 2 }}>
                 Không tìm thấy nhân vật nào
@@ -285,18 +298,64 @@ const BlogListing = () => {
         )}
       </Grid>
       
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-          <Pagination 
-            count={totalPages} 
-            page={currentPage}
-            onChange={handlePageChange}
-            color="primary"
-            size="large"
-            showFirstButton
-            showLastButton
-          />
+      {/* Pagination Toolbar */}
+      {totalPosts > 0 && (
+        <Box
+          sx={{
+            mt: 4,
+            p: 2,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'background.paper' : '#fcfcfc',
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 2,
+          }}
+        >
+          {/* Thông tin số lượng item */}
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Chip
+              label="10 / trang"
+              size="small"
+              color="primary"
+              variant="outlined"
+              sx={{ fontWeight: 600 }}
+            />
+            <Typography variant="body2" color="textSecondary">
+              Hiển thị <strong>{startIndex + 1}</strong> – <strong>{endIndex}</strong> trong tổng số <strong>{totalPosts}</strong> nhân vật
+            </Typography>
+          </Stack>
+
+          {/* Nút phân trang */}
+          {totalPages > 1 && (
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+              color="primary"
+              shape="rounded"
+              variant="outlined"
+              size="medium"
+              showFirstButton
+              showLastButton
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  fontWeight: 600,
+                },
+                '& .Mui-selected': {
+                  backgroundColor: 'primary.main',
+                  color: '#fff !important',
+                  borderColor: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                },
+              }}
+            />
+          )}
         </Box>
       )}
     </Box>

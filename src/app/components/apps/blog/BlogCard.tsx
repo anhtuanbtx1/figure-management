@@ -81,9 +81,9 @@ const BlogCard = ({ post }: Btype) => {
   const StatRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: number }) => {
     const safeValue = typeof value === 'number' && !isNaN(value) ? value : 0;
     return (
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-        <Icon size={18} />
-        <Typography variant="body2" sx={{ minWidth: '80px', fontWeight: 500 }}>
+      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.8 }}>
+        <Icon size={16} />
+        <Typography variant="body2" sx={{ minWidth: '70px', fontWeight: 500, fontSize: '0.82rem' }}>
           {label}:
         </Typography>
         <Rating
@@ -93,11 +93,12 @@ const BlogCard = ({ post }: Btype) => {
           readOnly
           size="small"
           sx={{
+            fontSize: '1rem',
             '& .MuiRating-iconFilled': { color: '#FFD700' },
             '& .MuiRating-iconEmpty': { color: 'rgba(255, 215, 0, 0.3)' },
           }}
         />
-        <Typography variant="caption" sx={{ ml: 0.5, color: 'text.secondary', minWidth: '30px' }}>
+        <Typography variant="caption" sx={{ ml: 0.5, color: 'text.secondary', minWidth: '24px', fontSize: '0.72rem' }}>
           {safeValue.toFixed(1)}
         </Typography>
       </Stack>
@@ -105,7 +106,7 @@ const BlogCard = ({ post }: Btype) => {
   };
 
   return (
-    <Grid item xs={12} sm={6} md={6} lg={6} display="flex" alignItems="stretch">
+    <Grid item xs={12} sm={6} md={2} lg={2} display="flex" alignItems="stretch">
       <BlankCard className="hoverCard" sx={{ width: '100%' }}>
         <>
           {/* Ảnh + nút đổi ảnh khi hover */}
@@ -156,13 +157,13 @@ const BlogCard = ({ post }: Btype) => {
             </Tooltip>
           </Box>
 
-          <CardContent>
-            <Box mb={2}>
+          <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+            <Box mb={1.5}>
               <Typography
                 gutterBottom
-                variant="h5"
+                variant="h6"
                 color="inherit"
-                sx={{ textDecoration: 'none' }}
+                sx={{ textDecoration: 'none', fontWeight: 600, fontSize: '1rem', lineHeight: 1.3 }}
                 component={NextLink}
                 href={`/apps/blog/detail/${linkTo}`}
                 onClick={() => dispatch(fetchBlogPost(linkTo))}
