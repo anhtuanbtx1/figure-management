@@ -79,12 +79,9 @@ const BlogFeaturedCard = ({ post, index }: Btype) => {
 
   const CoverImgBg = styled(BlankCard)({
     p: 0,
-    height: '400px',
     position: 'relative',
-    background: `url(${coverImg}) no-repeat center`,
-    backgroundSize: 'contain',
-    backgroundPosition: 'center center',
     backgroundColor: '#f5f5f5',
+    overflow: 'hidden',
     transition: 'transform 0.3s ease-in-out',
     '&:hover': {
       transform: 'scale(1.02)',
@@ -105,6 +102,16 @@ const BlogFeaturedCard = ({ post, index }: Btype) => {
         >
           <CoverImgBg className="hoverCard">
             <>
+              {/* Ảnh từ URL (coverImg) - tự fit theo tỷ lệ gốc */}
+              <img
+                src={coverImg}
+                alt={title}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                }}
+              />
               <Typography
                 component={Link}
                 href={`/apps/blog/detail/${linkTo}`}
