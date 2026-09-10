@@ -105,8 +105,8 @@ const BlogCard = ({ post }: Btype) => {
   };
 
   return (
-    <Grid item xs={12} lg={4} md={4} sm={6} display="flex" alignItems="stretch">
-      <BlankCard className="hoverCard">
+    <Grid item xs={12} sm={6} md={6} lg={6} display="flex" alignItems="stretch">
+      <BlankCard className="hoverCard" sx={{ width: '100%' }}>
         <>
           {/* Ảnh + nút đổi ảnh khi hover */}
           <Box

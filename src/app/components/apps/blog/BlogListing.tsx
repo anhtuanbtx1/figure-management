@@ -21,7 +21,7 @@ import { fetchBlogPosts, SearchBlog, SortBlog } from '@/store/apps/blog/BlogSlic
 import BlogFeaturedCard from './BlogFeaturedCard';
 import { BlogPostType } from '../../../(DashboardLayout)/types/apps/blog';
 
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 8;
 
 const BlogListing = () => {
   const dispatch = useDispatch();
