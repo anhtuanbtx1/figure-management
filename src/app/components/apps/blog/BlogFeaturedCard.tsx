@@ -134,7 +134,7 @@ const BlogFeaturedCard = ({ post, index }: Btype) => {
                         gutterBottom
                         variant="h3"
                         color="inherit"
-                        sx={{ textDecoration: 'none', mb: 2 }}
+                        sx={{ textDecoration: 'none', mb: 2, fontSize: { xs: '1.25rem', sm: '1.75rem' }, fontWeight: 700 }}
                         component={Link}
                         href={`/apps/blog/detail/${linkTo}`}
                         onClick={() => dispatch(fetchBlogPost(linkTo))}

@@ -127,15 +127,16 @@ const BlogCard = ({ post }: Btype) => {
                 alt={title}
                 sx={{
                   width: '100%',
-                  height: 'auto',
+                  height: { xs: 260, sm: 220, md: 180 },
+                  objectFit: 'cover',
                   display: 'block',
                   transition: 'transform 0.3s ease-in-out',
-                  '&:hover': { transform: 'scale(1.05)' },
+                  '&:hover': { transform: 'scale(1.03)' },
                 }}
               />
             </Typography>
 
-            {/* Nút camera — hiện khi hover */}
+            {/* Nút camera — hiện khi hover trên desktop, hiển thị nhẹ trên mobile touch */}
             <Tooltip title="Đổi ảnh nhân vật" placement="top">
               <IconButton
                 onClick={handleOpenDialog}
@@ -146,10 +147,10 @@ const BlogCard = ({ post }: Btype) => {
                   right: 8,
                   backgroundColor: 'rgba(0,0,0,0.65)',
                   color: '#fff',
-                  opacity: hovering ? 1 : 0,
-                  transform: hovering ? 'scale(1)' : 'scale(0.8)',
+                  opacity: { xs: 0.85, md: hovering ? 1 : 0 },
+                  transform: { xs: 'scale(1)', md: hovering ? 'scale(1)' : 'scale(0.8)' },
                   transition: 'opacity 0.2s ease, transform 0.2s ease',
-                  '&:hover': { backgroundColor: 'primary.main' },
+                  '&:hover': { backgroundColor: 'primary.main', opacity: 1 },
                 }}
               >
                 <IconCamera size={18} />
@@ -157,7 +158,7 @@ const BlogCard = ({ post }: Btype) => {
             </Tooltip>
           </Box>
 
-          <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+          <CardContent sx={{ p: { xs: 1.75, sm: 2 }, '&:last-child': { pb: 2 } }}>
             <Box mb={1.5}>
               <Typography
                 gutterBottom

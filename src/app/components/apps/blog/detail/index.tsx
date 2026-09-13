@@ -114,8 +114,8 @@ const BlogDetail = () => {
                     animation="wave"
                     variant="rectangular"
                     width="100%"
-                    height={440}
                     sx={{
+                      height: { xs: 220, sm: 340, md: 440 },
                       borderRadius: (theme) => theme.shape.borderRadius / 5,
                     }}
                   ></Skeleton>
@@ -123,27 +123,32 @@ const BlogDetail = () => {
               ) : (
                 <CardMedia
                   component="img"
-                  height="440"
                   image={post?.coverImg}
-                  alt="green iguana"
+                  alt={post?.title || "Character Image"}
+                  sx={{
+                    height: { xs: 220, sm: 340, md: 440 },
+                    objectFit: 'cover',
+                  }}
                 />
               )}
-              <CardContent>
-                <Stack direction="row" sx={{ marginTop: "-45px" }}>
+              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                <Stack direction="row" alignItems="center" sx={{ marginTop: { xs: "-25px", sm: "-35px", md: "-45px" } }}>
                   <Tooltip
-                    title={post ? post?.author.name : ""}
+                    title={post ? post?.author?.name || '' : ""}
                     placement="top"
                   >
                     <Avatar
-                      aria-label="recipe"
-                      src={post?.author.avatar}
+                      aria-label="author avatar"
+                      src={post?.author?.avatar}
+                      sx={{ width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 }, border: '2px solid white' }}
                     ></Avatar>
                   </Tooltip>
                   <Chip
                     sx={{
                       marginLeft: "auto",
-                      marginTop: "-21px",
+                      marginTop: "-10px",
                       backgroundColor: (theme: any) => theme.palette.mode === 'dark' ? theme.palette.background.dark : 'white',
+                      fontWeight: 600,
                     }}
                     label="2 min Read"
                     size="small"
@@ -152,32 +157,38 @@ const BlogDetail = () => {
                 <Chip
                   label={post?.category}
                   size="small"
-                  sx={{ marginTop: 2 }}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ marginTop: 2, fontWeight: 600 }}
                 ></Chip>
-                <Box my={3}>
+                <Box my={2.5}>
                   <Typography
                     gutterBottom
                     variant="h1"
-                    fontWeight={600}
+                    fontWeight={700}
                     color="inherit"
-                    sx={{ textDecoration: "none" }}
+                    sx={{
+                      textDecoration: "none",
+                      fontSize: { xs: '1.35rem', sm: '1.85rem', md: '2.25rem' },
+                      lineHeight: 1.35,
+                    }}
                   >
                     {post?.title}
                   </Typography>
                 </Box>
-                <Stack direction="row" gap={3} alignItems="center">
-                  <Stack direction="row" gap={1} alignItems="center">
-                    <IconEye size="18" /> {post?.view}
+                <Stack direction="row" gap={{ xs: 2, sm: 3 }} alignItems="center" flexWrap="wrap">
+                  <Stack direction="row" gap={0.8} alignItems="center">
+                    <IconEye size="18" /> <Typography variant="body2">{post?.view}</Typography>
                   </Stack>
-                  <Stack direction="row" gap={1} alignItems="center">
-                    <IconMessage2 size="18" /> {post?.comments.length}
+                  <Stack direction="row" gap={0.8} alignItems="center">
+                    <IconMessage2 size="18" /> <Typography variant="body2">{post?.comments?.length || 0}</Typography>
                   </Stack>
 
-                  <Stack direction="row" ml="auto" alignItems="center">
+                  <Stack direction="row" ml={{ xs: 0, sm: "auto" }} alignItems="center">
                     <IconPoint size="16" />
                     <small>
-                      {post ? (
-                        <>{format(new Date(post.createdAt), "E, MMM d")}</>
+                      {post?.createdAt ? (
+                        <>{format(new Date(post.createdAt), "E, MMM d, yyyy")}</>
                       ) : (
                         ""
                       )}
@@ -186,9 +197,9 @@ const BlogDetail = () => {
                 </Stack>
               </CardContent>
               <Divider />
-              <CardContent>
-                <Typography variant="h2">Title of the paragraph</Typography>
-                <p>
+              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                <Typography variant="h2" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' }, mb: 1.5, fontWeight: 600 }}>Title of the paragraph</Typography>
+                <p style={{ lineHeight: 1.7, marginBottom: '1rem' }}>
                   But you cannot figure out what it is or what it can do. MTA
                   web directory is the simplest way in which one can bid on a
                   link, or a few links if they wish to do so. The link directory
@@ -199,7 +210,7 @@ const BlogDetail = () => {
                   links as well. It allows you to start your bid at the bottom
                   and slowly work your way to the top of the list.
                 </p>
-                <p>
+                <p style={{ lineHeight: 1.7, marginBottom: '1rem' }}>
                   Gigure out what it is or what it can do. MTA web directory is
                   the simplest way in which one can bid on a link, or a few
                   links if they wish to do so. The link directory on MTA
@@ -210,13 +221,13 @@ const BlogDetail = () => {
                   as well. It allows you to start your bid at the bottom and
                   slowly work your way to the top of the
                 </p>
-                <Typography fontWeight={600}>This is strong text.</Typography>
-                <Typography fontStyle="italic">This is italic text.</Typography>
-                <Box my={4}>
+                <Typography fontWeight={600} sx={{ my: 1 }}>This is strong text.</Typography>
+                <Typography fontStyle="italic" sx={{ mb: 2 }}>This is italic text.</Typography>
+                <Box my={3}>
                   <Divider />
                 </Box>
-                <Typography variant="h3">Unorder list.</Typography>
-                <ul>
+                <Typography variant="h3" sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem' }, mb: 1.5, fontWeight: 600 }}>Unorder list.</Typography>
+                <ul style={{ paddingLeft: '1.5rem', lineHeight: 1.7 }}>
                   <li>Gigure out what it is or</li>
                   <li>The links it currently</li>
                   <li>It allows you to start your bid</li>
@@ -224,11 +235,11 @@ const BlogDetail = () => {
                   <li>The links it currently</li>
                   <li>It allows you to start your bid</li>
                 </ul>
-                <Box my={4}>
+                <Box my={3}>
                   <Divider />
                 </Box>
-                <Typography variant="h3">Order list.</Typography>
-                <ol>
+                <Typography variant="h3" sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem' }, mb: 1.5, fontWeight: 600 }}>Order list.</Typography>
+                <ol style={{ paddingLeft: '1.5rem', lineHeight: 1.7 }}>
                   <li>Gigure out what it is or</li>
                   <li>The links it currently</li>
                   <li>It allows you to start your bid</li>
@@ -236,13 +247,13 @@ const BlogDetail = () => {
                   <li>The links it currently</li>
                   <li>It allows you to start your bid</li>
                 </ol>
-                <Box my={4}>
+                <Box my={3}>
                   <Divider />
                 </Box>
-                <Typography variant="h3">Quotes</Typography>
-                <Box p={2} bgcolor="grey[100]" mt={2}>
-                  <Typography variant="h6">
-                    <IconQuote /> Life is short, Smile while you still have
+                <Typography variant="h3" sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem' }, mb: 1.5, fontWeight: 600 }}>Quotes</Typography>
+                <Box p={{ xs: 2, sm: 3 }} mt={2} sx={{ borderRadius: 2, backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'action.hover' : 'grey.100' }}>
+                  <Typography variant="h6" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' }, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <IconQuote size={20} /> Life is short, Smile while you still have
                     teeth!
                   </Typography>
                 </Box>
