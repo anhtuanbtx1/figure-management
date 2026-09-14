@@ -111,7 +111,15 @@ const BlogCard = ({ post }: Btype) => {
         <>
           {/* Ảnh + nút đổi ảnh khi hover */}
           <Box
-            sx={{ position: 'relative', overflow: 'hidden' }}
+            sx={{
+              position: 'relative',
+              overflow: 'hidden',
+              backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'grey.100',
+              minHeight: { xs: 200, sm: 200, md: 220 },
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
             onMouseEnter={() => setHovering(true)}
             onMouseLeave={() => setHovering(false)}
           >
@@ -119,7 +127,7 @@ const BlogCard = ({ post }: Btype) => {
               component={NextLink}
               href={`/apps/blog/detail/${linkTo}`}
               onClick={() => dispatch(fetchBlogPost(linkTo))}
-              sx={{ display: 'block' }}
+              sx={{ display: 'block', width: '100%', height: '100%' }}
             >
               <CardMedia
                 component="img"
@@ -127,8 +135,9 @@ const BlogCard = ({ post }: Btype) => {
                 alt={title}
                 sx={{
                   width: '100%',
-                  height: { xs: 260, sm: 220, md: 180 },
+                  height: { xs: 260, sm: 260, md: 'auto' },
                   objectFit: 'cover',
+                  objectPosition: 'top center',
                   display: 'block',
                   transition: 'transform 0.3s ease-in-out',
                   '&:hover': { transform: 'scale(1.03)' },
