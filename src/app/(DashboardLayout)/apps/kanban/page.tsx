@@ -95,31 +95,18 @@ function Page() {
         <Paper
           elevation={0}
           sx={{
-            background: theme.palette.mode === 'dark'
-              ? `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${alpha('#000000', 0.2)} 100%)`
-              : `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.9)} 0%, ${alpha(theme.palette.grey[100], 0.4)} 100%)`,
-            backdropFilter: 'blur(20px)',
-            borderRadius: 1,
-            border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+            bgcolor: theme.palette.mode === 'dark' ? '#111113' : '#F9FAFB',
+            borderRadius: '16px',
+            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(31, 41, 55, 0.6)' : '#F3F4F6'}`,
             overflow: 'hidden',
             position: 'relative',
             width: '100%',
             maxWidth: '100%',
-            // Utility accent line top
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 2,
-              background: theme.palette.text.primary,
-            }
+            transition: 'background-color 0.3s ease',
           }}
         >
           <CardContent sx={{
-            p: { xs: 2, sm: 3 },
-            pt: { xs: 3, sm: 4 },
+            p: { xs: 2, sm: 2.5, lg: 3 },
             width: '100%',
             maxWidth: '100%',
             overflow: 'hidden'

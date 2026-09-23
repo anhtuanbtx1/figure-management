@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Box, Card, CardHeader, CardContent, IconButton, Typography, Stack, LinearProgress, useTheme, alpha, Fade, Grow, ToggleButton, ToggleButtonGroup, Tabs, Tab, Chip, useMediaQuery, Fab, Tooltip } from '@mui/material';
+import { Box, IconButton, Typography, Stack, LinearProgress, useTheme, alpha, Fade, Grow, ToggleButton, ToggleButtonGroup, Tabs, Tab, useMediaQuery, Fab, Tooltip } from '@mui/material';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import KanbanService from '@/app/(DashboardLayout)/apps/kanban/services/kanbanService';
 import { KanbanTaskDb as KanbanTask, KanbanColumn } from '@/types/apps/kanban-db';
-import { IconPlus, IconGripVertical, IconColumns, IconCalendarTime, IconCalendar, IconChevronLeft, IconChevronRight, IconCalendarOff } from '@tabler/icons-react';
+import { IconPlus, IconColumns, IconCalendarTime, IconCalendar, IconChevronLeft, IconChevronRight, IconArrowsMaximize, IconArrowsMinimize } from '@tabler/icons-react';
 import TaskEditorDialog from './TaskEditorDialog';
 import ConfirmDialog from './ConfirmDialog';
 import KanbanTaskCard from './KanbanTaskCard';
@@ -14,6 +14,15 @@ import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 
 dayjs.extend(isoWeek);
+
+const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+// Compact column label: "T2 · 22/09"
+const getShortLabel = (colId: string, fallback: string) => {
+  if (colId === 'unscheduled') return fallback;
+  const d = dayjs(colId);
+  return `${DAY_NAMES[d.day()]} · ${d.format('DD/MM')}`;
+};
 
 interface ColumnState {
   id: string; // 'unscheduled' or 'YYYY-MM-DD'
@@ -49,6 +58,8 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<'board' | 'weekly'>('board');
+  const [compactBoard, setCompactBoard] = useState(true);
+  const isCompact = !isMobile && compactBoard;
   const [currentWeekDate, setCurrentWeekDate] = useState(dayjs());
 
   const generateWeekColumns = useCallback((tasks: KanbanTask[], weekDate: dayjs.Dayjs) => {
@@ -276,7 +287,12 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
   }
 
   const isLight = theme.palette.mode === 'light';
-  const customBorderColor = isLight ? 'rgba(0, 0, 0, 0.12)' : alpha(theme.palette.divider, 0.5);
+  const customBorderColor = isLight ? '#E5E7EB' : 'rgba(31, 41, 55, 0.8)';
+  const textStrong = isLight ? '#111827' : '#F3F4F6';
+  const textMuted = isLight ? '#6B7280' : '#9CA3AF';
+  const pillBg = isLight ? '#E5E7EB' : '#25262B';
+  const dashedBorder = isLight ? '#E5E7EB' : 'rgba(31, 41, 55, 0.6)';
+  const surface = isLight ? '#FFFFFF' : '#1A1B1E';
 
   return (
     <>
@@ -294,12 +310,13 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
-            bgcolor: alpha(theme.palette.background.paper, 0.5),
+            bgcolor: surface,
             p: 0.5,
-            borderRadius: 1,
-            border: `1px solid ${customBorderColor}`
+            borderRadius: '12px',
+            border: `1px solid ${customBorderColor}`,
+            boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
           }}>
-            <IconButton size="small" onClick={handlePrevWeek} sx={{ borderRadius: 1, p: isMobile ? 0.5 : 0.75 }}>
+            <IconButton size="small" onClick={handlePrevWeek} sx={{ borderRadius: '8px', p: isMobile ? 0.5 : 0.75, color: textMuted }}>
               <IconChevronLeft size={isMobile ? 16 : 18} />
             </IconButton>
             <Typography
@@ -307,9 +324,9 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
               fontWeight={700}
               sx={{
                 px: isMobile ? 1 : 2,
-                fontFamily: 'monospace',
                 minWidth: isMobile ? 100 : 140,
                 textAlign: 'center',
+                color: textStrong,
                 fontSize: isMobile ? '0.75rem' : '0.875rem',
               }}
             >
@@ -318,7 +335,7 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
                 : `Tuần ${currentWeekDate.isoWeek()} - ${currentWeekDate.format('YYYY')}`
               }
             </Typography>
-            <IconButton size="small" onClick={handleNextWeek} sx={{ borderRadius: 1, p: isMobile ? 0.5 : 0.75 }}>
+            <IconButton size="small" onClick={handleNextWeek} sx={{ borderRadius: '8px', p: isMobile ? 0.5 : 0.75, color: textMuted }}>
               <IconChevronRight size={isMobile ? 16 : 18} />
             </IconButton>
           </Box>
@@ -329,8 +346,8 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
               sx={{
                 bgcolor: alpha(theme.palette.primary.main, 0.1),
                 color: 'primary.main',
-                borderRadius: 1,
-                p: isMobile ? 0.5 : 0.75,
+                borderRadius: '12px',
+                p: isMobile ? 0.75 : 1,
                 '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
               }}
             >
@@ -339,52 +356,75 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
           </Tooltip>
         </Stack>
 
-        {/* View Toggle */}
+        {/* Density + View Toggle */}
+        <Stack direction="row" alignItems="center" spacing={1}>
+          {!isMobile && viewMode === 'board' && (
+            <Tooltip title={compactBoard ? 'Mở rộng thẻ' : 'Thu gọn để xem cả tuần'} arrow>
+              <IconButton
+                size="small"
+                onClick={() => setCompactBoard(v => !v)}
+                sx={{
+                  borderRadius: '12px',
+                  p: 1,
+                  color: textMuted,
+                  bgcolor: isLight ? '#F3F4F6' : '#25262B',
+                  '&:hover': { color: textStrong, bgcolor: isLight ? '#E5E7EB' : '#2C2D33' },
+                }}
+              >
+                {compactBoard ? <IconArrowsMaximize size={18} /> : <IconArrowsMinimize size={18} />}
+              </IconButton>
+            </Tooltip>
+          )}
         <ToggleButtonGroup
           value={viewMode}
           exclusive
           onChange={(e, newVal) => { if (newVal) setViewMode(newVal); }}
           size="small"
           sx={{
-            bgcolor: alpha(theme.palette.background.paper, 0.5),
-            backdropFilter: 'blur(10px)',
-            border: `1px solid ${customBorderColor}`,
+            bgcolor: isLight ? '#F3F4F6' : '#25262B',
+            p: 0.5,
+            gap: 0.5,
+            borderRadius: '12px',
             '.MuiToggleButton-root': {
-              fontFamily: 'monospace',
               fontWeight: 600,
+              textTransform: 'none',
               px: isMobile ? 1.25 : 2,
               py: 0.75,
-              letterSpacing: 0.5,
-              fontSize: isMobile ? '0.7rem' : '0.8rem',
+              fontSize: isMobile ? '0.75rem' : '0.8125rem',
               border: 'none',
+              borderRadius: '8px !important',
+              color: textMuted,
               transition: 'all 0.2s',
-              '&.Mui-selected': {
-                bgcolor: alpha(theme.palette.primary.main, 0.15),
-                color: 'primary.main',
+              '&:hover': { bgcolor: 'transparent', color: textStrong },
+              '&.Mui-selected, &.Mui-selected:hover': {
+                bgcolor: surface,
+                color: textStrong,
+                boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)',
               }
             }
           }}
         >
           <ToggleButton value="board">
-            <IconColumns size={isMobile ? 14 : 18} style={{ marginRight: isMobile ? 4 : 8 }} />
-            {isMobile ? 'BOARD' : 'BOARD'}
+            <IconColumns size={isMobile ? 14 : 16} style={{ marginRight: isMobile ? 4 : 8 }} />
+            Board
           </ToggleButton>
           <ToggleButton value="weekly">
-            <IconCalendarTime size={isMobile ? 14 : 18} style={{ marginRight: isMobile ? 4 : 8 }} />
-            GANTT
+            <IconCalendarTime size={isMobile ? 14 : 16} style={{ marginRight: isMobile ? 4 : 8 }} />
+            Gantt
           </ToggleButton>
         </ToggleButtonGroup>
+        </Stack>
       </Stack>
 
       {/* === MOBILE TAB BAR: Compact day selector === */}
       {isMobile && viewMode === 'board' && (
         <Box sx={{
           mb: 2,
-          borderRadius: 1.5,
+          borderRadius: '16px',
           overflow: 'hidden',
-          border: `1px solid ${isLight ? 'rgba(0,0,0,0.1)' : alpha(theme.palette.divider, 0.4)}`,
-          bgcolor: alpha(theme.palette.background.paper, 0.6),
-          backdropFilter: 'blur(12px)',
+          border: `1px solid ${customBorderColor}`,
+          bgcolor: surface,
+          boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
         }}>
           <Tabs
             value={activeTab}
@@ -537,12 +577,12 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
           sx={{
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
-            flexWrap: isMobile ? 'wrap' : 'nowrap',
-            gap: { xs: 2 },
+            alignItems: isMobile ? 'stretch' : 'flex-start',
+            gap: isCompact ? 1.5 : 3,
             pb: 2,
-            px: { xs: 1, sm: 1.5, md: 2 },
+            pl: isMobile || isCompact ? 0 : 1.5,
             width: '100%',
-            overflowX: isMobile ? 'hidden' : 'auto', // Disable horizontal scroll when on mobile
+            overflowX: isMobile ? 'hidden' : 'auto',
           }}
         >
           <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
@@ -556,170 +596,179 @@ const KanbanBoardDB: React.FC<KanbanBoardDBProps> = ({ onDataChange }) => {
                   style={{ transformOrigin: 'top center' }}
                 >
                   <Box sx={{
-                    minWidth: isMobile ? '100%' : 300,
-                    width: isMobile ? '100%' : 320,
+                    ...(isMobile
+                      ? { width: '100%' }
+                      : isCompact
+                        ? { flex: '1 1 0', minWidth: 132 }
+                        : { width: 320, minWidth: 320, flexShrink: 0 }),
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
                   }}>
-                    <Card
-                      elevation={0}
-                      sx={{
-                        bgcolor: isToday ? alpha(theme.palette.primary.main, 0.05) : alpha(theme.palette.background.paper, 0.4),
-                        backdropFilter: 'blur(10px)',
-                        borderRadius: 1, // Sharp corners
-                        border: '1px solid',
-                        borderColor: isToday ? 'primary.main' : customBorderColor,
-                        transition: 'all 0.2s ease',
-                        height: '100%',
-                        minHeight: { xs: 280, sm: 400, md: 600 },
-                        display: 'flex',
-                        flexDirection: 'column',
-                        // Utilitarian header decoration concept
-                      }}
-                    >
-                      <CardHeader
-                        title={
-                          <Stack direction="row" alignItems="center" spacing={1}>
-                            <IconGripVertical size={16} color={theme.palette.text.disabled} />
-                            <Typography variant="subtitle1" fontWeight={700} color={isToday ? 'primary.main' : 'text.primary'} sx={{
-                              textTransform: 'uppercase',
-                              letterSpacing: 1,
-                              fontFamily: "'JetBrains Mono', 'Roboto Mono', monospace"
-                            }}>
-                              {col.name}
-                            </Typography>
+                    {/* Column Header */}
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 0.5, mb: isCompact ? 1.25 : 2, minHeight: 30 }}>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+                        {isToday && (
+                          <Box sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            bgcolor: 'primary.main',
+                            flexShrink: 0,
+                            boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.2)}`
+                          }} />
+                        )}
+                        <Typography
+                          component="h3"
+                          sx={{
+                            fontSize: isCompact ? 13 : 14,
+                            fontWeight: 700,
+                            color: isToday ? 'primary.main' : textStrong,
+                            textTransform: 'capitalize',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {isCompact ? getShortLabel(col.id, col.name) : col.name}
+                        </Typography>
+                        <Box
+                          component="span"
+                          sx={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            px: isCompact ? 0.75 : 1,
+                            py: 0.25,
+                            borderRadius: '9999px',
+                            bgcolor: isToday ? alpha(theme.palette.primary.main, 0.12) : pillBg,
+                            color: isToday ? 'primary.main' : textMuted,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {col.tasks.length}
+                        </Box>
+                      </Stack>
+                      {!isCompact && (
+                      <Tooltip title="Thêm nhiệm vụ" arrow>
+                        <IconButton
+                          size="small"
+                          onClick={() => openCreate(dbColumns[0]?.id || '', col.id)}
+                          sx={{ color: '#9CA3AF', '&:hover': { color: textStrong, bgcolor: 'transparent' } }}
+                        >
+                          <IconPlus size={18} />
+                        </IconButton>
+                      </Tooltip>
+                      )}
+                    </Stack>
+
+                    {/* Cards List */}
+                    <Droppable droppableId={col.id}>
+                      {(provided, snapshot) => (
+                        <Box
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            minHeight: isCompact ? 64 : 100,
+                            borderRadius: isCompact ? '12px' : '16px',
+                            outline: `2px dashed ${snapshot.isDraggingOver ? alpha(theme.palette.primary.main, 0.35) : 'transparent'}`,
+                            outlineOffset: 4,
+                            bgcolor: snapshot.isDraggingOver ? alpha(theme.palette.primary.main, 0.04) : 'transparent',
+                            transition: 'background-color 0.2s ease, outline-color 0.2s ease',
+                          }}
+                        >
+                          {col.tasks.map((t, i) => (
+                            <Draggable key={t.id} draggableId={t.id} index={i}>
+                              {(prov, snap) => (
+                                <Fade
+                                  in={deletingTaskId !== t.id}
+                                  timeout={300}
+                                  appear={newTaskId === t.id}
+                                >
+                                  <Box
+                                    ref={prov.innerRef}
+                                    {...prov.draggableProps}
+                                    {...prov.dragHandleProps}
+                                    sx={{
+                                      pb: isCompact ? 1.25 : 2,
+                                      opacity: deletingTaskId === t.id ? 0 : 1,
+                                      transform: newTaskId === t.id
+                                        ? 'scale(1.03)'
+                                        : deletingTaskId === t.id
+                                          ? 'scale(0.95)'
+                                          : 'none',
+                                      zIndex: snap.isDragging ? 1000 : 'auto',
+                                      transition: 'opacity 0.3s ease, transform 0.3s ease',
+                                    }}
+                                  >
+                                    <KanbanTaskCard
+                                      task={t}
+                                      statusName={dbColumns.find(c => c.id === t.columnId)?.name || 'Chưa xác định'}
+                                      onEdit={openEdit}
+                                      onDelete={requestDelete}
+                                      isDragging={draggedTask === t.id}
+                                      compact={isCompact}
+                                    />
+                                  </Box>
+                                </Fade>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+
+                          {/* Empty state */}
+                          {col.tasks.length === 0 && !snapshot.isDraggingOver && (
                             <Box
                               sx={{
-                                bgcolor: isToday ? theme.palette.primary.main : theme.palette.text.primary,
-                                color: theme.palette.background.default,
-                                borderRadius: 1,
-                                width: 24,
-                                height: 24,
+                                height: isCompact ? 64 : 96,
+                                mb: isCompact ? 1.25 : 2,
+                                px: 1,
+                                textAlign: 'center',
+                                borderRadius: isCompact ? '12px' : '16px',
+                                border: `2px dashed ${dashedBorder}`,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                fontFamily: 'monospace'
+                                fontSize: isCompact ? 12 : 14,
+                                color: '#9CA3AF',
                               }}
                             >
-                              {col.tasks.length}
+                              {isCompact ? 'Kéo thả vào đây' : 'Kéo thả nhiệm vụ vào đây'}
                             </Box>
-                          </Stack>
-                        }
-                        action={
-                          <IconButton
-                            size="small"
-                            onClick={() => openCreate(dbColumns[0]?.id || '', col.id)}
-                            sx={{
-                              borderRadius: 1,
-                              bgcolor: alpha(theme.palette.primary.main, 0.1),
-                              color: theme.palette.primary.main,
-                              '&:hover': {
-                                bgcolor: alpha(theme.palette.primary.main, 0.2),
-                              },
-                            }}
-                          >
-                            <IconPlus size={18} />
-                          </IconButton>
-                        }
-                        sx={{
-                          pb: 1.5,
-                          pt: 2,
-                          px: 2,
-                          borderBottom: `2px solid ${isToday ? alpha(theme.palette.primary.main, 0.5) : customBorderColor}`
-                        }}
-                      />
-                      <CardContent sx={{ pt: 2, flex: 1, display: 'flex', flexDirection: 'column', bgcolor: alpha(theme.palette.background.default, 0.3) }}>
-                        <Droppable droppableId={col.id}>
-                          {(provided, snapshot) => (
-                            <Stack
-                              ref={provided.innerRef}
-                              {...provided.droppableProps}
-                              spacing={2}
-                              sx={{
-                                flex: 1,
-                                p: 0.5,
-                                borderRadius: 1,
-                                bgcolor: snapshot.isDraggingOver
-                                  ? alpha(theme.palette.primary.main, 0.05)
-                                  : 'transparent',
-                                border: snapshot.isDraggingOver
-                                  ? `2px dashed ${alpha(theme.palette.primary.main, 0.3)}`
-                                  : '2px dashed transparent',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                              }}
-                            >
-                              {col.tasks.map((t, i) => (
-                                <Draggable key={t.id} draggableId={t.id} index={i}>
-                                  {(prov, snap) => (
-                                    <Fade
-                                      in={deletingTaskId !== t.id}
-                                      timeout={300}
-                                      appear={newTaskId === t.id}
-                                    >
-                                      <Box
-                                        ref={prov.innerRef}
-                                        {...prov.draggableProps}
-                                        {...prov.dragHandleProps}
-                                        sx={{
-                                          opacity: snap.isDragging ? 0.8 : deletingTaskId === t.id ? 0 : 1,
-                                          transform: snap.isDragging
-                                            ? 'rotate(2deg) scale(1.02)'
-                                            : newTaskId === t.id
-                                              ? 'scale(1.05)'
-                                              : deletingTaskId === t.id
-                                                ? 'scale(0.8)'
-                                                : 'none',
-                                          zIndex: snap.isDragging ? 1000 : 'auto',
-                                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                        }}
-                                      >
-                                        <KanbanTaskCard
-                                          task={t}
-                                          statusName={dbColumns.find(c => c.id === t.columnId)?.name || 'Chưa xác định'}
-                                          onEdit={openEdit}
-                                          onDelete={requestDelete}
-                                          isDragging={draggedTask === t.id}
-                                        />
-                                      </Box>
-                                    </Fade>
-                                  )}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-
-                              {/* Empty state */}
-                              {col.tasks.length === 0 && (
-                                <Box
-                                  sx={{
-                                    p: isMobile ? 2 : 3,
-                                    textAlign: 'center',
-                                    color: 'text.disabled',
-                                    borderRadius: 1,
-                                    border: `1px dashed ${customBorderColor}`,
-                                    bgcolor: alpha(theme.palette.background.paper, 0.5),
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: 0.75,
-                                  }}
-                                >
-                                  <IconCalendarOff size={isMobile ? 20 : 26} opacity={0.35} />
-                                  <Typography
-                                    variant="caption"
-                                    fontFamily="monospace"
-                                    sx={{ opacity: 0.6, fontSize: isMobile ? '0.65rem' : '0.75rem' }}
-                                  >
-                                    Không có nhiệm vụ
-                                  </Typography>
-                                </Box>
-                              )}
-                            </Stack>
                           )}
-                        </Droppable>
-                      </CardContent>
-                    </Card>
+                        </Box>
+                      )}
+                    </Droppable>
+
+                    {/* Add Task */}
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={() => openCreate(dbColumns[0]?.id || '', col.id)}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 1,
+                        width: '100%',
+                        py: isCompact ? 1 : 1.5,
+                        borderRadius: isCompact ? '10px' : '12px',
+                        border: `2px dashed ${dashedBorder}`,
+                        bgcolor: 'transparent',
+                        color: textMuted,
+                        fontSize: isCompact ? 13 : 14,
+                        fontWeight: 600,
+                        fontFamily: 'inherit',
+                        cursor: 'pointer',
+                        transition: 'color 0.2s ease, border-color 0.2s ease',
+                        '&:hover': {
+                          color: isLight ? '#374151' : '#D1D5DB',
+                          borderColor: isLight ? '#D1D5DB' : '#374151',
+                        },
+                      }}
+                    >
+                      <IconPlus size={isCompact ? 14 : 16} /> {isCompact ? 'Thêm' : 'Thêm nhiệm vụ'}
+                    </Box>
                   </Box>
                 </Grow>
               )

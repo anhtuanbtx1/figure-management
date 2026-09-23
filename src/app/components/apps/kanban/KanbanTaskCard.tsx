@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from 'react';
-import { Box, Chip, IconButton, Stack, Typography, Tooltip, useTheme, alpha, useMediaQuery } from '@mui/material';
-import { IconPencil, IconTrash, IconUser, IconCheck, IconCircle } from '@tabler/icons-react';
+import { Avatar, Box, IconButton, ListItemIcon, Menu, MenuItem, Stack, Tooltip, Typography, useTheme, alpha, useMediaQuery } from '@mui/material';
+import { IconDots, IconPencil, IconTrash, IconCalendar, IconCircleCheck, IconGripVertical } from '@tabler/icons-react';
+import dayjs from 'dayjs';
 import { KanbanTaskDb, KanbanPriority } from '@/types/apps/kanban-db';
 
 interface Props {
@@ -10,276 +11,301 @@ interface Props {
   onEdit: (task: KanbanTaskDb) => void;
   onDelete: (task: KanbanTaskDb) => void;
   isDragging?: boolean;
+  compact?: boolean; // Dense layout so a whole week fits on screen
 }
 
 const priorityConfig = (p?: KanbanPriority) => {
   switch (p) {
     case 'Thấp':
-      return { color: '#10B981', bg: '#10B98120', label: 'Thấp', icon: '🟢' };
+      return { color: '#2563EB', darkColor: '#60A5FA', label: 'Thấp' };
     case 'Trung bình':
-      return { color: '#3B82F6', bg: '#3B82F620', label: 'T.Bình', icon: '🔵' };
+      return { color: '#EA580C', darkColor: '#FB923C', label: 'T.Bình' };
     case 'Cao':
-      return { color: '#F59E0B', bg: '#F59E0B20', label: 'Cao', icon: '🟡' };
+      return { color: '#DC2626', darkColor: '#F87171', label: 'Cao' };
     case 'Khẩn cấp':
-      return { color: '#EF4444', bg: '#EF444420', label: 'Khẩn!', icon: '🔴' };
+      return { color: '#BE123C', darkColor: '#FB7185', label: 'Khẩn!' };
     default:
-      return { color: '#6B7280', bg: '#6B728020', label: '—', icon: '⚪' };
+      return null;
   }
 };
 
-const KanbanTaskCard: React.FC<Props> = ({ task, statusName = 'Chưa xác định', onEdit, onDelete, isDragging = false }) => {
+const getInitials = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(-2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
+
+const formatDateRange = (start?: string | null, end?: string | null) => {
+  if (!start) return null;
+  const s = dayjs(start);
+  if (!end || dayjs(end).isSame(s, 'day')) return s.format('DD/MM');
+  return `${s.format('DD/MM')} – ${dayjs(end).format('DD/MM')}`;
+};
+
+const KanbanTaskCard: React.FC<Props> = ({ task, statusName = 'Chưa xác định', onEdit, onDelete, isDragging = false, compact = false }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [isHovered, setIsHovered] = useState(false);
+  const isDark = theme.palette.mode === 'dark';
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const priority = priorityConfig(task.priority);
 
-  const isCompleted = task.columnId === 'col-done' || statusName.toLowerCase().includes('done') || statusName.toLowerCase().includes('hoàn thành');
-  const isInProgress = task.columnId === 'col-progress' || statusName.toLowerCase().includes('progress') || statusName.toLowerCase().includes('đang làm');
-  const isPending = task.columnId === 'col-pending' || statusName.toLowerCase().includes('pending') || statusName.toLowerCase().includes('chờ xử lý');
+  const status = statusName.toLowerCase();
+  const isCompleted = task.columnId === 'col-done' || status.includes('done') || status.includes('hoàn thành');
+  const isInProgress = task.columnId === 'col-progress' || status.includes('progress') || status.includes('đang làm');
+  const isPending = task.columnId === 'col-pending' || status.includes('pending') || status.includes('chờ xử lý');
 
-  const baseBackground = theme.palette.mode === 'dark' ? '#1E293B' : '#FFFFFF';
-  const cardBg = isCompleted
-    ? alpha(theme.palette.success.main, 0.04)
-    : isInProgress
-      ? alpha(theme.palette.info.main, 0.02)
-      : isPending
-        ? alpha(theme.palette.warning.main, 0.02)
-        : baseBackground;
+  const statusDot = isCompleted ? '#22C55E' : isInProgress ? '#3B82F6' : isPending ? '#F97316' : '#A855F7';
+  const dateLabel = formatDateRange(task.startDate, task.endDate);
 
-  const statusColor = isCompleted
-    ? theme.palette.success.main
-    : isInProgress
-      ? theme.palette.info.main
-      : isPending
-        ? theme.palette.warning.main
-        : '#94A3B8';
+  const border = isDark ? 'rgba(31, 41, 55, 0.8)' : '#E5E7EB';
+  const subtleBorder = isDark ? 'rgba(31, 41, 55, 0.6)' : '#F3F4F6';
+  const muted = isDark ? '#9CA3AF' : '#6B7280';
 
-  const isLight = theme.palette.mode === 'light';
-  const customBorderColor = isLight ? 'rgba(0, 0, 0, 0.15)' : alpha(theme.palette.divider, 0.8);
-
-  // On mobile, action buttons are always visible; on desktop, visible on hover
-  const showActions = isMobile || isHovered;
+  const closeMenu = () => setMenuAnchor(null);
 
   return (
     <Box
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="kanban-card"
       sx={{
-        p: isMobile ? 1.5 : 2,
-        borderRadius: 1,
-        bgcolor: cardBg,
-        border: '1px solid',
-        borderColor: isDragging
-          ? theme.palette.primary.main
-          : isHovered
-            ? alpha(theme.palette.text.primary, 0.3)
-            : customBorderColor,
-        boxShadow: isDragging
-          ? `0 12px 24px ${alpha(theme.palette.common.black, 0.2)}`
-          : isHovered
-            ? `0 4px 12px ${alpha(theme.palette.common.black, 0.05)}`
-            : 'none',
-        transform: isDragging ? 'rotate(1deg) scale(1.02)' : isHovered ? 'translateY(-2px)' : 'none',
-        transition: 'all 0.2s cubic-bezier(0.2, 0, 0, 1)',
-        cursor: isMobile ? 'pointer' : 'grab',
         position: 'relative',
-        overflow: 'hidden',
-        '&:active': {
-          cursor: isMobile ? 'pointer' : 'grabbing',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: compact ? 1 : isMobile ? 1.5 : 2,
+        p: compact ? 1.5 : isMobile ? 2 : 2.5,
+        bgcolor: isDark ? '#1A1B1E' : '#FFFFFF',
+        borderRadius: compact ? '12px' : '16px',
+        border: `1px solid ${isDragging ? theme.palette.primary.main : border}`,
+        boxShadow: isDragging
+          ? '0 20px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)'
+          : '0 1px 2px 0 rgba(0,0,0,0.05)',
+        cursor: isMobile ? 'pointer' : 'grab',
+        transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+        '&:hover': {
+          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
         },
-        // Thicker status accent border on mobile for easier scanning
-        borderLeft: `${isMobile ? 5 : 4}px solid ${statusColor}`,
+        '&:hover .kanban-card-grip': { opacity: 1 },
+        '&:active': { cursor: isMobile ? 'pointer' : 'grabbing' },
       }}
     >
-      {/* Title Row */}
-      <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1} mb={isMobile ? 0.75 : 1}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-          {isCompleted && (
-            <Box
-              sx={{
-                width: 18,
-                height: 18,
-                borderRadius: 1,
-                bgcolor: alpha(theme.palette.success.main, 0.1),
-                border: `1px solid ${theme.palette.success.main}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <IconCheck size={12} color={theme.palette.success.main} />
-            </Box>
-          )}
-          <Typography
-            variant={isMobile ? 'body2' : 'subtitle1'}
+      {/* Subtle drag handle on hover */}
+      {!isMobile && !compact && (
+        <Box
+          className="kanban-card-grip"
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: -12,
+            transform: 'translateY(-50%)',
+            opacity: 0,
+            transition: 'opacity 0.2s',
+            color: isDark ? '#4B5563' : '#D1D5DB',
+            display: 'flex',
+          }}
+        >
+          <IconGripVertical size={16} />
+        </Box>
+      )}
+
+      {/* Header: Status tag, Priority & Action menu */}
+      <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={compact ? 0.5 : 1}>
+        <Stack direction="row" flexWrap="wrap" gap={compact ? 0.5 : 1} sx={{ minWidth: 0 }}>
+          <Box
+            component="span"
             sx={{
-              flex: 1,
-              lineHeight: 1.3,
-              fontWeight: 700,
-              fontFamily: "'JetBrains Mono', 'Roboto Mono', monospace",
-              letterSpacing: '-0.02em',
-              color: isCompleted ? 'text.disabled' : 'text.primary',
-              fontSize: isMobile ? '0.88rem' : '0.95rem',
-              textDecoration: isCompleted ? 'line-through' : 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.75,
+              px: compact ? 0.75 : 1,
+              py: compact ? 0.375 : 0.5,
+              borderRadius: '6px',
+              fontSize: compact ? 10 : 11,
+              fontWeight: 600,
+              letterSpacing: '0.025em',
+              textTransform: 'uppercase',
+              lineHeight: 1.2,
+              bgcolor: isDark ? '#25262B' : '#F3F4F6',
+              color: isDark ? '#D1D5DB' : '#374151',
+              maxWidth: compact ? '100%' : 160,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}
           >
-            {task.title}
-          </Typography>
+            <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: statusDot, flexShrink: 0 }} />
+            {statusName}
+          </Box>
+          {priority && (
+            <Box
+              component="span"
+              sx={{
+                px: compact ? 0.75 : 1,
+                py: compact ? 0.375 : 0.5,
+                borderRadius: '6px',
+                fontSize: compact ? 10 : 11,
+                fontWeight: 700,
+                letterSpacing: '0.025em',
+                textTransform: 'uppercase',
+                lineHeight: 1.2,
+                color: isDark ? priority.darkColor : priority.color,
+                bgcolor: alpha(priority.color, isDark ? 0.1 : 0.08),
+              }}
+            >
+              {priority.label}
+            </Box>
+          )}
         </Stack>
 
-        {/* Action buttons — always visible on mobile */}
-        <Stack
-          direction="row"
-          spacing={0.5}
+        <IconButton
+          size="small"
+          aria-label="Tùy chọn"
+          onClick={(e) => { e.stopPropagation(); setMenuAnchor(e.currentTarget); }}
           sx={{
-            opacity: showActions ? 1 : 0,
-            transition: 'opacity 0.15s ease',
+            p: compact ? 0.25 : 0.5,
+            mt: compact ? -0.25 : 0,
+            color: '#9CA3AF',
             flexShrink: 0,
+            '&:hover': { color: isDark ? '#E5E7EB' : '#4B5563', bgcolor: 'transparent' },
           }}
         >
-          <Tooltip title="Chỉnh sửa" arrow placement="top">
-            <IconButton
-              size="small"
-              onClick={(e) => { e.stopPropagation(); onEdit(task); }}
-              sx={{
-                borderRadius: 1,
-                width: isMobile ? 28 : 24,
-                height: isMobile ? 28 : 24,
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                color: theme.palette.primary.main,
-                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
-              }}
-            >
-              <IconPencil size={isMobile ? 13 : 12} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Xóa" arrow placement="top">
-            <IconButton
-              size="small"
-              onClick={(e) => { e.stopPropagation(); onDelete(task); }}
-              sx={{
-                borderRadius: 1,
-                width: isMobile ? 28 : 24,
-                height: isMobile ? 28 : 24,
-                bgcolor: alpha(theme.palette.error.main, 0.1),
-                color: theme.palette.error.main,
-                '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.2) }
-              }}
-            >
-              <IconTrash size={isMobile ? 13 : 12} />
-            </IconButton>
-          </Tooltip>
-        </Stack>
+          <IconDots size={compact ? 16 : 18} />
+        </IconButton>
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={closeMenu}
+          onClick={(e) => e.stopPropagation()}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 0.5,
+                minWidth: 140,
+                borderRadius: '8px',
+                bgcolor: isDark ? '#25262B' : '#FFFFFF',
+                border: `1px solid ${isDark ? '#1F2937' : '#F3F4F6'}`,
+                boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                '& .MuiMenuItem-root': { fontSize: 14, fontWeight: 500, py: 1 },
+                '& .MuiListItemIcon-root': { minWidth: 26 },
+              },
+            },
+          }}
+        >
+          <MenuItem onClick={() => { closeMenu(); onEdit(task); }}>
+            <ListItemIcon><IconPencil size={14} /></ListItemIcon>
+            Chỉnh sửa
+          </MenuItem>
+          <MenuItem
+            onClick={() => { closeMenu(); onDelete(task); }}
+            sx={{ color: '#DC2626', '&:hover': { bgcolor: alpha('#EF4444', 0.08) } }}
+          >
+            <ListItemIcon sx={{ color: 'inherit' }}><IconTrash size={14} /></ListItemIcon>
+            Xóa
+          </MenuItem>
+        </Menu>
       </Stack>
 
-      {/* Status Row */}
-      <Typography
-        variant="caption"
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0.5,
-          fontWeight: 600,
-          color: statusColor,
-          mb: isMobile ? 1 : 1.5,
-          fontFamily: 'monospace',
-          textTransform: 'uppercase',
-          fontSize: isMobile ? '0.65rem' : '0.7rem',
-        }}
-      >
-        <IconCircle size={8} fill={statusColor} /> {statusName}
-      </Typography>
-
-      {/* Description */}
-      {task.description && !isMobile && (
+      {/* Body: Title & Description */}
+      <Stack spacing={compact ? 0.5 : 0.75} sx={{ mt: compact ? 0 : 0.5 }}>
         <Typography
-          variant="body2"
+          component="h4"
           sx={{
-            mb: 2,
-            lineHeight: 1.5,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            color: isCompleted ? 'text.disabled' : 'text.secondary',
-          }}
-        >
-          {task.description}
-        </Typography>
-      )}
-
-      {/* On mobile: description shortened to 1 line */}
-      {task.description && isMobile && (
-        <Typography
-          variant="caption"
-          sx={{
-            display: '-webkit-box',
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            color: isCompleted ? 'text.disabled' : 'text.secondary',
-            mb: 1,
-            lineHeight: 1.4,
-          }}
-        >
-          {task.description}
-        </Typography>
-      )}
-
-      {/* Footer Row: Priority + Assignee */}
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        spacing={1}
-        sx={{
-          mt: 'auto',
-          pt: isMobile ? 0.75 : 1,
-          borderTop: `1px dashed ${alpha(theme.palette.divider, 0.6)}`
-        }}
-      >
-        <Chip
-          size="small"
-          label={priority.label.toUpperCase()}
-          sx={{
-            bgcolor: priority.bg,
-            color: priority.color,
-            borderRadius: 1,
+            fontSize: compact ? 13 : isMobile ? 14 : 15,
             fontWeight: 700,
-            fontSize: isMobile ? '0.68rem' : '0.65rem',
-            letterSpacing: '0.05em',
-            height: isMobile ? 24 : 22,
-            border: `1px solid ${alpha(priority.color, 0.3)}`,
-            '& .MuiChip-label': { px: isMobile ? 1.2 : 1 }
+            lineHeight: compact ? 1.35 : 1.375,
+            ...(compact && {
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }),
+            color: isCompleted ? muted : isDark ? '#F3F4F6' : '#111827',
+            textDecoration: isCompleted ? 'line-through' : 'none',
+            wordBreak: 'break-word',
           }}
-        />
-
-        {task.assignee && (
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <IconUser size={12} color={theme.palette.text.secondary} />
-            <Typography
-              variant="caption"
-              sx={{
-                fontWeight: 600,
-                maxWidth: isMobile ? 90 : 80,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                color: 'text.secondary',
-                textTransform: 'uppercase',
-                letterSpacing: '0.02em',
-                fontSize: '0.65rem',
-              }}
-            >
-              {task.assignee}
-            </Typography>
-          </Stack>
+        >
+          {task.title}
+        </Typography>
+        {task.description && (
+          <Typography
+            sx={{
+              fontSize: compact ? 12 : isMobile ? 13 : 14,
+              lineHeight: compact ? 1.5 : 1.625,
+              color: muted,
+              display: '-webkit-box',
+              WebkitLineClamp: isMobile ? 1 : 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {task.description}
+          </Typography>
         )}
       </Stack>
+
+      {/* Footer: Meta details & Assignee */}
+      {(dateLabel || isCompleted || task.assignee) && (
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ mt: compact ? 0.25 : 0.5, pt: compact ? 1 : 2, borderTop: `1px solid ${subtleBorder}` }}
+        >
+          <Stack direction="row" alignItems="center" spacing={compact ? 1 : 1.75} sx={{ fontSize: compact ? 11 : 12, fontWeight: 500, color: muted, minWidth: 0 }}>
+            {dateLabel && (
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <IconCalendar size={compact ? 12 : 14} color="#9CA3AF" />
+                <span>{dateLabel}</span>
+              </Stack>
+            )}
+            {isCompleted && (
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <IconCircleCheck size={compact ? 12 : 14} color="#22C55E" />
+                {!compact && <span>Xong</span>}
+              </Stack>
+            )}
+          </Stack>
+
+          {task.assignee && (
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ ml: compact ? 1 : 2, minWidth: 0, flexShrink: 0 }}>
+              {!compact && (
+              <Typography
+                sx={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: muted,
+                  maxWidth: 90,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {task.assignee}
+              </Typography>
+              )}
+              <Tooltip title={task.assignee} arrow disableHoverListener={!compact}>
+              <Avatar
+                sx={{
+                  width: compact ? 22 : 28,
+                  height: compact ? 22 : 28,
+                  fontSize: compact ? 9 : 11,
+                  fontWeight: 700,
+                  bgcolor: alpha(theme.palette.primary.main, isDark ? 0.25 : 0.12),
+                  color: 'primary.main',
+                  border: `2px solid ${isDark ? '#1A1B1E' : '#FFFFFF'}`,
+                  boxShadow: `0 0 0 1px ${isDark ? '#1F2937' : '#F3F4F6'}`,
+                }}
+              >
+                {getInitials(task.assignee)}
+              </Avatar>
+              </Tooltip>
+            </Stack>
+          )}
+        </Stack>
+      )}
     </Box>
   );
 };
