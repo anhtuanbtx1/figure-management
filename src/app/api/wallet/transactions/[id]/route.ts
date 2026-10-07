@@ -4,13 +4,13 @@ import sql from 'mssql';
 
 export const dynamic = 'force-dynamic';
 
-
 // GET /api/wallet/transactions/[id] - Get single transaction
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: any }
 ) {
-  const { id } = await params;
+  const resolvedParams = await Promise.resolve(params);
+  const id = resolvedParams?.id;
   try {
     console.log(`💳 Fetching wallet transaction: ${id}`);
 
@@ -51,7 +51,7 @@ export async function GET(
       data: {
         id: transaction.id,
         type: transaction.type,
-        amount: parseFloat(transaction.amount),
+        amount: parseFloat(transaction.amount || 0),
         description: transaction.description,
         categoryId: transaction.categoryId,
         categoryName: transaction.categoryName,
@@ -79,9 +79,10 @@ export async function GET(
 // PUT /api/wallet/transactions/[id] - Update existing transaction
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: any }
 ) {
-  const { id } = await params;
+  const resolvedParams = await Promise.resolve(params);
+  const id = resolvedParams?.id;
   try {
     console.log(`💳 Updating wallet transaction: ${id}`);
 
@@ -89,7 +90,7 @@ export async function PUT(
     const { type, amount, description, categoryId, transactionDate, status } = body;
 
     // Validate required fields
-    if (!type || !amount || !description || !categoryId) {
+    if (!type || amount === undefined || !description || !categoryId) {
       return NextResponse.json({
         success: false,
         message: 'Type, amount, description, and categoryId are required',
@@ -113,6 +114,9 @@ export async function PUT(
       }, { status: 404 });
     }
 
+    const parsedDate = transactionDate && !isNaN(new Date(transactionDate).getTime()) ? new Date(transactionDate) : new Date();
+    const parsedAmount = Math.abs(parseFloat(amount) || 0);
+
     // Update transaction
     const updateQuery = `
       UPDATE ManagementStore.dbo.WalletTransactions
@@ -129,10 +133,10 @@ export async function PUT(
     await executeQuery(updateQuery, {
       id: { type: sql.NVarChar, value: id },
       type: { type: sql.NVarChar, value: type },
-      amount: { type: sql.Decimal, value: parseFloat(amount) },
-      description: { type: sql.NText, value: description },
+      amount: { type: sql.Decimal, value: parsedAmount },
+      description: { type: sql.NVarChar, value: description },
       categoryId: { type: sql.NVarChar, value: categoryId },
-      transactionDate: { type: sql.DateTime, value: transactionDate ? new Date(transactionDate) : new Date() },
+      transactionDate: { type: sql.DateTime, value: parsedDate },
       status: { type: sql.NVarChar, value: status || 'Hoàn thành' }
     });
 
@@ -166,7 +170,7 @@ export async function PUT(
       data: {
         id: transaction.id,
         type: transaction.type,
-        amount: parseFloat(transaction.amount),
+        amount: parseFloat(transaction.amount || 0),
         description: transaction.description,
         categoryId: transaction.categoryId,
         categoryName: transaction.categoryName,
@@ -193,9 +197,10 @@ export async function PUT(
 // DELETE /api/wallet/transactions/[id] - Delete transaction
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: any }
 ) {
-  const { id } = await params;
+  const resolvedParams = await Promise.resolve(params);
+  const id = resolvedParams?.id;
   try {
     console.log(`💳 Deleting wallet transaction: ${id}`);
 

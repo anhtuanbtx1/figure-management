@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import sql from 'mssql';
 
 export const dynamic = 'force-dynamic';
-
 
 // POST /api/wallet/transactions/bulk-delete
 // Body: { ids: string[] }
@@ -20,16 +20,16 @@ export async function POST(request: NextRequest) {
     const params: Record<string, any> = {};
     const placeholders = ids.map((id, idx) => {
       const key = `id${idx}`;
-      params[key] = id;
+      params[key] = { type: sql.NVarChar, value: id };
       return `@${key}`;
     }).join(', ');
 
-    const sql = `
+    const deleteSql = `
       DELETE FROM ManagementStore.dbo.WalletTransactions
       WHERE Id IN (${placeholders})
     `;
 
-    await executeQuery(sql, params);
+    await executeQuery(deleteSql, params);
 
     return NextResponse.json({ success: true, message: `Deleted ${ids.length} transactions` });
   } catch (error) {
@@ -37,4 +37,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'Failed to bulk delete transactions' }, { status: 500 });
   }
 }
-

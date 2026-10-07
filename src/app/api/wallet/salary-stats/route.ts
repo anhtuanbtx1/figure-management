@@ -235,7 +235,7 @@ export async function GET(request: NextRequest) {
         },
         recentSalaries: recentSalaries.map(salary => ({
           id: salary.id,
-          amount: parseFloat(salary.amount),
+          amount: parseFloat(salary.amount || 0),
           description: salary.description,
           transactionDate: salary.transactionDate,
           status: salary.status

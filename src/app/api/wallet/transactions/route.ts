@@ -28,34 +28,40 @@ export async function GET(request: NextRequest) {
     let whereConditions = ['t.IsActive = 1'];
     let queryParams: any = {};
 
-    if (search) {
+    if (search && search.trim() !== '') {
       whereConditions.push('(t.Description LIKE @search OR t.Type LIKE @search OR c.Name LIKE @search)');
-      queryParams.search = { type: sql.NVarChar, value: `%${search}%` };
+      queryParams.search = { type: sql.NVarChar, value: `%${search.trim()}%` };
     }
 
-    if (type) {
+    if (type && type.trim() !== '' && type !== 'undefined' && type !== 'null') {
       whereConditions.push('t.Type = @type');
-      queryParams.type = { type: sql.NVarChar, value: type };
+      queryParams.type = { type: sql.NVarChar, value: type.trim() };
     }
 
-    if (categoryId) {
+    if (categoryId && categoryId.trim() !== '' && categoryId !== 'undefined' && categoryId !== 'null') {
       whereConditions.push('t.CategoryId = @categoryId');
-      queryParams.categoryId = { type: sql.NVarChar, value: categoryId };
+      queryParams.categoryId = { type: sql.NVarChar, value: categoryId.trim() };
     }
 
-    if (status) {
+    if (status && status.trim() !== '' && status !== 'undefined' && status !== 'null') {
       whereConditions.push('t.Status = @status');
-      queryParams.status = { type: sql.NVarChar, value: status };
+      queryParams.status = { type: sql.NVarChar, value: status.trim() };
     }
 
-    if (dateFrom) {
-      whereConditions.push('t.TransactionDate >= @dateFrom');
-      queryParams.dateFrom = { type: sql.DateTime, value: new Date(dateFrom) };
+    if (dateFrom && dateFrom !== 'undefined' && dateFrom !== 'null') {
+      const parsedDateFrom = new Date(dateFrom);
+      if (!isNaN(parsedDateFrom.getTime())) {
+        whereConditions.push('t.TransactionDate >= @dateFrom');
+        queryParams.dateFrom = { type: sql.DateTime, value: parsedDateFrom };
+      }
     }
 
-    if (dateTo) {
-      whereConditions.push('t.TransactionDate <= @dateTo');
-      queryParams.dateTo = { type: sql.DateTime, value: new Date(dateTo) };
+    if (dateTo && dateTo !== 'undefined' && dateTo !== 'null') {
+      const parsedDateTo = new Date(dateTo);
+      if (!isNaN(parsedDateTo.getTime())) {
+        whereConditions.push('t.TransactionDate <= @dateTo');
+        queryParams.dateTo = { type: sql.DateTime, value: parsedDateTo };
+      }
     }
 
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
@@ -193,13 +199,16 @@ export async function POST(request: Request) {
       VALUES (@id, @type, @amount, @description, @categoryId, @transactionDate, @status, @createdAt, 1)
     `;
 
+    const parsedDate = transactionDate && !isNaN(new Date(transactionDate).getTime()) ? new Date(transactionDate) : now;
+    const parsedAmount = Math.abs(parseFloat(amount) || 0);
+
     await executeQuery(insertQuery, {
       id: { type: sql.NVarChar, value: id },
       type: { type: sql.NVarChar, value: type },
-      amount: { type: sql.Decimal, value: parseFloat(amount) },
-      description: { type: sql.NText, value: description },
+      amount: { type: sql.Decimal, value: parsedAmount },
+      description: { type: sql.NVarChar, value: description },
       categoryId: { type: sql.NVarChar, value: categoryId },
-      transactionDate: { type: sql.DateTime, value: transactionDate ? new Date(transactionDate) : now },
+      transactionDate: { type: sql.DateTime, value: parsedDate },
       status: { type: sql.NVarChar, value: status || 'Hoàn thành' },
       createdAt: { type: sql.DateTime, value: now }
     });

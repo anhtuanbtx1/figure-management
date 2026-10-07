@@ -13,9 +13,29 @@ export async function GET(request: NextRequest) {
     // Parse query parameters for comprehensive filtering
     const { searchParams } = new URL(request.url);
 
-    // Date range parameters
-    const dateFrom = searchParams.get('dateFrom') || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-    const dateTo = searchParams.get('dateTo') || new Date().toISOString();
+    // Date range parameters - validate safely to prevent Invalid Date
+    const rawDateFrom = searchParams.get('dateFrom');
+    const rawDateTo = searchParams.get('dateTo');
+
+    let parsedDateFrom: Date;
+    let parsedDateTo: Date;
+
+    if (rawDateFrom && rawDateFrom !== 'undefined' && rawDateFrom !== 'null' && !isNaN(new Date(rawDateFrom).getTime())) {
+      parsedDateFrom = new Date(rawDateFrom);
+    } else {
+      const now = new Date();
+      parsedDateFrom = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    }
+
+    if (rawDateTo && rawDateTo !== 'undefined' && rawDateTo !== 'null' && !isNaN(new Date(rawDateTo).getTime())) {
+      parsedDateTo = new Date(rawDateTo);
+    } else {
+      const now = new Date();
+      parsedDateTo = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    }
+
+    const dateFrom = parsedDateFrom.toISOString();
+    const dateTo = parsedDateTo.toISOString();
 
     // Additional filter parameters
     const categoryId = searchParams.get('categoryId');
@@ -42,31 +62,26 @@ export async function GET(request: NextRequest) {
 
     // Date range filtering
     whereConditions.push(`t.TransactionDate >= @dateFrom`);
-    queryParams.dateFrom = { type: sql.DateTime, value: new Date(dateFrom) };
+    queryParams.dateFrom = { type: sql.DateTime, value: parsedDateFrom };
     whereConditions.push(`t.TransactionDate <= @dateTo`);
-    queryParams.dateTo = { type: sql.DateTime, value: new Date(dateTo) };
+    queryParams.dateTo = { type: sql.DateTime, value: parsedDateTo };
 
-    // Category filtering
-    if (categoryId) {
-      const parsedCategoryId = parseInt(categoryId, 10);
-      if (!isNaN(parsedCategoryId)) {
-        whereConditions.push(`t.CategoryId = @categoryId`);
-        queryParams.categoryId = { type: sql.Int, value: parsedCategoryId };
-      } else {
-        console.warn(`⚠️ Invalid categoryId: ${categoryId}. Skipping category filter.`);
-      }
+    // Category filtering (CategoryId is NVARCHAR like 'cat-luong')
+    if (categoryId && categoryId.trim() !== '' && categoryId !== 'undefined' && categoryId !== 'null') {
+      whereConditions.push(`t.CategoryId = @categoryId`);
+      queryParams.categoryId = { type: sql.NVarChar, value: categoryId.trim() };
     }
 
     // Transaction type filtering
-    if (transactionType) {
+    if (transactionType && transactionType.trim() !== '' && transactionType !== 'undefined' && transactionType !== 'null') {
       whereConditions.push(`t.Type = @transactionType`);
-      queryParams.transactionType = { type: sql.NVarChar, value: transactionType };
+      queryParams.transactionType = { type: sql.NVarChar, value: transactionType.trim() };
     }
 
     // Status filtering
-    if (status) {
+    if (status && status.trim() !== '' && status !== 'undefined' && status !== 'null') {
       whereConditions.push(`t.Status = @status`);
-      queryParams.status = { type: sql.NVarChar, value: status };
+      queryParams.status = { type: sql.NVarChar, value: status.trim() };
     }
 
     const whereClause = whereConditions.join(' AND ');
@@ -165,8 +180,8 @@ export async function GET(request: NextRequest) {
     const monthlyTrendQuery = `
       SELECT 
         FORMAT(TransactionDate, 'yyyy-MM') as month,
-        SUM(CASE WHEN Type = 'Thu nhập' THEN Amount ELSE 0 END) as income,
-        SUM(CASE WHEN Type = 'Chi tiêu' THEN ABS(Amount) ELSE 0 END) as expense,
+        SUM(CASE WHEN Type LIKE N'%Thu nhập%' THEN Amount ELSE 0 END) as income,
+        SUM(CASE WHEN Type LIKE N'%Chi tiêu%' OR Type LIKE N'%Chuyển khoản%' THEN ABS(Amount) ELSE 0 END) as expense,
         COUNT(*) as transactionCount
       FROM ManagementStore.dbo.WalletTransactions
       WHERE IsActive = 1
@@ -216,9 +231,9 @@ export async function GET(request: NextRequest) {
           totalIncome: parseFloat(balance.totalIncome || 0),
           totalExpense: parseFloat(balance.totalExpense || 0),
           netBalance: parseFloat(balance.netBalance || 0),
-          totalTransactions: parseInt(balance.totalTransactions || 0),
-          pendingTransactions: parseInt(balance.pendingTransactions || 0),
-          completedTransactions: parseInt(balance.completedTransactions || 0)
+          totalTransactions: Number(balance.totalTransactions || 0),
+          pendingTransactions: Number(balance.pendingTransactions || 0),
+          completedTransactions: Number(balance.completedTransactions || 0)
         },
 
         // Applied filters
@@ -235,11 +250,11 @@ export async function GET(request: NextRequest) {
         // Transaction type statistics
         typeStats: typeStats.map(stat => ({
           type: stat.Type,
-          count: parseInt(stat.count),
+          count: Number(stat.count || 0),
           totalAmount: parseFloat(stat.totalAmount || 0),
           avgAmount: parseFloat(stat.avgAmount || 0),
-          completedCount: parseInt(stat.completedCount || 0),
-          pendingCount: parseInt(stat.pendingCount || 0),
+          completedCount: Number(stat.completedCount || 0),
+          pendingCount: Number(stat.pendingCount || 0),
           completedAmount: parseFloat(stat.completedAmount || 0)
         })),
 
@@ -249,17 +264,17 @@ export async function GET(request: NextRequest) {
           categoryName: cat.categoryName,
           categoryType: cat.categoryType,
           categoryColor: cat.categoryColor,
-          transactionCount: parseInt(cat.transactionCount),
+          transactionCount: Number(cat.transactionCount || 0),
           totalAmount: parseFloat(cat.totalAmount || 0),
           avgAmount: parseFloat(cat.avgAmount || 0),
-          completedCount: parseInt(cat.completedCount || 0),
-          pendingCount: parseInt(cat.pendingCount || 0),
+          completedCount: Number(cat.completedCount || 0),
+          pendingCount: Number(cat.pendingCount || 0),
           completedAmount: parseFloat(cat.completedAmount || 0)
         })),
         recentTransactions: recentTransactions.map(txn => ({
           id: txn.id,
           type: txn.type,
-          amount: parseFloat(txn.amount),
+          amount: parseFloat(txn.amount || 0),
           description: txn.description,
           categoryName: txn.categoryName,
           categoryColor: txn.categoryColor,
@@ -271,26 +286,26 @@ export async function GET(request: NextRequest) {
           month: trend.month,
           income: parseFloat(trend.income || 0),
           expense: parseFloat(trend.expense || 0),
-          transactionCount: parseInt(trend.transactionCount || 0),
+          transactionCount: Number(trend.transactionCount || 0),
           net: parseFloat(trend.income || 0) - parseFloat(trend.expense || 0)
         })),
 
         // Date range comparison statistics
         dateRangeComparison: {
           weekly: {
-            thisWeek: parseInt(dateRangeStats[0]?.thisWeekCount || 0),
-            lastWeek: parseInt(dateRangeStats[0]?.lastWeekCount || 0),
-            change: parseInt(dateRangeStats[0]?.thisWeekCount || 0) - parseInt(dateRangeStats[0]?.lastWeekCount || 0)
+            thisWeek: Number(dateRangeStats[0]?.thisWeekCount || 0),
+            lastWeek: Number(dateRangeStats[0]?.lastWeekCount || 0),
+            change: Number(dateRangeStats[0]?.thisWeekCount || 0) - Number(dateRangeStats[0]?.lastWeekCount || 0)
           },
           monthly: {
-            thisMonth: parseInt(dateRangeStats[0]?.thisMonthCount || 0),
-            lastMonth: parseInt(dateRangeStats[0]?.lastMonthCount || 0),
-            change: parseInt(dateRangeStats[0]?.thisMonthCount || 0) - parseInt(dateRangeStats[0]?.lastMonthCount || 0)
+            thisMonth: Number(dateRangeStats[0]?.thisMonthCount || 0),
+            lastMonth: Number(dateRangeStats[0]?.lastMonthCount || 0),
+            change: Number(dateRangeStats[0]?.thisMonthCount || 0) - Number(dateRangeStats[0]?.lastMonthCount || 0)
           },
           yearly: {
-            thisYear: parseInt(dateRangeStats[0]?.thisYearCount || 0),
-            lastYear: parseInt(dateRangeStats[0]?.lastYearCount || 0),
-            change: parseInt(dateRangeStats[0]?.thisYearCount || 0) - parseInt(dateRangeStats[0]?.lastYearCount || 0)
+            thisYear: Number(dateRangeStats[0]?.thisYearCount || 0),
+            lastYear: Number(dateRangeStats[0]?.lastYearCount || 0),
+            change: Number(dateRangeStats[0]?.thisYearCount || 0) - Number(dateRangeStats[0]?.lastYearCount || 0)
           }
         },
 

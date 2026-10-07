@@ -1,4 +1,4 @@
-﻿import sql from 'mssql';
+import sql from 'mssql';
 
 // Database configuration
 const config: sql.config = {
@@ -8,7 +8,7 @@ const config: sql.config = {
   password: process.env.DB_PASSWORD || 'Ots@123',
   options: {
     encrypt: false,
-    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
+    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE !== 'false',
     enableArithAbort: true,
   },
   pool: {
@@ -21,20 +21,63 @@ const config: sql.config = {
 };
 
 let pool: sql.ConnectionPool | null = null;
+let isConnecting = false;
+const MAX_CONNECTION_RETRIES = 3;
 
 // Renamed from getConnection and exported
 export async function getDbPool(): Promise<sql.ConnectionPool> {
   if (pool && pool.connected) {
     return pool;
   }
-  try {
-    pool = await new sql.ConnectionPool(config).connect();
-    console.log('âœ… Connected to SQL Server database');
-    return pool;
-  } catch (error) {
-    console.error('âŒ Database connection failed:', error);
-    throw new Error(`Database connection failed: ${error}`);
+
+  // If already connecting, wait for existing connection attempt
+  if (isConnecting) {
+    while (isConnecting) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    if (pool && pool.connected) {
+      return pool;
+    }
   }
+
+  isConnecting = true;
+
+  // Close existing pool if not connected
+  if (pool && !pool.connected) {
+    try {
+      await pool.close();
+    } catch {
+      // Ignore close error on dead pool
+    }
+    pool = null;
+  }
+
+  let lastError: any = null;
+  for (let attempt = 1; attempt <= MAX_CONNECTION_RETRIES; attempt++) {
+    try {
+      const newPool = new sql.ConnectionPool(config);
+      newPool.on('error', (err) => {
+        console.error('❌ SQL Server connection pool error:', err);
+        pool = null;
+      });
+
+      await newPool.connect();
+      pool = newPool;
+      isConnecting = false;
+      console.log(`✅ Connected to SQL Server database (attempt ${attempt})`);
+      return pool;
+    } catch (error) {
+      lastError = error;
+      console.warn(`⚠️ Connection attempt ${attempt}/${MAX_CONNECTION_RETRIES} failed:`, error);
+      if (attempt < MAX_CONNECTION_RETRIES) {
+        await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+      }
+    }
+  }
+
+  isConnecting = false;
+  console.error('❌ Database connection failed after retries:', lastError);
+  throw new Error(`Database connection failed: ${lastError?.message || lastError}`);
 }
 
 // Exported
@@ -43,34 +86,39 @@ export async function closeConnection(): Promise<void> {
     if (pool) {
       await pool.close();
       pool = null;
-      console.log('âœ… Database connection closed');
+      console.log('✅ Database connection closed');
     }
   } catch (error) {
-    console.error('âŒ Error closing database connection:', error);
+    console.error('❌ Error closing database connection:', error);
+  }
+}
+
+// Helper to bind input parameters to an mssql Request safely
+function bindParams(request: sql.Request, params?: Record<string, any>) {
+  if (!params) return;
+  for (const key in params) {
+    if (Object.prototype.hasOwnProperty.call(params, key)) {
+      const param = params[key];
+      if (param !== undefined && param !== null) {
+        if (typeof param === 'object' && 'type' in param && 'value' !== undefined) {
+          request.input(key, param.type, param.value);
+        } else {
+          // Direct primitive or date
+          request.input(key, param);
+        }
+      }
+    }
   }
 }
 
 // Exported, and internal call updated to getDbPool
 export async function executeQuery<T = any>(
   query: string,
-  params?: Record<string, { type: any; value: any }>
+  params?: Record<string, any>
 ): Promise<T[]> {
-  const connection = await getDbPool(); // Updated internal call
+  const connection = await getDbPool();
   const request = connection.request();
-
-  if (params) {
-    for (const key in params) {
-      if (Object.prototype.hasOwnProperty.call(params, key)) {
-        const param = params[key];
-        if (param && param.type && param.value !== undefined) {
-          request.input(key, param.type, param.value);
-        } else {
-          console.warn(`Skipping invalid parameter: ${key}`);
-        }
-      }
-    }
-  }
-
+  bindParams(request, params);
   const result = await request.query(query);
   return result.recordset;
 }
@@ -78,24 +126,11 @@ export async function executeQuery<T = any>(
 // Exported, and internal call updated to getDbPool
 export async function executeStoredProcedure<T = any>(
   procedureName: string,
-  params?: Record<string, { type: any; value: any }>
+  params?: Record<string, any>
 ): Promise<T[]> {
-  const connection = await getDbPool(); // Updated internal call
+  const connection = await getDbPool();
   const request = connection.request();
-
-  if (params) {
-    for (const key in params) {
-      if (Object.prototype.hasOwnProperty.call(params, key)) {
-        const param = params[key];
-        if (param && param.type && param.value !== undefined) {
-          request.input(key, param.type, param.value);
-        } else {
-          console.warn(`Skipping invalid parameter for stored procedure ${procedureName}: ${key}`);
-        }
-      }
-    }
-  }
-
+  bindParams(request, params);
   const result = await request.execute(procedureName);
   return result.recordset;
 }
