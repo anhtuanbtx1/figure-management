@@ -566,7 +566,7 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
             </Typography>
           </Box>
         </Box>
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: { xs: 1.5, sm: 3 } }}>
 
           {/* Filters Bar */}
           {commonFilters ? (
@@ -811,8 +811,158 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
             </Box>
           )}
 
-          {/* Transactions Table */}
-          <TableContainer component={Paper} variant="outlined">
+          {/* Mobile transaction cards */}
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 1,
+                px: 0.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Checkbox
+                  size="small"
+                  indeterminate={partiallySelected}
+                  checked={allSelected}
+                  onChange={(e) => toggleSelectAll(e.target.checked)}
+                  inputProps={{ 'aria-label': 'Chọn tất cả giao dịch trên trang' }}
+                />
+                <Typography variant="body2" fontWeight={600}>
+                  Chọn tất cả
+                </Typography>
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                {transactions.length} / {totalItems} giao dịch
+              </Typography>
+            </Box>
+
+            {loading ? (
+              <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
+                <Typography color="text.secondary">Đang tải...</Typography>
+              </Paper>
+            ) : transactions.length === 0 ? (
+              <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
+                <Typography color="text.secondary">Không có giao dịch nào</Typography>
+              </Paper>
+            ) : (
+              <Box sx={{ display: 'grid', gap: 1.25 }}>
+                {transactions.map((transaction) => (
+                  <Paper
+                    key={transaction.id}
+                    variant="outlined"
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      borderColor: selectedIds.includes(transaction.id)
+                        ? 'primary.main'
+                        : 'divider',
+                      bgcolor: selectedIds.includes(transaction.id)
+                        ? 'rgba(46, 125, 50, 0.04)'
+                        : 'background.paper',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                      <Checkbox
+                        size="small"
+                        sx={{ p: 0.25, mt: 0.1 }}
+                        checked={selectedIds.includes(transaction.id)}
+                        onChange={(e) => toggleSelectOne(transaction, e.target.checked)}
+                        inputProps={{ 'aria-label': `Chọn giao dịch ${transaction.description}` }}
+                      />
+
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            justifyContent: 'space-between',
+                            gap: 1,
+                          }}
+                        >
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography variant="body2" fontWeight={700} sx={{ wordBreak: 'break-word' }}>
+                              {transaction.description}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(transaction.transactionDate).toLocaleDateString('vi-VN')}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ flexShrink: 0, textAlign: 'right' }}>
+                            {formatAmount(transaction.amount, transaction.type)}
+                          </Box>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1, flexWrap: 'wrap' }}>
+                          <Chip
+                            icon={getTypeIcon(transaction.type) || undefined}
+                            label={transaction.type}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: '0.72rem' }}
+                          />
+                          <Chip
+                            label={transaction.categoryName}
+                            size="small"
+                            sx={{
+                              backgroundColor: transaction.categoryColor + '20',
+                              color: transaction.categoryColor,
+                              border: `1px solid ${transaction.categoryColor}40`,
+                              fontSize: '0.72rem',
+                            }}
+                          />
+                          <Chip
+                            label={transaction.status}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: '0.72rem' }}
+                          />
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: 0.5,
+                            mt: 1,
+                            pt: 0.75,
+                            borderTop: '1px solid',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          <IconButton
+                            size="small"
+                            onClick={() => openEditDialog(transaction)}
+                            color="primary"
+                            aria-label={`Sửa giao dịch ${transaction.description}`}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDelete(transaction)}
+                            color="error"
+                            aria-label={`Xóa giao dịch ${transaction.description}`}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Paper>
+                ))}
+              </Box>
+            )}
+          </Box>
+
+          {/* Desktop and tablet transactions table */}
+          <TableContainer
+            component={Paper}
+            variant="outlined"
+            sx={{ display: { xs: 'none', md: 'block' }, overflowX: 'auto' }}
+          >
             <Table size="small">
               {/* Bulk Delete Confirmation Dialog */}
               <Dialog open={showBulkDeleteDialog} onClose={closeBulkDelete} maxWidth="xs" fullWidth>
@@ -990,6 +1140,20 @@ const WalletTransactionList: React.FC<WalletTransactionListProps> = ({
             rowsPerPage={itemsPerPage}
             onRowsPerPageChange={handleRowsPerPageChange}
             rowsPerPageOptions={[5, 10, 20, 50]}
+            sx={{
+              mt: 1,
+              '& .MuiTablePagination-toolbar': {
+                px: { xs: 0, sm: 2 },
+                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                justifyContent: { xs: 'center', sm: 'flex-end' },
+              },
+              '& .MuiTablePagination-spacer': {
+                display: { xs: 'none', sm: 'block' },
+              },
+              '& .MuiTablePagination-selectLabel': {
+                ml: { xs: 0, sm: 2 },
+              },
+            }}
             labelRowsPerPage="Số dòng mỗi trang:"
             labelDisplayedRows={({ from, to, count }) =>
               `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
