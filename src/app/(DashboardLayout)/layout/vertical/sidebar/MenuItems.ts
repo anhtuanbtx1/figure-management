@@ -14,6 +14,7 @@ import {
   IconBox,
   IconDatabase,
   IconSettings,
+  IconPill,
 } from "@tabler/icons-react";
 
 export interface MenuitemsType {
@@ -49,6 +50,7 @@ export const IconMap: { [key: string]: any } = {
   IconBox,
   IconDatabase,
   IconSettings,
+  IconPill,
 };
 
 // Helper function to map iconName string back to Icon React Component
@@ -126,6 +128,22 @@ const Menuitems: MenuitemsType[] = [
         icon: IconPoint,
         iconName: "IconPoint",
         href: "/apps/laundry-orders/reports",
+      },
+    ],
+  },
+  {
+    id: "medical-catalog-group",
+    title: "Danh mục",
+    icon: IconNotebook,
+    iconName: "IconNotebook",
+    href: "/apps/medical-catalog",
+    children: [
+      {
+        id: "medical-catalog",
+        title: "Bệnh & thuốc",
+        icon: IconPill,
+        iconName: "IconPill",
+        href: "/apps/medical-catalog",
       },
     ],
   },
